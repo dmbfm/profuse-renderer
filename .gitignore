@@ -1,0 +1,7 @@
+build
+*.sublime-workspace
+.vs
+*.o
+*.wasm
+*.bc
+*.exe

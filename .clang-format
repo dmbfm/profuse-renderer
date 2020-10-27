@@ -1,0 +1,23 @@
+BasedOnStyle: LLVM
+IndentWidth: 4
+ColumnLimit: 120
+Cpp11BracedListStyle: false 
+AllowShortFunctionsOnASingleLine: Empty 
+AllowAllArgumentsOnNextLine: true 
+AllowAllConstructorInitializersOnNextLine: true 
+BreakBeforeBraces: Custom
+BraceWrapping:
+    AfterStruct: true
+    AfterEnum: true
+    AfterControlStatement: false
+    AfterFunction: true
+    AfterUnion: true
+
+BinPackArguments: true
+BinPackParameters: true
+AlignAfterOpenBracket: true 
+AlignConsecutiveMacros: true 
+AlignConsecutiveAssignments: true 
+AlignEscapedNewlines: true
+AlignOperands: true 
+

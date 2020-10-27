@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>wasm-test</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+<h1>Skeleton!</h1>
+<script type="module">
+    async function init() {
+    let memory = new WebAssembly.Memory({ initial: 100 });
+    let u32, u8;
+
+    function decodeStringAt(pointer)
+    {
+    let p = pointer;
+    let cc;
+    let str = "";
+
+    while(cc = u8[p++])
+    {
+        str += String.fromCharCode(cc);
+    }
+        return str;
+    }
+    
+    let env = {
+        memory,
+        print_number: (pointer) => {
+            let number = u32[pointer/4];
+            console.log("print_numer", number, pointer, hb);
+        },
+        tg__wasm_js_get_memory_size: () => memory.buffer.byteLength,
+        tg__wasm_js_print_line: p => { console.log(decodeStringAt(p));  },
+        tg__wasm_js_sqrtf: x => Math.sqrt(x),
+        wasm_error: p => { throw(decodeStringAt(p)); }
+    }
+
+    const { instance } = await WebAssembly.instantiateStreaming(fetch("./main.wasm"), { env });
+
+    u32 = new Uint32Array(memory.buffer);
+    u8 = new Uint8Array(memory.buffer);
+
+    instance.exports.main();
+
+    console.log(instance.exports.malloc(100));
+    console.log(instance.exports.malloc(100));
+    }
+
+    init();
+</script>
+</body>
+</html>
