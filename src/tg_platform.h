@@ -8,18 +8,25 @@ typedef struct tgp_Platform
 
 } tgp_Platform;
 
-/**
- *
- * Web Platform
- *
- */
+// =========================================================================
+//
+//  Web Platform Implementation
+//
+// =========================================================================
+
 #ifdef __wasm__
 
-// Imported js methods
+// ---------------------
+// Imported js functions
+// ---------------------
+
 extern void tg__wasm_js_print_line(char *s);
 
 
-// Memory
+
+// ------------------
+// WebAssembly memory
+// ------------------
 extern u8 __heap_base;
 extern u32 tg_wasm_js_get_memory_size(void);
 
@@ -54,6 +61,9 @@ void tg_wasm_free(void *p) {}
 #define tg_realloc(a,s) tg__wasm_request_memory((s))
 #define tg_free tg_wasm_free
 
+// -------------------------
+// WebAssembly print/console
+// -------------------------
 #define tgp__wasm_printf(s, ...)                           \
     {                                               \
         char buffer[256];                           \
@@ -67,11 +77,15 @@ void tg_wasm_free(void *p) {}
 
 #endif
 
-/**
- *
- * Win32 Platform
- *
- */
+// =========================================================================
+//
+//  Win32 Platform Implementation
+//
+// =========================================================================
+
+#define TG_WIN32_PRINT_TO_DEBUG_CONSOLE
+#define TG_WIN32_PRINT_TO_DEBUG_CONSOLE_AND_STDOUT
+
 
 #if defined(_WIN32) && defined(TG_WIN32_PRINT_TO_DEBUG_CONSOLE)
 #define __tg_print_256(fmt, ...)                         \

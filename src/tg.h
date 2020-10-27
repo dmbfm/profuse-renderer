@@ -1,11 +1,6 @@
 #if !defined(__TG_H__)
 #define __TG_H__
 
-// Configuration macros
-#define TG_WIN32_PRINT_TO_DEBUG_CONSOLE
-#define TG_WIN32_PRINT_TO_DEBUG_CONSOLE_AND_STDOUT
-#define TG_WIN32_INCLUDE_HEADERS
-
 // Includes
 #ifndef __wasm__
 #include <malloc.h>
@@ -16,11 +11,10 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#if defined(_WIN32) && defined(TG_WIN32_INCLUDE_HEADERS)
+#if defined(_WIN32)
 #include <Windows.h>
 #endif
 
-// TODO: Move this to platform layer?
 #if defined(TG_DEBUG)
 #ifndef tg_assert
 #define tg_assert assert //tg_debug_assert(exp)
@@ -257,6 +251,7 @@ int tg__snprintf(char *s, size_t n, const char *fmt, ...)
             tg__SnprintfFlags flags;
             tg__SnprintfWidth width;
             int precision;
+
             tg__snprintf_parse_flags(&flags, (char **)&fmt);
             tg__snprintf_parse_width(&width, (char **)&fmt);
 
