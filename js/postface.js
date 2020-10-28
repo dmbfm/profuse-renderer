@@ -4,7 +4,7 @@ let env = {
 };
 
 let instance;
-WebAssembly.instantiateStreaming(fetch("./main.wasm"), { env }).then(
+WebAssembly.instantiateStreaming(fetch("build/main.wasm"), { env }).then(
   (result) => {
         instance = result.instance;
         u32 = new Uint32Array(memory.buffer);

@@ -31,8 +31,8 @@ print("")
 print("Imported JS functions:")
 print(functions)
 
-with open("tg_wasm_js.js", "w") as file:
-    with open("preface.js", "r") as preface:
+with open("build/tg_wasm_js.js", "w") as file:
+    with open("js/preface.js", "r") as preface:
         contents = preface.read()
         print(f"{contents}", file=file)
     print(f"{js}", file=file)
@@ -40,9 +40,9 @@ with open("tg_wasm_js.js", "w") as file:
     for func in functions:
         print(f"    {func},\n", file=file)
     print(f"}}\n", file=file)
-    with open("postface.js", "r") as preface:
+    with open("js/postface.js", "r") as preface:
         contents = preface.read()
         print(f"{contents}", file=file)
 
 
-print("\nGenerated 'tg_wasm_js.js' file.")
+print("\nGenerated 'build/tg_wasm_js.js' file.")
