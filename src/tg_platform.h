@@ -3,13 +3,31 @@
 
 #include "tg_types.h"
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
+struct tgp_PlatformData;
+
 typedef struct tgp_Platform
 {
     struct
     {
-        char *name;
+        char *title;
+
+        u32 x;
+        u32 y;
+        u32 width;
+        u32 height;
+
     } window;
+
+    struct tgp_PlatformData *data;
+
 } tgp_Platform;
+
+boolean tgp_init_window(tgp_Platform *p);
+boolean tgp_init(tgp_Platform *p);
 
 int tg_main(int argc, char *argv[]);
 
@@ -33,11 +51,12 @@ int tg_main(int argc, char *argv[]);
 // ---------------------
 
 extern u32 tg__wasm_js_get_memory_size(void);
+
 // clang-format off
 TG_WASM_JS(
-function tg__wasm_js_get_memory_size() {
-    return memory.buffer.byteLength;
-}
+    function tg__wasm_js_get_memory_size() {
+        return memory.buffer.byteLength;
+    }
 )
 // clang-format on
 
@@ -75,6 +94,11 @@ void tg_wasm_free(void *p) {}
 #define tg_malloc        tg__wasm_request_memory
 #define tg_realloc(a, s) tg__wasm_request_memory((s))
 #define tg_free          tg_wasm_free
+
+struct tgp_PlatformData
+{
+    u32 dummy;
+};
 
 export int main(int argc, char **argv)
 {
@@ -121,12 +145,71 @@ export int main(int argc, char **argv)
 #endif // TG_WIN32_PRINT_TO_DEBUG_CONSOLE_AND_STDOUT
 #endif // TG_WIN32_PRINT_TO_DEBUG_CONSOLE
 
+struct tgp_PlatformData
+{
+    HWND window_handle;
+};
+
+struct tgp_PlatformData tgp__win32_platform_data;
 
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, int nCmdShow)
 {
     tg_main(0, 0);
 
     return 0;
+}
+
+LRESULT CALLBACK tg_window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    return DefWindowProc(hwnd, uMsg, wParam, lParam);
+}
+
+boolean tgp_init_window(tgp_Platform *p)
+{
+    if (!p->window.title) {
+        p->window.title = "Toilet Games Platform Window";
+    }
+
+    if (p->window.width == 0) {
+        p->window.width = 800;
+    }
+
+    if (p->window.height == 0) {
+        p->window.height = 600;
+    }
+
+    WNDCLASS wc = { 0 };
+
+    wc.style         = CS_VREDRAW | CS_HREDRAW;
+    wc.lpfnWndProc   = tg_window_proc;
+    wc.hInstance     = GetModuleHandleA(0);
+    wc.lpszClassName = "TGPCLASSNAME";
+
+    RegisterClass(&wc);
+
+    HWND wh = CreateWindow(wc.lpszClassName, p->window.title, WS_OVERLAPPEDWINDOW, p->window.x, p->window.y,
+                           p->window.width, p->window.height, 0, 0, wc.hInstance, 0);
+    if (!wh) {
+        return false;
+    }
+
+    p->data->window_handle = wh;
+
+    ShowWindow(wh, SW_SHOW);
+
+    return true;
+}
+
+boolean tgp_init(tgp_Platform *p)
+{
+    p->data = &tgp__win32_platform_data;
+
+    if (!tgp_init_window(p))
+    {
+        return false;
+    }
+
+    return true;
 }
 
 #endif // _WIN32

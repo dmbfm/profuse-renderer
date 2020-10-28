@@ -1,4 +1,4 @@
-#define __TG_RUN_TESTS
+//#define __TG_RUN_TESTS
 
 #ifndef __wasm__
 #include <stdio.h>
@@ -17,6 +17,9 @@ int tg_main(int argc, char *argv[])
     tg_h_test();
     tg_math_test();
 #endif
+
+    tgp_Platform p = { 0 };
+    tgp_init(&p);
 
     return 0;
 }
