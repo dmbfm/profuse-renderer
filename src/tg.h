@@ -20,6 +20,7 @@
 #define tg_assert assert //tg_debug_assert(exp)
 #endif
 #else
+#undef tg_assert
 #define tg_assert(exp)
 #endif
 
@@ -69,7 +70,7 @@ void tg__snprintf_add_string(tg__SnprintfHead *head, char *s)
 
 void tg__snprintf_add_uint(tg__SnprintfHead *head, unsigned int value)
 {
-    int ndigits;
+    int ndigits = 0;
     int x = value;
     while (x) {
         x /= 10;
@@ -240,10 +241,9 @@ int tg__snprintf(char *s, size_t n, const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-    char *dst = s;
     char c;
 
-    tg__SnprintfHead head = { n - 1, 0, s };
+    tg__SnprintfHead head = { (uint32_t) (n - 1), 0, s };
 
     while ((c = *fmt++)) {
         switch (c) {
@@ -285,7 +285,7 @@ int tg__snprintf(char *s, size_t n, const char *fmt, ...)
             } break;
             case 'f': {
                 double value = va_arg(args, double);
-                tg__snprintf_add_float(&head, value, precision);
+                tg__snprintf_add_float(&head, (float) value, precision);
             }
             default:
                 break;
@@ -304,6 +304,9 @@ int tg__snprintf(char *s, size_t n, const char *fmt, ...)
 }
 
 // Wrap stdlib methods
+
+// TODO: this is just weird... the best thing todo would be to move snprintf implementation to 
+// it's own file (maybe a tg_lib.h with stdlib sketchy replacements)
 #ifndef tg_snprintf
 #define tg_snprintf tg__snprintf
 #endif

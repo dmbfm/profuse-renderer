@@ -16,6 +16,11 @@ f32 tgm_sqrtf(float x) { return _mm_cvtss_f32(_mm_sqrt_ss(_mm_set_ss(x))); }
 #else
 #ifdef __wasm__
 extern float tg_wasm_js_sqrtf(f32 x);
+
+TG_WASM_JS(
+function tg_wasm_js_sqrtf(x) { return Math.sqrt(x); }
+)
+
 #define tgm_sqrtf tg_wasm_js_sqrtf
 #else
 #include <math.h>

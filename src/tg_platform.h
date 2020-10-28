@@ -5,7 +5,10 @@
 
 typedef struct tgp_Platform
 {
-
+    struct
+    {
+        char *name;
+    } window;
 } tgp_Platform;
 
 // =========================================================================
@@ -14,21 +17,33 @@ typedef struct tgp_Platform
 //
 // =========================================================================
 
+
+// TODO: dumb shit so clangd works inside __wasm__ blocks for autocompletion
+#define __wasm__
+#ifdef _WIN32
+#undef __wasm__
+#endif
+
 #ifdef __wasm__
+#include "tg_wasm.h"
 
 // ---------------------
 // Imported js functions
 // ---------------------
 
-extern void tg__wasm_js_print_line(char *s);
-
-
+extern u32 tg__wasm_js_get_memory_size(void);
+// clang-format off
+TG_WASM_JS(
+function tg__wasm_js_get_memory_size() {
+    return memory.buffer.byteLength;
+}
+)
+// clang-format on
 
 // ------------------
 // WebAssembly memory
 // ------------------
 extern u8 __heap_base;
-extern u32 tg_wasm_js_get_memory_size(void);
 
 typedef struct WasmMemory
 {
@@ -39,20 +54,19 @@ typedef struct WasmMemory
 
 static WasmMemory memory;
 
-export_named(malloc) 
-void *tg__wasm_request_memory(int size)
+// export_named(malloc)
+export_named(malloc) void *tg__wasm_request_memory(int size)
 {
-    u64 current_mem_size = tg_wasm_js_get_memory_size();
-    memory.base = (u32) &__heap_base;
+    u64 current_mem_size = tg__wasm_js_get_memory_size();
+    memory.base          = (u32)&__heap_base;
 
-    if (memory.current + size > current_mem_size)
-    {
+    if (memory.current + size > current_mem_size) {
         return 0;
     }
 
     memory.current += size;
 
-    return (void *) (memory.base - size + memory.current);
+    return (void *)(memory.base - size + memory.current);
 }
 
 void tg_wasm_free(void *p) {}
@@ -61,21 +75,8 @@ void tg_wasm_free(void *p) {}
 #define tg_realloc(a,s) tg__wasm_request_memory((s))
 #define tg_free tg_wasm_free
 
-// -------------------------
-// WebAssembly print/console
-// -------------------------
-#define tgp__wasm_printf(s, ...)                           \
-    {                                               \
-        char buffer[256];                           \
-        tg_snprintf(buffer, 256, s, ##__VA_ARGS__); \
-        tg_wasm_js_print_line((buffer));            \
-    }
 #endif
 
-// Define stuff that will be consumed by tg.h and others. 
-#define tg_printf tgp_wasm_printf
-
-#endif
 
 // =========================================================================
 //
@@ -111,5 +112,7 @@ void tg_wasm_free(void *p) {}
 #define tg_printf __tg_print_256
 #endif
 
+
+#endif
 
 #endif
