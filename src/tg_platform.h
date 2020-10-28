@@ -11,12 +11,13 @@ typedef struct tgp_Platform
     } window;
 } tgp_Platform;
 
+int tg_main(int argc, char *argv[]);
+
 // =========================================================================
 //
 //  Web Platform Implementation
 //
 // =========================================================================
-
 
 // TODO: dumb shit so clangd works inside __wasm__ blocks for autocompletion
 #define __wasm__
@@ -71,12 +72,16 @@ export_named(malloc) void *tg__wasm_request_memory(int size)
 
 void tg_wasm_free(void *p) {}
 
-#define tg_malloc tg__wasm_request_memory
-#define tg_realloc(a,s) tg__wasm_request_memory((s))
-#define tg_free tg_wasm_free
+#define tg_malloc        tg__wasm_request_memory
+#define tg_realloc(a, s) tg__wasm_request_memory((s))
+#define tg_free          tg_wasm_free
+
+export int main(int argc, char **argv)
+{
+    tg_main(argc, argv);
+}
 
 #endif
-
 
 // =========================================================================
 //
@@ -87,8 +92,11 @@ void tg_wasm_free(void *p) {}
 #define TG_WIN32_PRINT_TO_DEBUG_CONSOLE
 #define TG_WIN32_PRINT_TO_DEBUG_CONSOLE_AND_STDOUT
 
+#ifdef _WIN32
 
-#if defined(_WIN32) && defined(TG_WIN32_PRINT_TO_DEBUG_CONSOLE)
+#include <Windows.h>
+
+#ifdef TG_WIN32_PRINT_TO_DEBUG_CONSOLE
 #define __tg_print_256(fmt, ...)                         \
     {                                                    \
         char buffer[256];                                \
@@ -110,9 +118,17 @@ void tg_wasm_free(void *p) {}
     __tg_print_256(fmt, ##__VA_ARGS__);
 #else
 #define tg_printf __tg_print_256
-#endif
+#endif // TG_WIN32_PRINT_TO_DEBUG_CONSOLE_AND_STDOUT
+#endif // TG_WIN32_PRINT_TO_DEBUG_CONSOLE
 
 
-#endif
+int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, int nCmdShow)
+{
+    tg_main(0, 0);
 
-#endif
+    return 0;
+}
+
+#endif // _WIN32
+
+#endif // _TG_PLATFORM_H

@@ -11,11 +11,13 @@
 #include "tg.h"
 #include "tg_math.h"
 
-export int main()
+int tg_main(int argc, char *argv[])
 {
 #ifdef __TG_RUN_TESTS
     tg_h_test();
     tg_math_test();
 #endif
+
+    return 0;
 }
 
