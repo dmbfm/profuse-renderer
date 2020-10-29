@@ -70,6 +70,11 @@ void tg__snprintf_add_string(tg__SnprintfHead *head, char *s)
 
 void tg__snprintf_add_uint(tg__SnprintfHead *head, unsigned int value)
 {
+    if (value == 0) {
+        tg__snprintf_add_char(head, '0');
+        return;
+    }
+
     int ndigits = 0;
     int x = value;
     while (x) {

@@ -3,16 +3,20 @@ let env = {
   ...funcs,
 };
 
-let instance;
 WebAssembly.instantiateStreaming(fetch("build/main.wasm"), { env }).then(
   (result) => {
-        instance = result.instance;
-        u32 = new Uint32Array(memory.buffer);
-        u8 = new Uint8Array(memory.buffer);
+    instance = result.instance;
+    u32 = new Uint32Array(memory.buffer);
+    u8 = new Uint8Array(memory.buffer);
+    f64 = new Float64Array(memory.buffer);
 
-        instance.exports.main();
+    instance.exports.main();
 
-        console.log(instance.exports.malloc(100));
-        console.log(instance.exports.malloc(100));
+    //mouseXptr = instance.exports.malloc(4);
+    //mouseYptr = instance.exports.malloc(4);
+
+    //console.log(instance.exports.malloc(100));
+    //console.log(instance.exports.malloc(100));
+
   }
 );
