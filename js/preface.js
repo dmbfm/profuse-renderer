@@ -1,9 +1,30 @@
 let memory = new WebAssembly.Memory({ initial: 1000 });
-let u32, u8, f64;
+let i32, u32, u8, f64;
 let canvas, ctx;
 let mouseX, mouseY;
 let mouseXptr, mouseYptr;
 let instance;
+
+let glPrograms = [];
+let glShaders = [];
+
+function addShader(shader) {
+    glShaders.push(shader);
+    return glShaders.length;
+}
+
+function getShader(id) {
+    return glShaders[id];
+}
+
+function addProgram(program) {
+    glPrograms.push(program);
+    return glPrograms.length;
+}
+
+function getProgram(id) {
+    return glPrograms[id];
+}
 
 function initCanvasEventListeners() {
     if (!canvas) {
@@ -29,4 +50,12 @@ function decodeStringAt(pointer) {
     str += String.fromCharCode(cc);
   }
   return str;
+}
+
+function encodeStringAt(str, ptr, len) {
+    for (let i = 0; i < str.length && i < len; i++) {
+        u8[ptr++] = str.charCodeAt(i);
+    }
+    
+    u8[ptr] = 0;
 }

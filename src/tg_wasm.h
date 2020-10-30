@@ -22,11 +22,22 @@ function tg__wasm_js_print_line(p) {
 
 // clang-format on
 
+export void *memset(void *ptr, int value, size_t num)
+{
+    unsigned char *p = (unsigned char *) ptr;
+    while(num) {
+        *p++ = (unsigned char) value;
+        num--;
+    }
+
+    return ptr;
+}
+
 #define tg_printf(...) \
 {\
-    char buf[256]; \
-    tg_snprintf(buf, 256, ##__VA_ARGS__);\
-    tg__wasm_js_print_line(buf);\
+    char __tg_printf_buf##__LINE__[256]; \
+    tg_snprintf(__tg_printf_buf##__LINE__, 256, ##__VA_ARGS__);\
+    tg__wasm_js_print_line(__tg_printf_buf##__LINE__);\
 }
 #endif
 

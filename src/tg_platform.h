@@ -10,11 +10,11 @@
 typedef struct tgp_Win32
 {
 #ifdef _WIN32
-   HWND window_handle; 
-   HDC device_context;
+    HWND window_handle;
+    HDC device_context;
 #else
     char _;
-#endif //_WIN32
+#endif
 } tgp_Win32;
 
 typedef struct tgp_Wasm
@@ -121,6 +121,7 @@ void tg_wasm_free(void *p) {}
 #define tg_realloc(a, s) tg__wasm_request_memory((s))
 #define tg_free          tg_wasm_free
 
+// clang-format off
 extern void tg__wasm_js_init_canvas(int width, int height);
 TG_WASM_JS(
         function tg__wasm_js_init_canvas(width, height) {
@@ -151,12 +152,13 @@ TG_WASM_JS(
         }
 )
 
-void tg__wasm_js_now(double *out);
+extern void tg__wasm_js_now(double *out);
 TG_WASM_JS(
         function tg__wasm_js_now(ptr) {
             f64[ptr/8] = performance.now();
         }
 )
+// clang-format on
 
 export int main(int argc, char **argv)
 {
@@ -173,12 +175,12 @@ void tgp_start_loop(tgp_Platform *p)
     tg__wasm_js_start_main_loop(p);
 }
 
-void tgp_pull_mouse(tgp_Platform *p) {
-// TODO: I gues we.... don't need? just direct memory access in the js event listener 
+void tgp_pull_mouse(tgp_Platform *p)
+{
+    // TODO: I gues we.... don't need? just direct memory access in the js event listener
 }
 
-void tgp_pull(tgp_Platform *p) {
-}
+void tgp_pull(tgp_Platform *p) {}
 
 void tgp_push(tgp_Platform *p) {}
 
@@ -229,12 +231,10 @@ boolean tgp_init(tgp_Platform *p)
 
 void tgp_start_loop(tgp_Platform *p)
 {
-    while (!p->should_quit)
-    {
+    while (!p->should_quit) {
         tgp_frame(p);
     }
 }
-
 
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, int nCmdShow)
 {
@@ -250,14 +250,22 @@ LRESULT CALLBACK tg_window_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
     LRESULT result = 0;
 
     switch (msg) {
+
     case WM_DESTROY: {
         p->should_quit = true;
     } break;
+
     case WM_SIZE: {
-                      p->window.width = LOWORD(lParam);
-                      p->window.height = HIWORD(lParam);
-                      p->window.resized = true;
-                  }
+        p->window.width   = LOWORD(lParam);
+        p->window.height  = HIWORD(lParam);
+        p->window.resized = true;
+    } break;
+
+    case WM_MOUSEMOVE: {
+        p->mouse.x = LOWORD(lParam);
+        p->mouse.y = HIWORD(lParam);
+    } break;
+
     default: {
         result = DefWindowProc(hwnd, msg, wParam, lParam);
     } break;
@@ -314,8 +322,7 @@ boolean tgp_init_window(tgp_Platform *p)
 
 boolean tgp_init(tgp_Platform *p)
 {
-    if (!tgp_init_window(p))
-    {
+    if (!tgp_init_window(p)) {
         return false;
     }
 
@@ -326,8 +333,7 @@ void tgp_pull(tgp_Platform *p)
 {
     p->window.resized = false;
     MSG msg;
-    while(PeekMessage(&msg, p->win32.window_handle, 0, 0, PM_REMOVE) != 0)
-    {
+    while (PeekMessage(&msg, p->win32.window_handle, 0, 0, PM_REMOVE) != 0) {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }

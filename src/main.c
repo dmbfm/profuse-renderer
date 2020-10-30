@@ -22,9 +22,23 @@ void tgp_frame(tgp_Platform *p)
 
     glClearColor(r, g, 0, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
+
+    glDrawArrays(GL_TRIANGLES, 0, 3);
     
     tgp_push(p);
 }
+
+char *vshader = "#version 130\n"
+ "const vec4 vertices[3]=vec4[3](vec4(-0.5,-0.5,0,1),vec4(0,0.5,0,1),vec4(0.5,-0.5,0,1));\n"
+ "void main() {\n"
+ "gl_Position = vertices[gl_VertexID];\n"
+ "}"
+ ;
+
+ char *fshader = "#version 130\n"
+  "void main() {\n"
+  "gl_FragColor = vec4(1.0f, 0, 0, 1.0f);\n"
+  "}";
 
 tgp_Platform p = { .window = { .width = 1024, .height = 768, .x = 100, .y = 100, .title = "Profuse-renderer" } };
 int tg_main(int argc, char *argv[])
@@ -43,6 +57,9 @@ int tg_main(int argc, char *argv[])
 #elif defined(__wasm__)
     DEBUG_tgl_init(); 
 #endif
+
+    GLuint program = DEBUG_tgl_create_program(vshader, fshader);
+    glUseProgram(program);
 
     tgp_start_loop(&p);
 
