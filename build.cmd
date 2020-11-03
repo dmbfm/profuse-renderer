@@ -57,7 +57,7 @@ SET OUTPUT_DIR=.\build
 SET OUTPUT=%EXECUTABLE_NAME%
 SET INPUT=%SOURCE_DIR%\main.c
 SET CC=cl
-SET CFLAGS=/Wall /wd4204 /wd4711 /wd5045 /wd4221 /wd4668 /wd4255 /wd4820 /wd4100 /wd4710 /wd4706 /wd4201 /fp:fast /GS- /Zo -D_CRT_SECURE_NO_DEPRECATE  user32.lib gdi32.lib opengl32.lib
+SET CFLAGS=/Wall /wd4204 /wd4711 /wd5045 /wd4221 /wd4668 /wd4255 /wd4820 /wd4100 /wd4710 /wd4706 /wd4201 /fp:fast /GS- /Zo -D_CRT_SECURE_NO_DEPRECATE  user32.lib gdi32.lib
 
 :: clang-cl is compatible with cl.exe 
 IF "%COMPILER%"=="CLANGCL" (

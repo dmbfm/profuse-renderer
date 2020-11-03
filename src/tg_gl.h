@@ -7,13 +7,21 @@
 #define TGLAPI
 #endif
 
-#define ARGS(X) X
+#include <stdint.h>
+
+// TODO: Remove these externs which are only here to make clangd happy.
+#ifndef tg_printf
+extern int printf(const char *,...);
+#define tg_printf printf
+#endif
+
+#ifndef tg_assert
+#define tg_assert(exp) if (!(exp)) { abort(); }
+#endif
 
 #define TGLFUNC(ret, name, ...)                 \
-    typedef ret TGLAPI tgl_##name(__VA_ARGS__); \
+    typedef ret (TGLAPI tgl_##name)(__VA_ARGS__); \
     tgl_##name *name;
-
-#include <stdint.h>
 
 typedef float GLfloat;
 typedef unsigned int GLbitfield;
@@ -22,6 +30,17 @@ typedef unsigned int GLenum;
 typedef int GLsizei;
 typedef int GLint;
 typedef char GLchar;
+typedef uint8_t GLubyte;
+typedef uint8_t GLboolean;
+
+#ifdef _WIN64
+typedef signed long long int TGLintptr; 
+#else
+typedef signed long int TGLintptr;
+#endif
+
+typedef TGLintptr GLsizeiptr; 
+typedef TGLintptr GLintptr;
 
 TGLFUNC(void, glClearColor, GLfloat r, GLfloat g, GLfloat b, GLfloat a);
 TGLFUNC(void, glClear, GLbitfield mask);
@@ -41,59 +60,123 @@ TGLFUNC(void, glDrawArrays, GLenum mode, GLint first, GLsizei count);
 TGLFUNC(void, glGenVertexArrays, GLsizei n, GLuint *arrays);
 TGLFUNC(void, glBindVertexArray, GLuint vertexArray);
 TGLFUNC(void, glVertexAttrib1f, GLuint index, GLfloat v0);
+TGLFUNC(const GLubyte*, glGetString, GLenum name);
+TGLFUNC(void, glGetIntegerv, GLenum pname, GLint *params);
+TGLFUNC(void, glGenBuffers, GLsizei n, GLuint *buffers);
+TGLFUNC(void, glBindBuffer, GLenum target, GLuint buffer);
+TGLFUNC(void, glBufferData, GLenum target, GLsizeiptr size, const void *data, GLenum usage);
+TGLFUNC(void, glBufferSubData, GLenum target, GLintptr offset, GLsizeiptr size, const void *data);
+TGLFUNC(void, glVertexAttribPointer, GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer);
+TGLFUNC(void, glEnableVertexAttribArray, GLuint index);
+TGLFUNC(void, glDisableVertexAttribArray, GLuint index);
 
-#define GL_DEPTH_BUFFER_BIT    0x00000100
-#define GL_STENCIL_BUFFER_BIT  0x00000400
-#define GL_COLOR_BUFFER_BIT    0x00004000
-#define GL_FALSE               0
-#define GL_TRUE                1
-#define GL_POINTS              0x0000
-#define GL_LINES               0x0001
-#define GL_LINE_LOOP           0x0002
-#define GL_LINE_STRIP          0x0003
-#define GL_TRIANGLES           0x0004
-#define GL_TRIANGLE_STRIP      0x0005
-#define GL_TRIANGLE_FAN        0x0006
-#define GL_QUADS               0x0007
-#define GL_NEVER               0x0200
-#define GL_LESS                0x0201
-#define GL_EQUAL               0x0202
-#define GL_LEQUAL              0x0203
-#define GL_GREATER             0x0204
-#define GL_NOTEQUAL            0x0205
-#define GL_GEQUAL              0x0206
-#define GL_ALWAYS              0x0207
-#define GL_ZERO                0
-#define GL_ONE                 1
-#define GL_SRC_COLOR           0x0300
-#define GL_ONE_MINUS_SRC_COLOR 0x0301
-#define GL_SRC_ALPHA           0x0302
-#define GL_ONE_MINUS_SRC_ALPHA 0x0303
-#define GL_DST_ALPHA           0x0304
-#define GL_ONE_MINUS_DST_ALPHA 0x0305
-#define GL_DST_COLOR           0x0306
-#define GL_ONE_MINUS_DST_COLOR 0x0307
-#define GL_SRC_ALPHA_SATURATE  0x0308
-#define GL_NONE                0
-#define GL_FRONT_LEFT          0x0400
-#define GL_FRONT_RIGHT         0x0401
-#define GL_BACK_LEFT           0x0402
-#define GL_BACK_RIGHT          0x0403
-#define GL_FRONT               0x0404
-#define GL_BACK                0x0405
-#define GL_LEFT                0x0406
-#define GL_RIGHT               0x0407
-#define GL_FRONT_AND_BACK      0x0408
-#define GL_FRAGMENT_SHADER 0x8B30
-#define GL_VERTEX_SHADER 0x8B31
-#define GL_DELETE_STATUS 0x8B80
-#define GL_COMPILE_STATUS 0x8B81
-#define GL_LINK_STATUS 0x8B82
+#define GL_DEPTH_BUFFER_BIT                  0x00000100
+#define GL_STENCIL_BUFFER_BIT                0x00000400
+#define GL_COLOR_BUFFER_BIT                  0x00004000
+#define GL_FALSE                             0
+#define GL_TRUE                              1
+#define GL_POINTS                            0x0000
+#define GL_LINES                             0x0001
+#define GL_LINE_LOOP                         0x0002
+#define GL_LINE_STRIP                        0x0003
+#define GL_TRIANGLES                         0x0004
+#define GL_TRIANGLE_STRIP                    0x0005
+#define GL_TRIANGLE_FAN                      0x0006
+#define GL_QUADS                             0x0007
+#define GL_NEVER                             0x0200
+#define GL_LESS                              0x0201
+#define GL_EQUAL                             0x0202
+#define GL_LEQUAL                            0x0203
+#define GL_GREATER                           0x0204
+#define GL_NOTEQUAL                          0x0205
+#define GL_GEQUAL                            0x0206
+#define GL_ALWAYS                            0x0207
+#define GL_ZERO                              0
+#define GL_ONE                               1
+#define GL_SRC_COLOR                         0x0300
+#define GL_ONE_MINUS_SRC_COLOR               0x0301
+#define GL_SRC_ALPHA                         0x0302
+#define GL_ONE_MINUS_SRC_ALPHA               0x0303
+#define GL_DST_ALPHA                         0x0304
+#define GL_ONE_MINUS_DST_ALPHA               0x0305
+#define GL_DST_COLOR                         0x0306
+#define GL_ONE_MINUS_DST_COLOR               0x0307
+#define GL_SRC_ALPHA_SATURATE                0x0308
+#define GL_NONE                              0
+#define GL_FRONT_LEFT                        0x0400
+#define GL_FRONT_RIGHT                       0x0401
+#define GL_BACK_LEFT                         0x0402
+#define GL_BACK_RIGHT                        0x0403
+#define GL_FRONT                             0x0404
+#define GL_BACK                              0x0405
+#define GL_LEFT                              0x0406
+#define GL_RIGHT                             0x0407
+#define GL_FRONT_AND_BACK                    0x0408
+#define GL_FRAGMENT_SHADER                   0x8B30
+#define GL_VERTEX_SHADER                     0x8B31
+#define GL_DELETE_STATUS                     0x8B80
+#define GL_COMPILE_STATUS                    0x8B81
+#define GL_LINK_STATUS                       0x8B82
+#define GL_VERSION                           0x1F02
+#define GL_CONTEXT_PROFILE_MASK              0x9126
+#define GL_CONTEXT_CORE_PROFILE_BIT          0x00000001
+#define GL_CONTEXT_COMPATIBILITY_PROFILE_BIT 0x00000002
+#define GL_MAJOR_VERSION                     0x821B
+#define GL_MINOR_VERSION                     0x821C
+#define GL_STATIC_DRAW                       0x88E4
+#define GL_STATIC_READ                       0x88E5
+#define GL_STATIC_COPY                       0x88E6
+#define GL_ARRAY_BUFFER                      0x8892
+#define GL_ELEMENT_ARRAY_BUFFER              0x8893
+#define GL_DONT_CARE                         0x1100
+#define GL_FASTEST                           0x1101
+#define GL_NICEST                            0x1102
+#define GL_BYTE                              0x1400
+#define GL_UNSIGNED_BYTE                     0x1401
+#define GL_SHORT                             0x1402
+#define GL_UNSIGNED_SHORT                    0x1403
+#define GL_INT                               0x1404
+#define GL_UNSIGNED_INT                      0x1405
+#define GL_FLOAT                             0x1406
 
-// TODO: stick this memset somwhere for wasm compilations.
-// When you do stuff like char buff[256] = { 0 }; clang needs a memset to be defined.
-//
+typedef enum tgl_ContextProfileType 
+{
+    TGL_CONTEXT_PROFILE_CORE,
+    TGL_CONTEXT_PROFILE_COMPABILITY
+} tgl_ContextProfileType;
 
+typedef struct tgl_ContextInfo
+{
+    tgl_ContextProfileType profile_type;
+    int version_major;
+    int version_minor;
+} tgl_ContextInfo;
+
+void tgl_context_info_get(tgl_ContextInfo *info)
+{
+    int profilemaskv = 0;
+    glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &profilemaskv);
+
+    if (profilemaskv == GL_CONTEXT_CORE_PROFILE_BIT) {
+        info->profile_type = TGL_CONTEXT_PROFILE_CORE;
+    } else {
+        info->profile_type = TGL_CONTEXT_PROFILE_COMPABILITY;
+    }
+
+    glGetIntegerv(GL_MAJOR_VERSION, &info->version_major);
+    glGetIntegerv(GL_MINOR_VERSION, &info->version_minor);
+}
+
+void tgl_context_info_printf(tgl_ContextInfo *info)
+{
+    tg_printf("tgl_ContextInfo: ");
+    tg_printf("%d.%d ", info->version_major, info->version_minor);
+    if (info->profile_type == TGL_CONTEXT_PROFILE_CORE) {
+        tg_printf("(Core Profile)\n");
+    } else {
+        tg_printf("(Compability Profile)\n");
+    }
+}
 
 GLuint DEBUG_tgl_create_program(char *vshader, char *fshader)
 {
@@ -159,9 +242,104 @@ GLuint DEBUG_tgl_create_program(char *vshader, char *fshader)
 #include <Windows.h>
 #include <wingdi.h>
 
+TGLFUNC(HGLRC, tgl_wglCreateContext, HDC Arg1);
+TGLFUNC(PROC, tgl_wglGetProcAddress, LPCSTR Arg1);
+TGLFUNC(BOOL, tgl_wglDeleteContext, HGLRC Arg);
+TGLFUNC(BOOL, tgl_wglMakeCurrent, HDC Arg1, HGLRC Arg2);
+TGLFUNC(BOOL, wglChoosePixelFormatARB, HDC hdc, const int *piAttribIList, const FLOAT *pfAttribFList, UINT nMaxFormats, int *piFormats, UINT *nNumFormats);
+TGLFUNC(HGLRC, wglCreateContextAttribsARB, HDC hDC, HGLRC hshareContext, const int *attribList);
+
+#define WGL_NUMBER_PIXEL_FORMATS_ARB              0x2000
+#define WGL_DRAW_TO_WINDOW_ARB                    0x2001
+#define WGL_DRAW_TO_BITMAP_ARB                    0x2002
+#define WGL_ACCELERATION_ARB                      0x2003
+#define WGL_NEED_PALETTE_ARB                      0x2004
+#define WGL_NEED_SYSTEM_PALETTE_ARB               0x2005
+#define WGL_SWAP_LAYER_BUFFERS_ARB                0x2006
+#define WGL_SWAP_METHOD_ARB                       0x2007
+#define WGL_NUMBER_OVERLAYS_ARB                   0x2008
+#define WGL_NUMBER_UNDERLAYS_ARB                  0x2009
+#define WGL_TRANSPARENT_ARB                       0x200A
+#define WGL_TRANSPARENT_RED_VALUE_ARB             0x2037
+#define WGL_TRANSPARENT_GREEN_VALUE_ARB           0x2038
+#define WGL_TRANSPARENT_BLUE_VALUE_ARB            0x2039
+#define WGL_TRANSPARENT_ALPHA_VALUE_ARB           0x203A
+#define WGL_TRANSPARENT_INDEX_VALUE_ARB           0x203B
+#define WGL_SHARE_DEPTH_ARB                       0x200C
+#define WGL_SHARE_STENCIL_ARB                     0x200D
+#define WGL_SHARE_ACCUM_ARB                       0x200E
+#define WGL_SUPPORT_GDI_ARB                       0x200F
+#define WGL_SUPPORT_OPENGL_ARB                    0x2010
+#define WGL_DOUBLE_BUFFER_ARB                     0x2011
+#define WGL_STEREO_ARB                            0x2012
+#define WGL_PIXEL_TYPE_ARB                        0x2013
+#define WGL_COLOR_BITS_ARB                        0x2014
+#define WGL_RED_BITS_ARB                          0x2015
+#define WGL_RED_SHIFT_ARB                         0x2016
+#define WGL_GREEN_BITS_ARB                        0x2017
+#define WGL_GREEN_SHIFT_ARB                       0x2018
+#define WGL_BLUE_BITS_ARB                         0x2019
+#define WGL_BLUE_SHIFT_ARB                        0x201A
+#define WGL_ALPHA_BITS_ARB                        0x201B
+#define WGL_ALPHA_SHIFT_ARB                       0x201C
+#define WGL_ACCUM_BITS_ARB                        0x201D
+#define WGL_ACCUM_RED_BITS_ARB                    0x201E
+#define WGL_ACCUM_GREEN_BITS_ARB                  0x201F
+#define WGL_ACCUM_BLUE_BITS_ARB                   0x2020
+#define WGL_ACCUM_ALPHA_BITS_ARB                  0x2021
+#define WGL_DEPTH_BITS_ARB                        0x2022
+#define WGL_STENCIL_BITS_ARB                      0x2023
+#define WGL_AUX_BUFFERS_ARB                       0x2024
+#define WGL_NO_ACCELERATION_ARB                   0x2025
+#define WGL_GENERIC_ACCELERATION_ARB              0x2026
+#define WGL_FULL_ACCELERATION_ARB                 0x2027
+#define WGL_SWAP_EXCHANGE_ARB                     0x2028
+#define WGL_SWAP_COPY_ARB                         0x2029
+#define WGL_SWAP_UNDEFINED_ARB                    0x202A
+#define WGL_TYPE_RGBA_ARB                         0x202B
+#define WGL_TYPE_COLORINDEX_ARB                   0x202C
+#define WGL_SAMPLE_BUFFERS_ARB                    0x2041
+#define WGL_SAMPLES_ARB                           0x2042
+#define WGL_CONTEXT_MAJOR_VERSION_ARB             0x2091
+#define WGL_CONTEXT_MINOR_VERSION_ARB             0x2092
+#define WGL_CONTEXT_LAYER_PLANE_ARB               0x2093
+#define WGL_CONTEXT_FLAGS_ARB                     0x2094
+#define WGL_CONTEXT_PROFILE_MASK_ARB              0x9126
+#define WGL_CONTEXT_DEBUG_BIT_ARB                 0x0001
+#define WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB    0x0002
+#define WGL_CONTEXT_CORE_PROFILE_BIT_ARB          0x00000001
+#define WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
+#define ERROR_INVALID_VERSION_ARB                 0x2095
+#define ERROR_INVALID_PROFILE_ARB                 0x2096
+
+HGLRC tgl__win32_glcontext; 
+tgl_ContextInfo tgl__win32_context_info;
+
+void tgl__win32__init_wgl()
+{
+
+    HMODULE tgl__win32_opengl;
+
+    tgl__win32_opengl = LoadLibraryA("opengl32.dll");
+
+    tgl_wglGetProcAddress = (tgl_tgl_wglGetProcAddress *) GetProcAddress(tgl__win32_opengl, "wglGetProcAddress");
+    tgl_wglMakeCurrent = (tgl_tgl_wglMakeCurrent *) GetProcAddress(tgl__win32_opengl, "wglMakeCurrent");
+    tgl_wglCreateContext = (tgl_tgl_wglCreateContext *) GetProcAddress(tgl__win32_opengl, "wglCreateContext");
+    tgl_wglDeleteContext = (tgl_tgl_wglDeleteContext *) GetProcAddress(tgl__win32_opengl, "wglDeleteContext");
+
+    tg_assert(tgl_wglGetProcAddress);
+    tg_assert(tgl_wglMakeCurrent);
+    tg_assert(tgl_wglCreateContext);
+    tg_assert(tgl_wglDeleteContext);
+
+    if (tgl__win32_opengl) {
+        FreeLibrary(tgl__win32_opengl);
+    }
+}
+
 void *tgl__get_proc_adress(const char *name)
 {
-    void *p = (void *)wglGetProcAddress(name);
+    void *p = (void *)tgl_wglGetProcAddress(name);
     if (p == 0 || (p == (void *)0x1) || (p == (void *)0x2) || (p == (void *)0x3) || (p == (void *)-1)) {
         HMODULE module = LoadLibraryA("opengl32.dll");
         p              = (void *)GetProcAddress(module, name);
@@ -193,6 +371,15 @@ void DEBUG_tgl_init_function_pointers()
     TGL_GETPROC(glGenVertexArrays);
     TGL_GETPROC(glBindVertexArray);
     TGL_GETPROC(glVertexAttrib1f);
+    TGL_GETPROC(glGetString);
+    TGL_GETPROC(glGetIntegerv);
+    TGL_GETPROC(glGenBuffers);
+    TGL_GETPROC(glBindBuffer);
+    TGL_GETPROC(glBufferData);
+    TGL_GETPROC(glBufferSubData);
+    TGL_GETPROC(glVertexAttribPointer);
+    TGL_GETPROC(glEnableVertexAttribArray);
+    TGL_GETPROC(glDisableVertexAttribArray);
 
     tg_assert(glClear);
     tg_assert(glClearColor);
@@ -214,10 +401,37 @@ void DEBUG_tgl_init_function_pointers()
     tg_assert(glGenVertexArrays);
     tg_assert(glBindVertexArray);
     tg_assert(glVertexAttrib1f);
+    tg_assert(glGetString);
+    tg_assert(glGetIntegerv);
+    tg_assert(glGenBuffers);
+    tg_assert(glBindBuffer);
+    tg_assert(glBufferData);
+    tg_assert(glBufferSubData);
+    tg_assert(glVertexAttribPointer);
+    tg_assert(glEnableVertexAttribArray);
+    tg_assert(glDisableVertexAttribArray);
+
+
 }
 
-void DEBUG_tgl_init(HWND window_handle)
+int tgl__win32_init_wgl_extensions()
 {
+    // Create a temporary window
+    WNDCLASS wc = { .style         = CS_VREDRAW | CS_HREDRAW | CS_OWNDC,
+                    .lpfnWndProc   = DefWindowProc,
+                    .hInstance     = GetModuleHandleA(0),
+                    .lpszClassName = "TGPTEMPWINDOW" };
+
+    RegisterClass(&wc);
+
+    HWND window = CreateWindow(wc.lpszClassName, "TGPTEMPWINDOW", 0, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+                               CW_USEDEFAULT, 0, 0, wc.hInstance, 0);
+
+    if (!window) {
+        return 0;
+    }
+
+    HDC dummy_dc = GetDC(window);
 
     PIXELFORMATDESCRIPTOR pfd = { sizeof(PIXELFORMATDESCRIPTOR),
                                   1,
@@ -246,21 +460,88 @@ void DEBUG_tgl_init(HWND window_handle)
                                   0,
                                   0 };
 
-    HDC hdc = GetDC(window_handle);
-    int why = ChoosePixelFormat(hdc, &pfd);
-    SetPixelFormat(hdc, why, &pfd);
-    HGLRC glcontext = wglCreateContext(hdc);
+    int cpf = ChoosePixelFormat(dummy_dc, &pfd);
+    SetPixelFormat(dummy_dc, cpf, &pfd);
 
-    wglMakeCurrent(hdc, glcontext);
+    HGLRC glcontext = tgl_wglCreateContext(dummy_dc);
+
+    if (!glcontext) {
+        return -1;
+    }
+
+    tgl_wglMakeCurrent(dummy_dc, glcontext);
+
+    wglChoosePixelFormatARB    = (tgl_wglChoosePixelFormatARB *)tgl_wglGetProcAddress("wglChoosePixelFormatARB");
+    wglCreateContextAttribsARB = (tgl_wglCreateContextAttribsARB *)tgl_wglGetProcAddress("wglCreateContextAttribsARB");
+
+    tg_assert(wglChoosePixelFormatARB);
+    tg_assert(wglCreateContextAttribsARB);
+
+    tgl_wglMakeCurrent(dummy_dc, 0);
+    tgl_wglDeleteContext(glcontext);
+    ReleaseDC(window, dummy_dc);
+    DestroyWindow(window);
+
+    return 1;
+}
+
+void DEBUG_tgl_init(HWND window_handle)
+{
+    tgl__win32__init_wgl();
+
+    tgl__win32_init_wgl_extensions();
+
+    HDC hdc = GetDC(window_handle);
+
+    unsigned int pixelformatcount = 0;
+
+    int pixel_attribis[] = {
+        WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
+        WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
+        WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB,
+        WGL_DOUBLE_BUFFER_ARB, GL_TRUE,
+        WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
+        WGL_COLOR_BITS_ARB, 32,
+        WGL_DEPTH_BITS_ARB, 24,
+        WGL_STENCIL_BITS_ARB, 8,
+        WGL_SAMPLE_BUFFERS_ARB, 1,
+        WGL_SAMPLES_ARB, 8, // TODO: set this as an external option (among other suff).
+        0
+    };
+
+    int pixelformat;
+    wglChoosePixelFormatARB(hdc, pixel_attribis, 0, 1, &pixelformat, &pixelformatcount);
+    PIXELFORMATDESCRIPTOR pfd;
+    DescribePixelFormat(hdc, pixelformat, sizeof(pfd), &pfd);
+    SetPixelFormat(hdc, pixelformat, &pfd);
+
+    GLint contextattribs[] = {
+        WGL_CONTEXT_MAJOR_VERSION_ARB, 3,    
+        WGL_CONTEXT_MINOR_VERSION_ARB, 2,
+        WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+        0
+    };
+    tgl__win32_glcontext = wglCreateContextAttribsARB(hdc, 0, contextattribs);
+
+    tgl_wglMakeCurrent(hdc, tgl__win32_glcontext);
+
 
     DEBUG_tgl_init_function_pointers();
 
+    tgl_context_info_get(&tgl__win32_context_info);
+    tgl_context_info_printf(&tgl__win32_context_info);
+    
     glClearColor(1.0f, 0, 0, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     SwapBuffers(hdc);
 
-    // tg_printf("OpenGL Version: %s", glGetString(GL_VERSION));
+    tg_printf("OpenGL Version: %s", glGetString(GL_VERSION));
+}
+
+void DEBUG_tgl_shutdown()
+{
+    tgl_wglDeleteContext(tgl__win32_glcontext);
 }
 
 #elif defined(__wasm__)
