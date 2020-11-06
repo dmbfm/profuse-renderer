@@ -84,6 +84,7 @@ TG_WASM_JS(
         return memory.buffer.byteLength;
     }
 )
+
 // clang-format on
 
 // ------------------
@@ -160,7 +161,7 @@ TG_WASM_JS(
 )
 // clang-format on
 
-export int main(int argc, char **argv)
+export int main(int argc, char *argv[])
 {
     tg_main(argc, argv);
 }

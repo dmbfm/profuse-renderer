@@ -11,16 +11,19 @@
 
 // TODO: Remove these externs which are only here to make clangd happy.
 #ifndef tg_printf
-extern int printf(const char *,...);
+extern int printf(const char *, ...);
 #define tg_printf printf
 #endif
 
 #ifndef tg_assert
-#define tg_assert(exp) if (!(exp)) { abort(); }
+#define tg_assert(exp) \
+    if (!(exp)) {      \
+        abort();       \
+    }
 #endif
 
-#define TGLFUNC(ret, name, ...)                 \
-    typedef ret (TGLAPI tgl_##name)(__VA_ARGS__); \
+#define TGLFUNC(ret, name, ...)                  \
+    typedef ret(TGLAPI tgl_##name)(__VA_ARGS__); \
     tgl_##name *name;
 
 typedef float GLfloat;
@@ -34,12 +37,12 @@ typedef uint8_t GLubyte;
 typedef uint8_t GLboolean;
 
 #ifdef _WIN64
-typedef signed long long int TGLintptr; 
+typedef signed long long int TGLintptr;
 #else
 typedef signed long int TGLintptr;
 #endif
 
-typedef TGLintptr GLsizeiptr; 
+typedef TGLintptr GLsizeiptr;
 typedef TGLintptr GLintptr;
 
 TGLFUNC(void, glClearColor, GLfloat r, GLfloat g, GLfloat b, GLfloat a);
@@ -57,18 +60,21 @@ TGLFUNC(void, glGetProgramiv, GLuint program, GLenum pname, GLint *params);
 TGLFUNC(void, glGetProgramInfoLog, GLuint program, GLsizei bufSize, GLsizei *length, GLchar *infoLog);
 TGLFUNC(void, glUseProgram, GLuint program);
 TGLFUNC(void, glDrawArrays, GLenum mode, GLint first, GLsizei count);
+TGLFUNC(void, glDrawElements, GLenum mode, GLsizei count, GLenum type, void *indices);
 TGLFUNC(void, glGenVertexArrays, GLsizei n, GLuint *arrays);
 TGLFUNC(void, glBindVertexArray, GLuint vertexArray);
 TGLFUNC(void, glVertexAttrib1f, GLuint index, GLfloat v0);
-TGLFUNC(const GLubyte*, glGetString, GLenum name);
+TGLFUNC(const GLubyte *, glGetString, GLenum name);
 TGLFUNC(void, glGetIntegerv, GLenum pname, GLint *params);
 TGLFUNC(void, glGenBuffers, GLsizei n, GLuint *buffers);
 TGLFUNC(void, glBindBuffer, GLenum target, GLuint buffer);
 TGLFUNC(void, glBufferData, GLenum target, GLsizeiptr size, const void *data, GLenum usage);
 TGLFUNC(void, glBufferSubData, GLenum target, GLintptr offset, GLsizeiptr size, const void *data);
-TGLFUNC(void, glVertexAttribPointer, GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer);
+TGLFUNC(void, glVertexAttribPointer, GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride,
+        const void *pointer);
 TGLFUNC(void, glEnableVertexAttribArray, GLuint index);
 TGLFUNC(void, glDisableVertexAttribArray, GLuint index);
+TGLFUNC(void, glEnable, GLenum name);
 
 #define GL_DEPTH_BUFFER_BIT                  0x00000100
 #define GL_STENCIL_BUFFER_BIT                0x00000400
@@ -138,8 +144,42 @@ TGLFUNC(void, glDisableVertexAttribArray, GLuint index);
 #define GL_INT                               0x1404
 #define GL_UNSIGNED_INT                      0x1405
 #define GL_FLOAT                             0x1406
+#define GL_CW                                0x0900
+#define GL_CCW                               0x0901
+#define GL_POINT_SIZE                        0x0B11
+#define GL_POINT_SIZE_RANGE                  0x0B12
+#define GL_POINT_SIZE_GRANULARITY            0x0B13
+#define GL_LINE_SMOOTH                       0x0B20
+#define GL_LINE_WIDTH                        0x0B21
+#define GL_LINE_WIDTH_RANGE                  0x0B22
+#define GL_LINE_WIDTH_GRANULARITY            0x0B23
+#define GL_POLYGON_MODE                      0x0B40
+#define GL_POLYGON_SMOOTH                    0x0B41
+#define GL_CULL_FACE                         0x0B44
+#define GL_CULL_FACE_MODE                    0x0B45
+#define GL_FRONT_FACE                        0x0B46
+#define GL_DEPTH_RANGE                       0x0B70
+#define GL_DEPTH_TEST                        0x0B71
+#define GL_DEPTH_WRITEMASK                   0x0B72
+#define GL_DEPTH_CLEAR_VALUE                 0x0B73
+#define GL_DEPTH_FUNC                        0x0B74
+#define GL_STENCIL_TEST                      0x0B90
+#define GL_STENCIL_CLEAR_VALUE               0x0B91
+#define GL_STENCIL_FUNC                      0x0B92
+#define GL_STENCIL_VALUE_MASK                0x0B93
+#define GL_STENCIL_FAIL                      0x0B94
+#define GL_STENCIL_PASS_DEPTH_FAIL           0x0B95
+#define GL_STENCIL_PASS_DEPTH_PASS           0x0B96
+#define GL_STENCIL_REF                       0x0B97
+#define GL_STENCIL_WRITEMASK                 0x0B98
+#define GL_VIEWPORT                          0x0BA2
+#define GL_DITHER                            0x0BD0
+#define GL_BLEND_DST                         0x0BE0
+#define GL_BLEND_SRC                         0x0BE1
+#define GL_BLEND                             0x0BE2
+#define GL_LOGIC_OP_MODE                     0x0BF0
 
-typedef enum tgl_ContextProfileType 
+typedef enum tgl_ContextProfileType
 {
     TGL_CONTEXT_PROFILE_CORE,
     TGL_CONTEXT_PROFILE_COMPABILITY
@@ -183,16 +223,14 @@ GLuint DEBUG_tgl_create_program(char *vshader, char *fshader)
     GLuint vertexshader, fragshader, program;
 
     vertexshader = glCreateShader(GL_VERTEX_SHADER);
-    fragshader = glCreateShader(GL_FRAGMENT_SHADER);
+    fragshader   = glCreateShader(GL_FRAGMENT_SHADER);
 
     glShaderSource(vertexshader, 1, (const char **)&vshader, 0);
     glCompileShader(vertexshader);
 
     GLint cs = 0;
     glGetShaderiv(vertexshader, GL_COMPILE_STATUS, &cs);
-
-    if (cs == GL_FALSE)
-    {
+    if (cs == GL_FALSE) {
         char buf[256];
         glGetShaderInfoLog(vertexshader, 256, 0, buf);
         tg_printf("VSHADER ERROR: %s\n", buf);
@@ -205,18 +243,16 @@ GLuint DEBUG_tgl_create_program(char *vshader, char *fshader)
     glCompileShader(fragshader);
 
     cs = 0;
-    glGetShaderiv(vertexshader, GL_COMPILE_STATUS, &cs);
-
-    if (cs == GL_FALSE)
-    {
+    glGetShaderiv(fragshader, GL_COMPILE_STATUS, &cs);
+    if (cs == GL_FALSE) {
         char buf[256];
-        glGetShaderInfoLog(vertexshader, 256, 0, buf);
+        glGetShaderInfoLog(fragshader, 256, 0, buf);
         tg_printf("FSHADER ERROR: %s\n", buf);
 
         glDeleteShader(fragshader);
         return 0;
     }
-    
+
     program = glCreateProgram();
 
     glAttachShader(program, vertexshader);
@@ -232,7 +268,7 @@ GLuint DEBUG_tgl_create_program(char *vshader, char *fshader)
         tg_printf("ERROR: %s\n", buf);
         glDeleteShader(vertexshader);
         glDeleteShader(fragshader);
-        //glDeleteProgram(program);
+        // glDeleteProgram(program);
     }
 
     return program;
@@ -246,7 +282,8 @@ TGLFUNC(HGLRC, tgl_wglCreateContext, HDC Arg1);
 TGLFUNC(PROC, tgl_wglGetProcAddress, LPCSTR Arg1);
 TGLFUNC(BOOL, tgl_wglDeleteContext, HGLRC Arg);
 TGLFUNC(BOOL, tgl_wglMakeCurrent, HDC Arg1, HGLRC Arg2);
-TGLFUNC(BOOL, wglChoosePixelFormatARB, HDC hdc, const int *piAttribIList, const FLOAT *pfAttribFList, UINT nMaxFormats, int *piFormats, UINT *nNumFormats);
+TGLFUNC(BOOL, wglChoosePixelFormatARB, HDC hdc, const int *piAttribIList, const FLOAT *pfAttribFList, UINT nMaxFormats,
+        int *piFormats, UINT *nNumFormats);
 TGLFUNC(HGLRC, wglCreateContextAttribsARB, HDC hDC, HGLRC hshareContext, const int *attribList);
 
 #define WGL_NUMBER_PIXEL_FORMATS_ARB              0x2000
@@ -312,7 +349,7 @@ TGLFUNC(HGLRC, wglCreateContextAttribsARB, HDC hDC, HGLRC hshareContext, const i
 #define ERROR_INVALID_VERSION_ARB                 0x2095
 #define ERROR_INVALID_PROFILE_ARB                 0x2096
 
-HGLRC tgl__win32_glcontext; 
+HGLRC tgl__win32_glcontext;
 tgl_ContextInfo tgl__win32_context_info;
 
 void tgl__win32__init_wgl()
@@ -322,10 +359,10 @@ void tgl__win32__init_wgl()
 
     tgl__win32_opengl = LoadLibraryA("opengl32.dll");
 
-    tgl_wglGetProcAddress = (tgl_tgl_wglGetProcAddress *) GetProcAddress(tgl__win32_opengl, "wglGetProcAddress");
-    tgl_wglMakeCurrent = (tgl_tgl_wglMakeCurrent *) GetProcAddress(tgl__win32_opengl, "wglMakeCurrent");
-    tgl_wglCreateContext = (tgl_tgl_wglCreateContext *) GetProcAddress(tgl__win32_opengl, "wglCreateContext");
-    tgl_wglDeleteContext = (tgl_tgl_wglDeleteContext *) GetProcAddress(tgl__win32_opengl, "wglDeleteContext");
+    tgl_wglGetProcAddress = (tgl_tgl_wglGetProcAddress *)GetProcAddress(tgl__win32_opengl, "wglGetProcAddress");
+    tgl_wglMakeCurrent    = (tgl_tgl_wglMakeCurrent *)GetProcAddress(tgl__win32_opengl, "wglMakeCurrent");
+    tgl_wglCreateContext  = (tgl_tgl_wglCreateContext *)GetProcAddress(tgl__win32_opengl, "wglCreateContext");
+    tgl_wglDeleteContext  = (tgl_tgl_wglDeleteContext *)GetProcAddress(tgl__win32_opengl, "wglDeleteContext");
 
     tg_assert(tgl_wglGetProcAddress);
     tg_assert(tgl_wglMakeCurrent);
@@ -368,6 +405,7 @@ void DEBUG_tgl_init_function_pointers()
     TGL_GETPROC(glGetProgramInfoLog);
     TGL_GETPROC(glUseProgram);
     TGL_GETPROC(glDrawArrays);
+    TGL_GETPROC(glDrawElements);
     TGL_GETPROC(glGenVertexArrays);
     TGL_GETPROC(glBindVertexArray);
     TGL_GETPROC(glVertexAttrib1f);
@@ -380,6 +418,7 @@ void DEBUG_tgl_init_function_pointers()
     TGL_GETPROC(glVertexAttribPointer);
     TGL_GETPROC(glEnableVertexAttribArray);
     TGL_GETPROC(glDisableVertexAttribArray);
+    TGL_GETPROC(glEnable);
 
     tg_assert(glClear);
     tg_assert(glClearColor);
@@ -398,6 +437,7 @@ void DEBUG_tgl_init_function_pointers()
     tg_assert(glGetProgramInfoLog);
     tg_assert(glUseProgram);
     tg_assert(glDrawArrays);
+    tg_assert(glDrawElements);
     tg_assert(glGenVertexArrays);
     tg_assert(glBindVertexArray);
     tg_assert(glVertexAttrib1f);
@@ -410,8 +450,7 @@ void DEBUG_tgl_init_function_pointers()
     tg_assert(glVertexAttribPointer);
     tg_assert(glEnableVertexAttribArray);
     tg_assert(glDisableVertexAttribArray);
-
-
+    tg_assert(glEnable);
 }
 
 int tgl__win32_init_wgl_extensions()
@@ -495,19 +534,27 @@ void DEBUG_tgl_init(HWND window_handle)
 
     unsigned int pixelformatcount = 0;
 
-    int pixel_attribis[] = {
-        WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
-        WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
-        WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB,
-        WGL_DOUBLE_BUFFER_ARB, GL_TRUE,
-        WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
-        WGL_COLOR_BITS_ARB, 32,
-        WGL_DEPTH_BITS_ARB, 24,
-        WGL_STENCIL_BITS_ARB, 8,
-        WGL_SAMPLE_BUFFERS_ARB, 1,
-        WGL_SAMPLES_ARB, 8, // TODO: set this as an external option (among other suff).
-        0
-    };
+    int pixel_attribis[] = { WGL_DRAW_TO_WINDOW_ARB,
+                             GL_TRUE,
+                             WGL_SUPPORT_OPENGL_ARB,
+                             GL_TRUE,
+                             WGL_ACCELERATION_ARB,
+                             WGL_FULL_ACCELERATION_ARB,
+                             WGL_DOUBLE_BUFFER_ARB,
+                             GL_TRUE,
+                             WGL_PIXEL_TYPE_ARB,
+                             WGL_TYPE_RGBA_ARB,
+                             WGL_COLOR_BITS_ARB,
+                             32,
+                             WGL_DEPTH_BITS_ARB,
+                             24,
+                             WGL_STENCIL_BITS_ARB,
+                             8,
+                             WGL_SAMPLE_BUFFERS_ARB,
+                             1,
+                             WGL_SAMPLES_ARB,
+                             8, // TODO: set this as an external option (among other suff).
+                             0 };
 
     int pixelformat;
     wglChoosePixelFormatARB(hdc, pixel_attribis, 0, 1, &pixelformat, &pixelformatcount);
@@ -516,21 +563,18 @@ void DEBUG_tgl_init(HWND window_handle)
     SetPixelFormat(hdc, pixelformat, &pfd);
 
     GLint contextattribs[] = {
-        WGL_CONTEXT_MAJOR_VERSION_ARB, 3,    
-        WGL_CONTEXT_MINOR_VERSION_ARB, 2,
-        WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-        0
+        WGL_CONTEXT_MAJOR_VERSION_ARB,    3, WGL_CONTEXT_MINOR_VERSION_ARB, 2, WGL_CONTEXT_PROFILE_MASK_ARB,
+        WGL_CONTEXT_CORE_PROFILE_BIT_ARB, 0
     };
     tgl__win32_glcontext = wglCreateContextAttribsARB(hdc, 0, contextattribs);
 
     tgl_wglMakeCurrent(hdc, tgl__win32_glcontext);
 
-
     DEBUG_tgl_init_function_pointers();
 
     tgl_context_info_get(&tgl__win32_context_info);
     tgl_context_info_printf(&tgl__win32_context_info);
-    
+
     glClearColor(1.0f, 0, 0, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -545,6 +589,8 @@ void DEBUG_tgl_shutdown()
 }
 
 #elif defined(__wasm__)
+
+#include "tg_wasm.h"
 
 // clang-format off
 extern void tg__wasm_js_init_gl_context();
@@ -575,14 +621,14 @@ TG_WASM_JS(
 extern GLuint tg__wasm_js_glCreateShader(GLenum shaderType); 
 TG_WASM_JS(
         function tg__wasm_js_glCreateShader(shaderType) {
-            return addShader(ctx.createShader(shaderType));
+            return glShaders.add(ctx.createShader(shaderType));
         }
 )
 
 extern GLuint tg__wasm_js_glCreateProgram(void); 
 TG_WASM_JS(
         function tg__wasm_js_glCreateProgram() {
-            return addProgram(ctx.createProgram());
+            return glPrograms.add(ctx.createProgram());
         }
 )
 
@@ -590,21 +636,21 @@ TG_WASM_JS(
 extern void tg__wasm_js_glCompileShader(GLuint shader);
 TG_WASM_JS(
         function tg__wasm_js_glCompileShader(shader) {
-            ctx.compileShader(getShader(shader));
+            ctx.compileShader(glShaders.get(shader));
         }
 )
 
 extern void tg__wasm__js_glDeleteShader(GLuint shader);
 TG_WASM_JS(
         function tg__wasm__js_glDeleteShader(shader) {
-            ctx.deleteShader(getShader(shader));
+            ctx.deleteShader(glShaders.get(shader));
         }
 )
 
 extern GLuint tg__wasm__js_getShaderParameter(GLuint shader, GLenum pname);
 TG_WASM_JS(
         function tg__wasm__js_getShaderParameter(shader, pname) {
-            return ctx.getShaderParameter(getShader(shader), pname);
+            return ctx.getShaderParameter(glShaders.get(shader), pname);
         }
 )
 
@@ -617,7 +663,7 @@ extern void tg__wasm__js_glShaderSource(GLuint shader, char *src);
 TG_WASM_JS(
         function tg__wasm__js_glShaderSource(shader, ptr) {
             let string = decodeStringAt(ptr);
-            ctx.shaderSource(getShader(shader), string);
+            ctx.shaderSource(glShaders.get(shader), string);
         }
 )
 
@@ -630,7 +676,7 @@ void tg__wasm__glShaderSource(GLuint shader, GLsizei count, const GLchar **strin
 extern void tg__wasm__js_glGetShaderInfoLog(GLuint shader, GLsizei bufSize, GLsizei *length, GLchar *infoLog);
 TG_WASM_JS(
         function tg__wasm__js_glGetShaderInfoLog(shader, bufSize, lenPtr, strPtr) {
-            let log = ctx.getShaderInfoLog(getShader(shader));
+            let log = ctx.getShaderInfoLog(glShaders.get(shader));
             if (strPtr) {
             encodeStringAt(log, strPtr, bufSize);
                 if (lenPtr) {
@@ -643,7 +689,7 @@ TG_WASM_JS(
 extern void tg__wasm__js_glLinkProgram(GLuint program);
 TG_WASM_JS(
         function tg__wasm__js_glLinkProgram(program) {
-           ctx.linkProgram(getProgram(program)); 
+           ctx.linkProgram(glPrograms.get(program)); 
         }
 )
 
@@ -657,14 +703,14 @@ TG_WASM_JS(
 extern void tg__wasm__js_glAttachShader(GLuint program, GLuint shader);
 TG_WASM_JS(
         function tg__wasm__js_glAttachShader(program, shader) {
-            ctx.attachShader(getProgram(program), getShader(shader));
+            ctx.attachShader(glPrograms.get(program), glShaders.get(shader));
         }
 )
 
 extern void tg__wasm__js_glGetProgramiv(GLuint program, GLenum pname, GLint *params);
 TG_WASM_JS(
         function tg__wasm__js_glGetProgramiv(program, pname, ptr) {
-            let value = ctx.getProgramParameter(getProgram(program), pname);
+            let value = ctx.getProgramParameter(glPrograms.get(program), pname);
 
             u32[ptr/4] = value;
        }
@@ -673,7 +719,7 @@ TG_WASM_JS(
 extern void tg__wasm__js_glGetProgramInfoLog(GLuint program, GLsizei bufSize, GLsizei *length, GLchar *infoLog);
 TG_WASM_JS(
         function tg__wasm__js_glGetProgramInfoLog(program, bufSize, lenPtr, strPtr) {
-            let log = ctx.getProgramInfoLog(getProgram(program));
+            let log = ctx.getProgramInfoLog(glPrograms.get(program));
             if (strPtr) {
             encodeStringAt(log, strPtr, bufSize);
                 if (lenPtr) {
@@ -686,7 +732,7 @@ TG_WASM_JS(
 extern void tg__wasm__js_glUseProgram(GLuint program);
 TG_WASM_JS(
         function tg__wasm__js_glUseProgram(program) {
-            ctx.useProgram(getProgram(program));
+            ctx.useProgram(glPrograms.get(program));
         }
 )
 
@@ -695,6 +741,82 @@ extern void tg__wasm__js_glDrawArrays(GLenum mode, GLint first, GLsizei count);
 TG_WASM_JS(
         function tg__wasm__js_glDrawArrays(mode, first, count) {
             ctx.drawArrays(mode, first, count);
+        }
+)
+
+TG_WASM_JS(
+        let glBuffers = new ObjectPool();
+)
+
+extern void tg__wasm__js_glGenBuffers(GLsizei n, GLuint *buffers);
+TG_WASM_JS(
+        function tg__wasm__js_glGenBuffers(n, buffersPtr) {
+            for (let i = 0; i < n; i++) {
+                u32[buffersPtr/4 + i] = glBuffers.add(ctx.createBuffer());
+            }
+        }
+)
+
+extern void tg__wasm__js_glBindBuffer(GLenum target, GLuint buffer);
+TG_WASM_JS(
+        function tg__wasm__js_glBindBuffer(target, buffer) {
+            ctx.bindBuffer(target, glBuffers.get(buffer));
+        }
+)
+
+extern void tg__wasm__js_glBufferData(GLenum target, GLsizeiptr size, const void *data, GLenum usage);
+TG_WASM_JS(
+        function tg__wasm__js_glBufferData(target, size, dataPtr, usage) {
+            buffer = memory.buffer.slice(dataPtr, dataPtr + size);
+            ctx.bufferData(target, buffer, usage);
+        }
+)
+
+extern void tg__wasm__js_glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const void *data);
+TG_WASM_JS(
+        function tg__wasm__js_glBufferSubData(target, offset, size, dataPtr) {
+            buffer = memory.buffer.slice(dataPtr, dataPtr + size);
+            ctx.bufferSubData(target, offset, buffer);
+        }
+)
+
+extern void tg__wasm__js_glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer);
+TG_WASM_JS(
+        function tg__wasm__js_glVertexAttribPointer(index, size, type, normalized, stride, pointer) {
+            ctx.vertexAttribPointer(index, size, type, normalized, stride, pointer);
+        }
+)
+
+extern void tg__wasm__js_glEnableVertexAttribArray(GLuint index);
+TG_WASM_JS(
+        function tg__wasm__js_glEnableVertexAttribArray(index) {
+            ctx.enableVertexAttribArray(index);
+        }
+)
+
+extern void tg__wasm__js_glDisableVertexAttribArray(GLuint index);
+TG_WASM_JS(
+        function tg__wasm__js_glDisableVertexAttribArray(index) {
+            ctx.disableVertexAttribArray(index);
+        }
+)
+
+extern void tg__wasm__js_glGetIntegerv(GLenum value, int *data);
+TG_WASM_JS(
+        function tg__wasm__js_glGetIntegerv(value, data) {
+            return ctx.getParameter(value);
+        }
+)
+
+const GLubyte* tg__wasm__glGetString(GLenum name)
+{
+    return (const unsigned char *) "glGetString not implemented!";
+}
+
+extern void tg__wasm__js_glVertexAttrib1f(GLuint index, float value);
+TG_WASM_JS(
+        function tg__wasm__js_glVertexAttrib1f(index, value) {
+            ctx.vertexAttrib1f(index, value);
         }
 )
 
@@ -717,7 +839,24 @@ void DEBUG_tgl_init_function_pointers()
     glGetProgramInfoLog = tg__wasm__js_glGetProgramInfoLog;
     glUseProgram = tg__wasm__js_glUseProgram;
     glDrawArrays = tg__wasm__js_glDrawArrays;
+    glGenBuffers = tg__wasm__js_glGenBuffers;
+    glBindBuffer = tg__wasm__js_glBindBuffer;
+    glBufferData = tg__wasm__js_glBufferData;
+    glBufferSubData = tg__wasm__js_glBufferSubData;
+    glVertexAttribPointer = tg__wasm__js_glVertexAttribPointer;
+    glEnableVertexAttribArray = tg__wasm__js_glEnableVertexAttribArray;
+    glDisableVertexAttribArray = tg__wasm__js_glDisableVertexAttribArray;
+    glGetIntegerv = tg__wasm__js_glGetIntegerv;
+    glGetString = tg__wasm__glGetString;
+
+#ifdef TGL_WEBGL2
+    // Get all WebGL2 pointers here
+
+    //TGL_GETPROC(glGenVertexArrays);
+    //TGL_GETPROC(glBindVertexArray);
+#endif
 }
+
 void DEBUG_tgl_init() {
     tg__wasm_js_init_gl_context();
 

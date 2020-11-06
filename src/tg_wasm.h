@@ -12,14 +12,12 @@
 #define export __attribute__((used,visibility("default")))
 #define export_named(name) __attribute__((used, visibility("default"), export_name(#name)))
 // clang-format off
-
 extern void tg__wasm_js_print_line(char *s);
 TG_WASM_JS(
 function tg__wasm_js_print_line(p) { 
   console.log(decodeStringAt(p)); 
 }
 )
-
 // clang-format on
 
 export void *memset(void *ptr, int value, size_t num)

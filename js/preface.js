@@ -5,8 +5,23 @@ let mouseX, mouseY;
 let mouseXptr, mouseYptr;
 let instance;
 
-let glPrograms = [];
-let glShaders = [];
+class ObjectPool {
+    constructor() {
+        this.pool = [];
+    }
+
+    add(o) {
+        this.pool.push(o);
+        return this.pool.length;
+    }
+
+    get(id) {
+        return this.pool[id - 1];
+    }
+}
+
+let glPrograms = new ObjectPool();
+let glShaders = new ObjectPool();
 
 function addShader(shader) {
     glShaders.push(shader);

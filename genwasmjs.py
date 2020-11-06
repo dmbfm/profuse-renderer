@@ -20,8 +20,12 @@ with fileinput.input(entries.iterdir()) as f:
 js += "\n"
 functions = []
 for line in js.split("\n"):
-    if line.lstrip().startswith("function"):
-        fname = re.findall(r"[\w']+", line)[1];
+    if line.lstrip().startswith("async function"):
+        idx = 2
+    else: 
+        idx = 1
+    if line.lstrip().startswith("function") or line.lstrip().startswith("async function"):
+        fname = re.findall(r"[\w']+", line)[idx];
         if fname not in functions:
             functions.append(fname)
         else:

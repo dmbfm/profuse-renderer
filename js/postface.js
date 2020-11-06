@@ -11,7 +11,7 @@ WebAssembly.instantiateStreaming(fetch("build/main.wasm"), { env }).then(
     f64 = new Float64Array(memory.buffer);
     i32 = new Int32Array(memory.buffer);
 
-    instance.exports.main();
+    instance.exports.main(0, 0);
 
     //mouseXptr = instance.exports.malloc(4);
     //mouseYptr = instance.exports.malloc(4);
