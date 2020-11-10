@@ -1,1 +1,3 @@
 -xc
+-Isrc/coffee
+-Isrc/toolbox

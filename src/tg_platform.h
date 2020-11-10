@@ -7,7 +7,7 @@
 #include <Windows.h>
 #endif
 
-typedef struct tgp_Win32
+typedef struct 
 {
 #ifdef _WIN32
     HWND window_handle;

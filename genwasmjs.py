@@ -1,12 +1,15 @@
 from pathlib import Path
 import fileinput
 import re
+import os
 
 entries = Path('src/')
 js = ''
 isjs = False
 
-with fileinput.input(entries.iterdir()) as f:
+
+files = (os.path.join(p, f) for p, ds, fs in os.walk(entries) for f in fs)
+with fileinput.input(files) as f:
     for line in f:
         if not isjs:
             if line.lstrip().startswith("TG_WASM_JS("):

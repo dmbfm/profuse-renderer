@@ -36,6 +36,37 @@ typedef struct Mesh
     u32 ebo;
 } Mesh;
 
+typedef struct Camera
+{
+    Vec3 position;
+    Vec3 up;
+    Vec3 target;
+
+    f32 fov;
+    f32 near_distance;
+    f32 far_distance;
+
+    Mat4 transform;
+    boolean dirty;
+} Camera;
+
+Camera camera_create(Vec3 pos, Vec3 target, f32 fov, f32 aspect, f32 n, f32 f)
+{
+    Camera camera = {
+        .position = pos,
+        .target = target,
+        .up = vec3_j(),
+        .fov = fov,
+        .near_distance = n,
+        .far_distance = f,
+    };
+
+    camera.transform = mat4_mul(mat4_perspective(fov, aspect, n, f), mat4_look_at(pos, target, vec3_j()));
+
+    return camera;
+}
+
+
 void mesh_load(Mesh *mesh)
 {
     tg_assert(mesh->vertices);
@@ -61,6 +92,7 @@ void mesh_load(Mesh *mesh)
 
     if (mesh->uvs)
     {
+        // TODO: this is just wrong
         glBufferSubData(GL_ARRAY_BUFFER, 24 * mesh->num_vertices, 8 * mesh->num_vertices, (const void *) mesh->uvs);
     }
 
@@ -98,6 +130,7 @@ void mesh_draw(Mesh *mesh)
             glDrawArrays(GL_TRIANGLES, 0, mesh->num_vertices);
         } else {
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ebo);
+            // TODO: Check for extension that allows INT indices
             glDrawElements(GL_TRIANGLES, mesh->num_indices, GL_UNSIGNED_SHORT, 0);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         }

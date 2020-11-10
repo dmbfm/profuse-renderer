@@ -29,6 +29,11 @@ TG_WASM_JS(function tg__wasm_js_sqrtf(x) { return Math.sqrt(x); })
 #endif
 #endif
 
+#ifndef TGM_TAN
+#include <math.h>
+#define TGM_TAN tanf
+#endif
+
 #define TGM_EPS 0.0000001
 
 boolean tgm_is_equalf(f32 x1, f32 x2)
@@ -399,6 +404,65 @@ Mat4 mat4_translation(Vec3 t)
     r.m34 = t.z; 
 
     return  r;
+}
+
+Mat4 mat4_look_at(Vec3 from, Vec3 to, Vec3 up)
+{
+    Vec3 k = vec3_normalized(vec3_sub(from, to));
+    Vec3 i = vec3_normalized(vec3_cross(up, k)); 
+    Vec3 j = vec3_cross(i, k);
+
+    Mat4 result = { 0 };
+
+    result.m11 = i.x;
+    result.m12 = i.y;
+    result.m13 = i.z;
+    result.m14 = -from.x;
+
+    result.m21 = j.x;
+    result.m22 = j.y;
+    result.m23 = j.z;
+    result.m24 = -from.y;
+
+    result.m31 = k.x;
+    result.m32 = k.y;
+    result.m33 = k.z;
+    result.m34 = -from.z;
+
+    result.m44 = 1;
+
+    return result;
+}
+
+Mat4 mat4_perspective(f32 fov, f32 aspect, f32 n, f32 f)
+{
+    Mat4 result = {0};
+
+    float c = 1.0f / TGM_TAN(fov/2); 
+
+    result.m11 = c / aspect;
+
+    result.m22 = c;
+
+    result.m33 = -(f + n) / (f - n);
+    result.m34 = - (f * n) / (f - n);
+    result.m43 = 1;
+
+
+    return result;
+}
+
+Mat4 mat4_ortho(f32 width, f32 height, f32 n, f32 f)
+{
+    Mat4 result = {0};
+
+    result.m11 = 2 / width;
+    result.m22 = 2 / height;
+    result.m33 = 2 / (f - n);
+    result.m34 = -(f + n) / (f - n);
+    result.m44 = 1;
+
+    return result;
 }
 
 #define __TG_RUN_TESTS
