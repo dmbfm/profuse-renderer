@@ -7,12 +7,13 @@ entries = Path('src/')
 js = ''
 isjs = False
 
+macro_name = "WASM_JS("
 
 files = (os.path.join(p, f) for p, ds, fs in os.walk(entries) for f in fs)
 with fileinput.input(files) as f:
     for line in f:
         if not isjs:
-            if line.lstrip().startswith("TG_WASM_JS("):
+            if line.lstrip().startswith(macro_name):
                 isjs = True
         else:
             if line.lstrip().startswith(")"):
