@@ -1,7 +1,7 @@
 #if !defined(COFFEE_H)
 #define COFFEE_H
 
-#include "toolbox_types.h"
+#include "toolbox_common.h"
 
 #ifdef __wasm__
 #include "coffee_web.h"

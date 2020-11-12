@@ -2,7 +2,7 @@
 #define COFFEE_WEB_H
 #ifdef __wasm__
 
-#include "toolbox_types.h"
+#include "toolbox_common.h"
 
 #define WASM_JS(...)
 

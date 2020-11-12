@@ -10,7 +10,7 @@
  *
  */
 
-#include "toolbox_types.h"
+#include "toolbox_common.h"
 
 #ifdef __wasm__
 #define TOOLBOX_NO_STD_LIB
