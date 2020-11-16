@@ -2,6 +2,8 @@
 #define TOOLBOX_NO_STD_LIB
 #endif
 
+#define TOOLBOX_RUN_TESTS
+
 #ifdef PROFUSE_DEBUG
 #define TOOLBOX_DEBUG
 #endif
@@ -12,5 +14,5 @@
 
 #include "coffee/unity_build.c"
 #include "toolbox/unity_build.c"
-#include "test.c"
+#include "main.c"
 

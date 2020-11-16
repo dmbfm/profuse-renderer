@@ -62,6 +62,9 @@ CGLFUNC(void, glVertexAttribPointer, GLuint index, GLint size, GLenum type, GLbo
 CGLFUNC(void, glEnableVertexAttribArray, GLuint index);
 CGLFUNC(void, glDisableVertexAttribArray, GLuint index);
 CGLFUNC(void, glEnable, GLenum name);
+CGLFUNC(GLint, glGetUniformLocation, GLuint program, const GLchar *pname);
+CGLFUNC(void, glUniformMatrix4fv, GLuint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+CGLFUNC(void, glUniform3fv, GLuint location, const GLfloat *value);
 
 #define GL_DEPTH_BUFFER_BIT                  0x00000100
 #define GL_STENCIL_BUFFER_BIT                0x00000400

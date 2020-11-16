@@ -4,6 +4,34 @@
 
 // clang-format off
 
+extern float c__wasm_js_sqrtf(float x);
+WASM_JS(
+        function c__wasm_js_sqrtf(x) {
+            return Math.sqrt(x);
+        }
+)
+
+extern float c__wasm_js_tanf(float x);
+WASM_JS(
+        function c__wasm_js_tanf(x) {
+            return Math.tan(x);
+        }
+)
+
+extern float c__wasm_js_sinf(float x);
+WASM_JS(
+        function c__wasm_js_sinf(x) {
+            return Math.sin(x);
+        }
+)
+
+extern float c__wasm_js_cosf(float x);
+WASM_JS(
+        function c__wasm_js_cosf(x) {
+            return Math.cos(x);
+        }
+)
+
 extern u32 c__wasm_js_get_memory_size(void);
 WASM_JS(
     function c__wasm_js_get_memory_size() {
@@ -22,6 +50,20 @@ WASM_JS(
             initCanvasEventListeners();
         }
 )
+
+extern void c__wasm_js_canvas_set_curstor_style(int style);
+WASM_JS(
+        function c__wasm_js_canvas_set_curstor_style(style) {
+        switch(style) {
+            case 0:
+                canvas.style.cursor = "default";
+                break;
+            case 1:
+                canvas.style.cursor = "none";
+            default: break;
+        }
+        }
+       )
 
 extern void c__wasm_js_start_main_loop(Coffee *p);
 WASM_JS(
@@ -44,16 +86,43 @@ WASM_JS(
         }
 )
 
+
+extern void c__wasm_js_set_mouse_down_pointer(u8 *ptr);
+WASM_JS(
+        function c__wasm_js_set_mouse_down_pointer(ptr) {
+            mouseDownPtr = ptr;
+            u8[mouseDownPtr] = 0;
+
+            canvas.addEventListener("mousedown", e => {
+                u8[mouseDownPtr] =  1;
+            });
+
+        canvas.addEventListener("mouseup", e => {
+                u8[mouseDownPtr] = 0;
+            });
+
+        }
+)
+
+extern void c__wasm_js_set_mouse_wheel_pointer(i32 *ptr);
+WASM_JS(
+        function c__wasm_js_set_mouse_wheel_pointer(ptr) {
+             let mouseWheelPtr = ptr;
+            u32[mouseWheelPtr / 4] = 0;
+
+            canvas.addEventListener("wheel", e => {
+                e.preventDefault();
+                u32[mouseWheelPtr / 4] = e.deltaY;
+            })
+        }
+)
+
 extern void c__wasm_js_now(double *out);
 WASM_JS(
         function c__wasm_js_now(ptr) {
             f64[ptr/8] = performance.now();
         }
 )
-//
-//
-
-
 
 extern void c__wasm_js_init_gl_context();
 WASM_JS(
@@ -279,6 +348,53 @@ extern void c__wasm__js_glVertexAttrib1f(GLuint index, float value);
 WASM_JS(
         function c__wasm__js_glVertexAttrib1f(index, value) {
             ctx.vertexAttrib1f(index, value);
+        }
+)
+
+WASM_JS(
+    let uniformLocationsPool = new ObjectPool();
+)
+
+extern GLint c__wasm_js_glGetUniformLocation(GLuint program, const GLchar *pname);
+WASM_JS(
+        function c__wasm_js_glGetUniformLocation(program, strPtr) {
+            let name = decodeStringAt(strPtr);
+
+            let loc = ctx.getUniformLocation(glPrograms.get(program), name);
+
+            if (loc == null) {
+                return -1;
+            }
+
+            return uniformLocationsPool.add(loc);
+        }
+)
+
+// TODO: For now we assume count=1. Fix this later. See: https://www.gamedev.net/forums/topic/658191-webgl-how-to-send-an-array-of-matrices-to-the-vertex-shader/5163499/
+extern void c__wasm_js_glUniformMatrix4fv(GLuint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+WASM_JS(
+        function c__wasm_js_glUniformMatrix4fv(location, count, transpose, ptr) {
+            let mat = new Float32Array(memory.buffer, ptr, 16);
+
+            //console.log(mat);
+
+            ctx.uniformMatrix4fv(uniformLocationsPool.get(location), transpose, mat);
+        }
+)
+
+extern void c__wasm_js_glUniform3fv(GLuint location, const GLfloat *value);
+WASM_JS(
+        function c__wasm_js_glUniform3fv(loc, ptr) {
+            let arr = new Float32Array(memory.buffer, ptr, 3);
+
+            ctx.uniform3fv(uniformLocationsPool.get(loc), arr);
+        }
+)
+
+extern void c__wasm_js_glEnable(GLenum cap);
+WASM_JS(
+        function c__wasm_js_glEnable(cap) {
+            ctx.enable(cap);
         }
 )
 

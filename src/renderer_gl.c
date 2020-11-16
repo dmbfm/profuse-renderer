@@ -2,7 +2,9 @@
 #include "coffee_gl.h"
 #include "toolbox.h"
 
-boolean rgl_create_program(char *vshader, char *fshader)
+
+// TODO: Change this so that it accepts an array of strings.
+boolean rgl_create_program_vf(char *vshader, char *fshader, GLuint *out_program)
 {
     GLuint vertexshader, fragshader, program;
 
@@ -20,7 +22,7 @@ boolean rgl_create_program(char *vshader, char *fshader)
         t_printf("VSHADER ERROR: %s\n", buf);
 
         glDeleteShader(vertexshader);
-        return 0;
+        return false;
     }
 
     glShaderSource(fragshader, 1, (const char **)&fshader, 0);
@@ -34,7 +36,7 @@ boolean rgl_create_program(char *vshader, char *fshader)
         t_printf("FSHADER ERROR: %s\n", buf);
 
         glDeleteShader(fragshader);
-        return 0;
+        return false;
     }
 
     program = glCreateProgram();
@@ -55,9 +57,8 @@ boolean rgl_create_program(char *vshader, char *fshader)
         // glDeleteProgram(program);
     }
 
-    return program;
+    *out_program = program;
 
+    return true;
 }
-
-
 

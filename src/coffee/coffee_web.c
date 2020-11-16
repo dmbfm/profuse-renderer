@@ -3,33 +3,55 @@
 #include "coffee_web_js.c"
 #include "toolbox_common.h"
 #include "coffee_gl.h"
+
+typedef struct CoffeeWasm
+{
+   int mouse_x_raw;
+   int mouse_y_raw;
+   int mouse_wheel_delta_raw;
+} CoffeeWasm;
+
+static CoffeeWasm coffee_wasm;
+
 extern u8 __heap_base;
 typedef struct WasmMemory
 {
     iptr base;
     u32 size;
     u32 current;
+    u32 last_alloc_size;
 } WasmMemory;
 
-static WasmMemory memory;
+static WasmMemory wasm_memory;// = { .current = 1234 };
 
 void *coffee_wasm_request_memory(int size)
 {
     u64 current_mem_size = c__wasm_js_get_memory_size();
-    memory.base          = (u32)&__heap_base;
+    wasm_memory.base          = (u32)&__heap_base;
 
-    t_assert(memory.current + size < current_mem_size);
+    int size_to_alloc = size;
 
-    if (memory.current + size > current_mem_size) {
+    t_assert(wasm_memory.base + wasm_memory.current + size_to_alloc < current_mem_size);
+
+    if (wasm_memory.base + wasm_memory.current + size_to_alloc > current_mem_size) {
         return 0;
     }
 
-    memory.current += size;
+    wasm_memory.current += size_to_alloc;
+    wasm_memory.last_alloc_size = size;
 
-    return (void *)(memory.base - size + memory.current);
+    //c__wasm_js_print_integer(size);
+    //c__wasm_js_print_integer(wasm_memory.current - size);
+    //c__wasm_js_print_integer(wasm_memory.current);
+    //c__wasm_js_print_integer(wasm_memory.current + wasm_memory.base - current_mem_size);
+
+    return (void *)(wasm_memory.base + wasm_memory.current);
 }
 
-void coffee_wasm_free(void *p) {}
+// TODO: Obviously ridiculous
+void coffee_wasm_free(void *p) {
+    wasm_memory.current -= wasm_memory.last_alloc_size;
+}
 
 export int main(int argc, char **argv)
 {
@@ -46,14 +68,25 @@ void coffee_run(Coffee *p)
     c__wasm_js_start_main_loop(p);
 }
 
-void tgp_pull_mouse(Coffee *c)
+void coffee_wasm_pull_mouse(Coffee *c)
 {
-    // TODO: I gues we.... don't need? just direct memory access in the js event listener
+    c->mouse.last_x = c->mouse.x;
+    c->mouse.last_y = c->mouse.y;
+    c->mouse.x = coffee_wasm.mouse_x_raw;
+    c->mouse.y = coffee_wasm.mouse_y_raw;
+    c->mouse.delta_x = c->mouse.x - c->mouse.last_x;
+    c->mouse.delta_y = c->mouse.y - c->mouse.last_y;
+
+    c->mouse.mouse_wheel_delta = coffee_wasm.mouse_wheel_delta_raw;
+    coffee_wasm.mouse_wheel_delta_raw = 0;
 }
 
-void tgp_pull(Coffee *c) {}
+void coffee_pull(Coffee *c) {
+    coffee_wasm_pull_mouse(c);
+}
 
-void tgp_push(Coffee *c) {}
+void coffee_push(Coffee *c) {}
+
 local_function void coffee_web_init_gl_function_pointers()
 {
     glClearColor = c__wasm_js_gl_clear_color;
@@ -80,6 +113,10 @@ local_function void coffee_web_init_gl_function_pointers()
     glDisableVertexAttribArray = c__wasm__js_glDisableVertexAttribArray;
     glGetIntegerv = c__wasm__js_glGetIntegerv;
     glGetString = c__wasm__glGetString;
+    glUniformMatrix4fv = c__wasm_js_glUniformMatrix4fv;
+    glGetUniformLocation = c__wasm_js_glGetUniformLocation;
+    glEnable = c__wasm_js_glEnable;
+    glUniform3fv = c__wasm_js_glUniform3fv;
 
 #ifdef COFFEE_GL_WEBGL2
     // Get all WebGL2 pointers here
@@ -113,7 +150,11 @@ boolean coffee_init(Coffee *c)
     }
 
     c__wasm_js_init_canvas(c->window.width, c->window.height);
-    c__wasm_js_set_mouse_pointers(&c->mouse.x, &c->mouse.y);
+    //c__wasm_js_set_mouse_pointers(&c->mouse.x, &c->mouse.y);
+    c__wasm_js_set_mouse_pointers(&coffee_wasm.mouse_x_raw, &coffee_wasm.mouse_y_raw);
+    c__wasm_js_set_mouse_down_pointer(&c->mouse.left_button.is_down);
+    c__wasm_js_set_mouse_wheel_pointer(&coffee_wasm.mouse_wheel_delta_raw);
+    c__wasm_js_canvas_set_curstor_style(c->mouse.cursor_style);
 
     coffee_web_init_gl_context();
 

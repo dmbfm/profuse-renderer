@@ -5,3 +5,5 @@ build
 *.wasm
 *.bc
 *.exe
+*.obj
+*.png

@@ -7,6 +7,18 @@
 #include "coffee_web.h"
 #endif
 
+typedef enum
+{
+    COFFEE_CURSOR_STYLE_NORMAL,
+    COFFEE_CURSOR_STYLE_NONE
+} CoffeeCursorStyle;
+
+typedef struct
+{
+    boolean is_down;
+    boolean was_down;
+} CoffeeButtonState;
+
 typedef struct
 {
     boolean should_quit;
@@ -28,6 +40,13 @@ typedef struct
     {
         int x;
         int y;
+        int last_x;
+        int last_y;
+        int delta_x;
+        int delta_y;
+        int mouse_wheel_delta;
+        CoffeeButtonState left_button;
+        CoffeeCursorStyle cursor_style;
     } mouse;
 
     void *user_context;
@@ -42,5 +61,6 @@ boolean coffee_init(Coffee *c);
 void coffee_run(Coffee *c);
 void coffee_pull(Coffee *c);
 void coffee_push(Coffee *c);
+
 
 #endif

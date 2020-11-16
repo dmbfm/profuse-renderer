@@ -6,14 +6,14 @@
 // Sketchy snprintf implementation
 typedef struct t__SnprintfHead
 {
-    uint32_t size;
+    int size;
     uint32_t nchars;
     char *s;
 } t__SnprintfHead;
 
 local_function void t__snprintf_add_char(t__SnprintfHead *head, char c)
 {
-    if (head->size) {
+    if ((head->size > 0) && head->s) {
         head->size--;
         *head->s++ = c;
     }
@@ -208,7 +208,7 @@ int t__snprintf(char *s, size_t n, const char *fmt, ...)
     va_start(args, fmt);
     char c;
 
-    t__SnprintfHead head = { (uint32_t) (n - 1), 0, s };
+    t__SnprintfHead head = { ((int)n) - 1, 0, s };
 
     while ((c = *fmt++)) {
         switch (c) {
@@ -263,7 +263,7 @@ int t__snprintf(char *s, size_t n, const char *fmt, ...)
         }
     }
 
-    *head.s++ = 0;
+    if (head.s) *head.s++ = 0;
 
     return head.nchars;
 }
