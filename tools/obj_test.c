@@ -14,6 +14,98 @@
 //#define MODEL "..\\test_models\\cornell_box.obj"
 #define MODEL "..\\test_models\\sponza.obj"
 
+boolean get_base_dir(char *filepath, char *out, u32 max_len) {
+    char *start = filepath;
+    char *last_slash = start;
+    while (*start)
+    {
+        if (*start == '\\' || *start == '/') {
+            last_slash = start;
+        }
+
+        start++;
+    }
+
+    if ((last_slash - start) >= max_len)
+        return false;
+
+    start = filepath;
+    while ((last_slash-start) >= 0)
+    {
+        *out++ = *start;
+        start++;
+    }
+    *out = 0;
+
+    return true;
+}
+
+typedef struct StringInternEntry
+{
+    size_t len;
+    char *str;
+} StringInternEntry;
+
+StringInternEntry *string_intern_entries;
+
+const char *string_intern_range(char *start, char *end)
+{
+    size_t len = end - start;
+    forn(i, t_arr_len(string_intern_entries))
+    {
+        StringInternEntry e = string_intern_entries[i];
+
+        if (e.len == len && strncmp(start, e.str, e.len) == 0) {
+            return e.str;
+        }
+    }
+
+    char *str = (char *)malloc(len + 1);
+    memcpy(str, start, len);
+    str[len] = 0;
+
+    StringInternEntry e = { .str = str, .len = len };
+
+    t_arr_push(string_intern_entries, e);
+
+    return str;
+}
+
+const char *string_intern(char *str)
+{
+    return string_intern_range(str, str + strlen(str));
+}
+
+#define MAX_KEYWORDS 128
+const char *keywords[MAX_KEYWORDS];
+typedef enum
+{
+    KEYWORD_VERTEX = 0,
+    KEYWORD_NORMAL = 1,
+    KEYWORD_TEXCOORD,
+    KEYWORD_FACE,
+    KEYWORD_GROUP,
+    KEYWORD_USE_MTL,
+    KEYWORD_SMOOTH,
+    KEYWORD_OBJECT,
+    KEYWORD_MTLLIB,
+    KEYWORD_OFF
+} Keywords;
+
+boolean is_keyword(const char *name)
+{
+    const char *k = 0;
+    int i         = 0;
+
+    while ((k = keywords[i])) {
+        if (name == k)
+            return true;
+        i++;
+    }
+
+    return false;
+}
+
 typedef enum
 {
     VERTEX,
@@ -21,23 +113,112 @@ typedef enum
     TEXTURE
 } LineType;
 
+typedef enum
+{
+    FACE_V,
+    FACE_VN,
+    FACE_VT,
+    FACE_VTN,
+    FACE_NOT_ASSERTED
+} FaceType;
+
+FaceType face_type = FACE_NOT_ASSERTED;
+
+typedef struct FaceElement
+{
+    int v;
+    int vn;
+    int vt;
+
+    u8 type;
+} FaceElement;
+
+typedef struct Face
+{
+    FaceElement faces[4];
+    int count;
+} Face;
+
+typedef struct Object
+{
+    Vec3 *output_vertices;
+    Vec3 *output_normals;
+    Vec2 *output_texcoords;
+
+    Face *faces;
+    const char *material_name;
+} Object;
+
+enum
+{
+    MAX_OBJECTS = 4096
+};
+
 typedef struct Parser
 {
-    LineType current_line;
+    Vec3 *vertices;
+    Vec3 *normals;
+    Vec2 *texcoords;
+
+    Object objects[MAX_OBJECTS];
+
+    int num_objects;
+    int current_object;
+    int current_line;
 } Parser;
+
+static Parser parser = { 0 };
+
+void parser_init()
+{
+    parser.num_objects    = 1;
+    parser.current_object = 0;
+}
+
+void push_face(Face f)
+{
+    t_arr_push(parser.objects[parser.current_object].faces, f);
+}
+
+Object *parser_get_current_object()
+{
+    return &parser.objects[parser.current_object];
+}
+
+void parser_set_material(const char *material_name)
+{
+    Object *o = parser_get_current_object();
+
+    if (!o->material_name) {
+        o->material_name = material_name;
+    } else {
+        forn(i, parser.num_objects)
+        {
+            if (parser.objects[i].material_name == material_name) {
+                parser.current_object = i;
+                return;
+            }
+        }
+
+        parser.current_object = parser.num_objects;
+        parser.objects[parser.current_object].material_name = material_name;
+        parser.num_objects++;
+    }
+}
 
 typedef enum
 {
-    TOKEN_EOL,
-    TOKEN_UNKOWN,
+    TOKEN_EOL = 0,
+    // Trick from Per Vognsen
+    TOKEN_UNKOWN = 127,
     TOKEN_NAME,
+    TOKEN_KEYWORD,
     TOKEN_VERTEX,
     TOKEN_NORMAL,
     TOKEN_TEXCOORD,
     TOKEN_FLOAT,
     TOKEN_FACE,
     TOKEN_INT,
-    TOKEN_SLASH
 } TokenKind;
 
 typedef struct Token
@@ -46,6 +227,7 @@ typedef struct Token
 
     float float_value;
     int int_value;
+    const char *string_value;
 } Token;
 
 static Parser p;
@@ -63,8 +245,8 @@ repeat:
     c     = *stream;
     switch (c) {
     case 0:
-    case '\r':
     case '#':
+    case '\r':
     case '\n': {
         token.kind = TOKEN_EOL;
         stream++;
@@ -75,39 +257,12 @@ repeat:
         goto repeat;
     } break;
 
-    case '/': {
-        token.kind = TOKEN_SLASH;
-        stream++;
-    } break;
-
-    case 'v': {
-        stream++;
-        char next = *stream++;
-        switch (next) {
-        case ' ': {
-            token.kind = TOKEN_VERTEX;
-        } break;
-
-        case 't': {
-            token.kind = TOKEN_TEXCOORD;
-        } break;
-
-        case 'n': {
-            token.kind = TOKEN_NORMAL;
-        } break;
-        }
-    } break;
-
-    case 'f': {
-        token.kind = TOKEN_FACE;
-        stream++;
-    } break;
-
     case 'a':
     case 'b':
     case 'c':
     case 'd':
     case 'e':
+    case 'f':
     case 'g':
     case 'h':
     case 'i':
@@ -123,6 +278,7 @@ repeat:
     case 's':
     case 't':
     case 'u':
+    case 'v':
     case 'w':
     case 'x':
     case 'y':
@@ -153,9 +309,10 @@ repeat:
     case 'X':
     case 'Y':
     case 'Z': {
-        while (isalpha(*stream) || *stream == '.')
+        while (isalpha(*stream) || t_isnum(*stream) || *stream == '.' || *stream == '_')
             stream++;
-        token.kind = TOKEN_NAME;
+        token.string_value = string_intern_range(start, stream);
+        token.kind         = is_keyword(token.string_value) ? TOKEN_KEYWORD : TOKEN_NAME;
     } break;
 
     case '-':
@@ -184,10 +341,10 @@ repeat:
                 stream++;
             }
 
-            if (*stream == 'e' || *stream == 'E')
-            {
+            if (*stream == 'e' || *stream == 'E') {
                 stream++;
-                if (*stream == '-') stream++;
+                if (*stream == '-')
+                    stream++;
 
                 while (t_isnum(*stream))
                     stream++;
@@ -201,10 +358,63 @@ repeat:
         }
     } break;
     default:
-        token.kind = TOKEN_UNKOWN;
-        stream++;
+        token.kind = *stream++;
         break;
     }
+}
+
+boolean match_keyword(const char *keyword)
+{
+    if ((token.kind == TOKEN_KEYWORD) && (token.string_value == keyword)) {
+        next_token();
+        return true;
+    }
+
+    return false;
+}
+
+boolean match_token(TokenKind kind)
+{
+    if (token.kind == kind) {
+        next_token();
+        return true;
+    }
+
+    return false;
+}
+
+void print_token();
+void expect_token(TokenKind kind)
+{
+    if (token.kind != kind) {
+        t_printf("Invalid token!\n");
+        print_token();
+        abort();
+    }
+
+    next_token();
+}
+
+boolean is_token(TokenKind kind)
+{
+    return token.kind == kind;
+}
+
+float read_number()
+{
+    float result;
+
+    if (is_token(TOKEN_FLOAT)) {
+        result = token.float_value;
+    } else if (is_token(TOKEN_INT)) {
+        result = (float)token.int_value;
+    } else {
+        t_printf("Number expected!\n");
+        abort();
+    }
+
+    next_token();
+    return result;
 }
 
 void print_token()
@@ -226,10 +436,6 @@ void print_token()
         t_printf(" INT(%d) ", token.int_value);
         break;
 
-    case TOKEN_SLASH:
-        t_printf(" SLASH(/) ");
-        break;
-
     case TOKEN_NAME:
         t_printf(" NAME ");
         break;
@@ -239,84 +445,10 @@ void print_token()
         break;
 
     default:
-        t_printf(" TOKEN ");
+        t_printf(" TOKEN %d\n", token.kind);
         break;
     }
 }
-
-void assert_float()
-{
-    next_token();
-    t_assert(token.kind == TOKEN_FLOAT);
-}
-
-void assert_float_or_int()
-{
-    next_token();
-    t_assert(token.kind == TOKEN_FLOAT || token.kind == TOKEN_INT);
-}
-
-float assert_get_float_or_int()
-{
-    next_token();
-    t_assert(token.kind == TOKEN_FLOAT || token.kind == TOKEN_INT);
-    switch(token.kind)
-    {
-        case TOKEN_FLOAT: return token.float_value;
-        case TOKEN_INT: return (float) token.int_value;
-        default: return -1.0f;
-    }
-}
-
-void assert_int()
-{
-    next_token();
-    t_assert(token.kind == TOKEN_INT);
-}
-
-void assert_slash()
-{
-    next_token();
-    t_assert(token.kind = TOKEN_SLASH);
-}
-
-void assert_eol()
-{
-    next_token();
-    t_assert(token.kind == TOKEN_EOL);
-}
-
-Vec3 *vertices  = 0;
-Vec3 *normals   = 0;
-Vec2 *texcoords = 0;
-
-typedef enum
-{
-    FACE_V,
-    FACE_VN,
-    FACE_VT,
-    FACE_VTN,
-    FACE_NOT_ASSERTED
-} FaceType;
-
-FaceType face_type = FACE_NOT_ASSERTED;
-
-typedef struct FaceElement
-{
-    int v;
-    int vn;
-    int vt;
-
-    u8 type;
-} FaceElement;
-
-typedef struct Face
-{
-    FaceElement faces[4];
-    int count;
-} Face;
-
-Face *faces;
 
 typedef enum
 {
@@ -327,53 +459,47 @@ typedef enum
 
 inline int process_face_value(int f, ProcessFaceType kind)
 {
-    if (f > 0) return f;
+    if (f > 0)
+        return f;
 
-    switch(kind)
-    {
-        case FACE_VALUE_V:
-            return t_arr_len(vertices) + f + 1;
-        case FACE_VALUE_N:
-            return t_arr_len(normals) + f + 1;
-        case FACE_VALUE_T:
-            return t_arr_len(texcoords) + f + 1;
+    switch (kind) {
+    case FACE_VALUE_V:
+        return t_arr_len(parser.vertices) + f + 1;
+    case FACE_VALUE_N:
+        return t_arr_len(parser.normals) + f + 1;
+    case FACE_VALUE_T:
+        return t_arr_len(parser.texcoords) + f + 1;
     }
 }
 
 boolean parse_face_element(FaceElement *e)
 {
-    next_token();
-    if (token.kind != TOKEN_INT)
+    if (!is_token(TOKEN_INT))
         return false;
 
     e->v    = process_face_value(token.int_value, FACE_VALUE_V);
     e->type = FACE_V;
+    next_token();
 
-    if (*stream == '/') {
-        stream++;
-
-        if (*stream == '/') {
-            stream++;
-            assert_int();
+    if (match_token('/')) {
+        if (match_token('/')) {
             e->type = FACE_VN;
             e->vn   = process_face_value(token.int_value, FACE_VALUE_N);
+            expect_token(TOKEN_INT);
         } else {
-            assert_int();
             e->type = FACE_VT;
             e->vt   = process_face_value(token.int_value, FACE_VALUE_T);
-
-            if (*stream == '/') {
-                stream++;
-                assert_int();
+            expect_token(TOKEN_INT);
+            if (match_token('/')) {
                 e->type = FACE_VTN;
                 e->vn   = process_face_value(token.int_value, FACE_VALUE_N);
+                expect_token(TOKEN_INT);
             }
         }
     }
 
     return true;
 }
-
 
 void triangulate_face(Face *f, Face *out1, Face *out2)
 {
@@ -387,8 +513,41 @@ void triangulate_face(Face *f, Face *out1, Face *out2)
     e22 = f->faces[1];
     e23 = f->faces[2];
 
-    *out1 = (Face) { .faces = { e11, e12, e13 }, .count = 3 };
-    *out2 = (Face) { .faces = { e21, e22, e23 }, .count = 3 };
+    *out1 = (Face){ .faces = { e11, e12, e13 }, .count = 3 };
+    *out2 = (Face){ .faces = { e21, e22, e23 }, .count = 3 };
+}
+
+
+void parse_line(char *line);
+
+void parse_mtllib_line(char *line)
+{
+    stream = line;
+    
+    next_token();
+    while (token.kind != TOKEN_EOL) {
+        print_token();
+        next_token();
+    }
+}
+
+void parse_mtllib(char *name)
+{
+    FILE *f;
+    
+    int nlines;
+    char buf[256];
+    char buf2[256];
+    get_base_dir(MODEL, buf, 256);
+    t_snprintf(buf2, 256, "%s%s", buf, name);
+    char **lines = t_read_file_lines(buf2, &nlines);
+
+    forn(i, nlines) {
+        parse_mtllib_line(lines[i]);
+    }
+
+    exit(0);
+
 }
 
 void parse_line(char *line)
@@ -396,50 +555,35 @@ void parse_line(char *line)
     stream = line;
 
     next_token();
-    // print_token();
 
-    if (token.kind == TOKEN_VERTEX) {
+    if (match_keyword(keywords[KEYWORD_VERTEX])) {
         Vec3 v;
 
-        v.x = assert_get_float_or_int();
-        v.y = assert_get_float_or_int();
-        v.z = assert_get_float_or_int();
+        v.x = read_number();
+        v.y = read_number();
+        v.z = read_number();
 
-        t_arr_push(vertices, v);
+        t_arr_push(parser.vertices, v);
 
-        assert_eol();
-    }
-
-    if (token.kind == TOKEN_NORMAL) {
+    } else if (match_keyword(keywords[KEYWORD_NORMAL])) {
         Vec3 v;
 
-        v.x = assert_get_float_or_int();
-        v.y = assert_get_float_or_int();
-        v.z = assert_get_float_or_int();
+        v.x = read_number();
+        v.y = read_number();
+        v.z = read_number();
 
-        t_arr_push(normals, v);
+        t_arr_push(parser.normals, v);
 
-        assert_eol();
-    }
-
-    if (token.kind == TOKEN_TEXCOORD) {
+    } else if (match_keyword(keywords[KEYWORD_TEXCOORD])) {
         Vec2 v;
 
-        v.y = assert_get_float_or_int();
-        v.y = assert_get_float_or_int();
+        v.y = read_number();
+        v.y = read_number();
 
-        t_arr_push(texcoords, v);
+        t_arr_push(parser.texcoords, v);
 
-        next_token();
-
-        if (token.kind == TOKEN_FLOAT) {
-            assert_eol();
-        } else {
-            t_assert(token.kind == TOKEN_EOL);
-        }
-    }
-
-    if (token.kind == TOKEN_FACE) {
+        match_token(TOKEN_FLOAT);
+    } else if (match_keyword(keywords[KEYWORD_FACE])) {
         Face f = { 0 };
 
         FaceElement e;
@@ -448,28 +592,38 @@ void parse_line(char *line)
             f.count++;
         }
 
-        if (f.count == 4)
-        {
+        if (f.count == 4) {
             Face f1, f2;
             triangulate_face(&f, &f1, &f2);
-            t__arr_push(faces, f1);
-            t__arr_push(faces, f2);
-        }
-        else
-        {
-            t_arr_push(faces, f);
+            push_face(f1);
+            push_face(f2);
+        } else {
+            push_face(f);
         }
 
+    } else if (match_keyword(keywords[KEYWORD_GROUP])) {
+        // t_printf("group %s\n", token.string_value);
+        expect_token(TOKEN_NAME);
+    } else if (match_keyword(keywords[KEYWORD_USE_MTL])) {
+        parser_set_material(token.string_value);
+        expect_token(TOKEN_NAME);
+    } else if (match_keyword(keywords[KEYWORD_SMOOTH])) {
+        if (token.kind == TOKEN_INT) {
+            t_printf("s %d\n", token.int_value);
+            next_token();
+        } else if (match_keyword(keywords[KEYWORD_OFF])) {
+            t_printf("s OFF\n");
+        } else {
+            // t_printf("Syntax error 's': %s\n", token.string_value);
+            abort();
+        }
+    } else if (match_keyword(keywords[KEYWORD_MTLLIB])) {
+        parse_mtllib(token.string_value);
+        expect_token(TOKEN_NAME);
     }
 
-    while (token.kind != TOKEN_EOL) {
-        next_token();
-        // print_token();
-    }
-
-    // t_printf("\n");
+    expect_token(TOKEN_EOL);
 }
-
 
 typedef struct
 {
@@ -478,176 +632,201 @@ typedef struct
     u32 normal_offset;
     u32 normal_byte_size;
     u32 texcoord_offset;
-    u32 texcoord_byte_size; 
+    u32 texcoord_byte_size;
 } PFAHeader;
-
-Vec3 *final_vertices;
-Vec3 *final_normals;
-Vec2 *final_texcoords;
 
 void remove_indices()
 {
-    forn(i, t_arr_len(faces))
+    forn(idx, parser.num_objects)
     {
-        Face f = faces[i];
+        Object *o       = parser.objects + idx;
+        Face *obj_faces = o->faces;
 
-        t_assert(f.count == 3);
-
-        forn(k, 3)
+        forn(i, t_arr_len(obj_faces))
         {
-            FaceElement e = f.faces[k];
+            Face f = obj_faces[i];
 
-            t_arr_push(final_vertices, vertices[e.v - 1]);
+            t_assert(f.count == 3);
 
-            if (e.type == FACE_VN || e.type == FACE_VTN)
+            forn(k, 3)
             {
-                t_arr_push(final_normals, normals[e.vn - 1]);
-            }
+                FaceElement e = f.faces[k];
 
-            if (e.type == FACE_VT || e.type == FACE_VTN)
-            {
-                t_arr_push(final_texcoords, texcoords[e.vt - 1]);
+                t_arr_push(o->output_vertices, parser.vertices[e.v - 1]);
+
+                if (e.type == FACE_VN || e.type == FACE_VTN) {
+                    t_arr_push(o->output_normals, parser.normals[e.vn - 1]);
+                }
+
+                if (e.type == FACE_VT || e.type == FACE_VTN) {
+                    t_arr_push(o->output_texcoords, parser.texcoords[e.vt - 1]);
+                }
             }
         }
     }
 }
 
-
 void build_normals()
 {
-    for (int i = 1; i <= t_arr_len(vertices); i++)
+    forn(idx, parser.num_objects)
     {
-        Vec3 sum = vec3(0, 0, 0);
-        Vec3 v = vertices[i-1];
-        forn(k, t_arr_len(faces))
-        {
-            int ia = 0, ib = 0;
-            Face *f = &faces[k];
+        Face *faces = parser.objects[idx].faces;
 
-            if (f->faces[0].v == i)
+        for (int i = 1; i <= t_arr_len(parser.vertices); i++) {
+            Vec3 sum = vec3(0, 0, 0);
+            Vec3 v   = parser.vertices[i - 1];
+            forn(k, t_arr_len(faces))
             {
-                ia = f->faces[1].v;
-                ib = f->faces[2].v;
-            } else if (f->faces[1].v == i) {
-                ia = f->faces[2].v;
-                ib = f->faces[0].v;
-            } else if (f->faces[2].v == i) {
-                ia = f->faces[0].v;
-                ib = f->faces[1].v;
-            } else {
-                continue;
+                int ia = 0, ib = 0;
+                Face *f = &faces[k];
+
+                if (f->faces[0].v == i) {
+                    ia = f->faces[1].v;
+                    ib = f->faces[2].v;
+                } else if (f->faces[1].v == i) {
+                    ia = f->faces[2].v;
+                    ib = f->faces[0].v;
+                } else if (f->faces[2].v == i) {
+                    ia = f->faces[0].v;
+                    ib = f->faces[1].v;
+                } else {
+                    continue;
+                }
+
+                Vec3 a = parser.vertices[ia - 1];
+                Vec3 b = parser.vertices[ib - 1];
+
+                Vec3 e1 = vec3_sub(a, v);
+                Vec3 e2 = vec3_sub(b, v);
+
+                sum = vec3_add(sum, vec3_cross(e1, e2));
             }
 
-            Vec3 a = vertices[ia-1];
-            Vec3 b = vertices[ib-1];
-
-            Vec3 e1 = vec3_sub(a, v);
-            Vec3 e2 = vec3_sub(b, v);
-
-            sum = vec3_add(sum, vec3_cross(e1, e2));
-
+            t_arr_push(parser.normals, vec3_normalized(sum));
         }
 
-        t_arr_push(normals, vec3_normalized(sum));
-    }
-
-    forn(k, t_arr_len(faces)) {
-        Face *f = &faces[k];
-        forn(kk, 3)
+        forn(k, t_arr_len(faces))
         {
-            f->faces[kk].vn = f->faces[kk].v;
+            Face *f = &faces[k];
+            forn(kk, 3)
+            {
+                f->faces[kk].vn = f->faces[kk].v;
 
-            if (f->faces[kk].type == FACE_VT)
-                f->faces[kk].type = FACE_VTN;
-            else if (f->faces[kk].type == FACE_V)
-                f->faces[kk].type = FACE_VN;
+                if (f->faces[kk].type == FACE_VT)
+                    f->faces[kk].type = FACE_VTN;
+                else if (f->faces[kk].type == FACE_V)
+                    f->faces[kk].type = FACE_VN;
+            }
         }
     }
+}
 
-    //for (int i = 0; i < t_arr_len(final_vertices); i += 3)
-    //{
-    //    Vec3 e1, e2, v1, v2, v3, normal;
-
-    //    v1 = final_vertices[i];
-    //    v2 = final_vertices[i+1];
-    //    v3 = final_vertices[i+2];
-
-    //    e1 = vec3_sub(v2, v1);
-    //    e2 = vec3_sub(v3, v1);
-
-    //    normal = vec3_normalized(vec3_cross(e1, e2));
-    //    
-    //    t_arr_push(final_normals, normal);
-    //    t_arr_push(final_normals, normal);
-    //    t_arr_push(final_normals, normal);
-    //}
+u32 calculate_object_byte_size(Object *o)
+{
+    return 12 * t_arr_len(o->output_vertices) + 12 * t_arr_len(o->output_normals) + 8 * t_arr_len(o->output_texcoords) +
+           sizeof(PFAHeader);
 }
 
 void output_binary()
 {
     boolean built_normals = false;
-    if (t_arr_len(normals) == 0)
-    {
+    if (t_arr_len(parser.normals) == 0) {
         build_normals();
         built_normals = true;
     }
 
     remove_indices();
 
-//    if (t_arr_len(final_normals) == 0)
-//        build_normals();
-
     FILE *bin = fopen("out.pfa", "wb");
-    
-    PFAHeader header = { 0 };
-    u32 current_offest = sizeof(PFAHeader);
 
-    fseek(bin, current_offest, SEEK_SET);
-    if (t_arr_len(final_vertices) > 0)
+    PFAHeader header   = { 0 };
+    u32 current_offest = 0;
+
+    fwrite(&parser.num_objects, sizeof(parser.num_objects), 1, bin);
+    current_offest += sizeof(parser.num_objects);
+
+    // We add one so we have 32bits of zeros before the objects' data.
+    u32 projected_offset = current_offest + sizeof(u32) * (parser.num_objects + 1);
+    current_offest       = projected_offset;
+    forn(idx, parser.num_objects)
     {
-        header.vertex_offset = current_offest;
-        header.vertex_byte_size = t_arr_len(final_vertices) * 3 * 4;
-        current_offest += header.vertex_byte_size;
-
-        forn(i, t_arr_len(final_vertices))
-        {
-            fwrite((void *)final_vertices[i].values, sizeof(f32), 3, bin);
-        }
+        u32 os = calculate_object_byte_size(parser.objects + idx);
+        fwrite(&projected_offset, sizeof(u32), 1, bin);
+        projected_offset += os;
     }
 
-    if (t_arr_len(final_normals) > 0)
-    {
-        header.normal_offset = current_offest;
-        header.normal_byte_size = t_arr_len(final_normals) * 3 * 4;
-        current_offest += header.normal_byte_size;
+    u32 z = 0;
+    fwrite(&z, 4, 1, bin);
 
-        forn(i, t_arr_len(final_normals))
-        {
-            fwrite((void *)final_normals[i].values, sizeof(f32), 3, bin);
+    forn(idx, parser.num_objects)
+    {
+        Vec3 *final_vertices  = parser.objects[idx].output_vertices;
+        Vec3 *final_normals   = parser.objects[idx].output_normals;
+        Vec2 *final_texcoords = parser.objects[idx].output_texcoords;
+
+        u32 num_vertices  = t_arr_len(final_vertices);
+        u32 num_normals   = t_arr_len(final_normals);
+        u32 num_texcoords = t_arr_len(final_texcoords);
+        u32 tempoff;
+
+        u32 vertex_offset    = current_offest + (6 * 4);
+        u32 vertex_byte_size = num_vertices * 12;
+        tempoff              = vertex_offset + vertex_byte_size;
+
+        u32 normal_offset    = num_normals > 0 ? tempoff : 0;
+        u32 normal_byte_size = num_normals * 12;
+        tempoff += normal_byte_size;
+
+        u32 texcoord_offset    = num_texcoords > 0 ? tempoff : 0;
+        u32 texcoord_byte_size = 8 * num_texcoords;
+        tempoff += texcoord_byte_size;
+
+        fwrite(&vertex_offset, sizeof(u32), 1, bin);
+        fwrite(&vertex_byte_size, sizeof(u32), 1, bin);
+        fwrite(&normal_offset, sizeof(u32), 1, bin);
+        fwrite(&normal_byte_size, sizeof(u32), 1, bin);
+        fwrite(&texcoord_offset, sizeof(u32), 1, bin);
+        fwrite(&texcoord_byte_size, sizeof(u32), 1, bin);
+
+        current_offest += sizeof(u32) * 6;
+
+        if (t_arr_len(final_vertices) > 0) {
+            header.vertex_offset    = current_offest;
+            header.vertex_byte_size = t_arr_len(final_vertices) * 3 * 4;
+            current_offest += header.vertex_byte_size;
+
+            forn(i, t_arr_len(final_vertices))
+            {
+                fwrite((void *)final_vertices[i].values, sizeof(f32), 3, bin);
+            }
         }
+
+        if (t_arr_len(final_normals) > 0) {
+            header.normal_offset    = current_offest;
+            header.normal_byte_size = t_arr_len(final_normals) * 3 * 4;
+            current_offest += header.normal_byte_size;
+
+            forn(i, t_arr_len(final_normals))
+            {
+                fwrite((void *)final_normals[i].values, sizeof(f32), 3, bin);
+            }
+        }
+
+        if (t_arr_len(final_texcoords) > 0) {
+            header.texcoord_offset    = current_offest;
+            header.texcoord_byte_size = t_arr_len(final_texcoords) * 2 * 4;
+            current_offest += header.texcoord_byte_size;
+
+            forn(i, t_arr_len(final_texcoords))
+            {
+                fwrite((void *)final_texcoords[i].values, sizeof(f32), 2, bin);
+            }
+        }
+
+        t_printf("%d vertices, %d tex coords.\n", t_arr_len(final_vertices), t_arr_len(final_texcoords));
     }
 
-    if (t_arr_len(final_texcoords) > 0)
-    {
-        header.texcoord_offset = current_offest;
-        header.texcoord_byte_size = t_arr_len(final_texcoords) * 2 * 4;
-        current_offest += header.texcoord_byte_size;
-
-        forn(i, t_arr_len(final_texcoords))
-        {
-            fwrite((void *)final_texcoords[i].values, sizeof(f32), 2, bin);
-        }
-    }
-
-    fseek(bin, 0, SEEK_SET);
-    fwrite((void *) &header.vertex_offset, sizeof(u32), 1, bin);
-    fwrite((void *) &header.vertex_byte_size, sizeof(u32), 1, bin);
-    fwrite((void *) &header.normal_offset, sizeof(u32), 1, bin);
-    fwrite((void *) &header.normal_byte_size, sizeof(u32), 1, bin);
-    fwrite((void *) &header.texcoord_offset, sizeof(u32), 1, bin);
-    fwrite((void *) &header.texcoord_byte_size, sizeof(u32), 1, bin);
-
-    t_printf("%d vertices, %d tex coords.\n", t_arr_len(final_vertices), t_arr_len(final_texcoords));
+    t_printf("%d bytes written.\n", current_offest);
 }
 
 int main(int argc, char **argv)
@@ -659,106 +838,23 @@ int main(int argc, char **argv)
 
     lines = t_read_file_lines(MODEL, &nlines);
 
+    keywords[KEYWORD_VERTEX]   = string_intern("v");
+    keywords[KEYWORD_NORMAL]   = string_intern("vn");
+    keywords[KEYWORD_TEXCOORD] = string_intern("vt");
+    keywords[KEYWORD_FACE]     = string_intern("f");
+    keywords[KEYWORD_GROUP]    = string_intern("g");
+    keywords[KEYWORD_USE_MTL]  = string_intern("usemtl");
+    keywords[KEYWORD_MTLLIB]   = string_intern("mtllib");
+    keywords[KEYWORD_SMOOTH]   = string_intern("s");
+    keywords[KEYWORD_OFF]      = string_intern("off");
+    keywords[KEYWORD_OBJECT]   = string_intern("o");
+
+    parser_init();
+
     forn(i, nlines)
     {
-        current_line = i;
-        if (current_line == 125)
-        {
-            current_line = 0;
-        }
+        parser.current_line = i;
         parse_line(lines[i]);
-    }
-
-    //forn(i, t_arr_len(vertices))
-    //{
-    //    Vec3 v = vertices[i];
-    //    t_printf("V(%d): %f, %f, %f\n", i, v.x, v.y, v.z);
-    //}
-    //forn(i, t_arr_len(normals))
-    //{
-    //    Vec3 v = normals[i];
-    //    t_printf("N(%d): %f, %f, %f\n", i, v.x, v.y, v.z);
-    //}
-
-    //forn(i, t_arr_len(texcoords))
-    //{
-    //    Vec2 v = texcoords[i];
-    //    t_printf("T(%d): %f, %f\n", i, v.x, v.y);
-    //}
-
-    //forn(i, t_arr_len(faces))
-    //{
-    //    Face f = faces[i];
-    //    t_printf("F(%d): ", i);
-    //    forn(k, f.count)
-    //    {
-    //        FaceElement e = f.faces[k];
-    //        switch (e.type) {
-    //        case FACE_V:
-
-    //            t_printf(" %d ", e.v);
-    //            break;
-    //        case FACE_VT:
-
-    //            t_printf(" %d/%d ", e.v, e.vt);
-    //            break;
-    //        case FACE_VN:
-    //            t_printf(" %d//%d ", e.v, e.vn);
-    //            break;
-    //        case FACE_VTN:
-    //            t_printf(" %d/%d/%d ", e.v, e.vt, e.vn);
-    //            break;
-    //        }
-    //    }
-    //    t_printf("\n");
-    //}
-
-    FILE *file = fopen("out.obj", "w");
-
-    t_assert(file);
-
-    forn(i, t_arr_len(vertices))
-    {
-        Vec3 v = vertices[i];
-        fprintf(file, "v %f %f %f\n", v.x, v.y, v.z);
-    }
-    forn(i, t_arr_len(normals))
-    {
-        Vec3 v = normals[i];
-        fprintf(file, "vn %f %f %f\n", v.x, v.y, v.z);
-    }
-
-    forn(i, t_arr_len(texcoords))
-    {
-        Vec2 v = texcoords[i];
-        fprintf(file, "vt %f %f\n", v.x, v.y);
-    }
-
-    forn(i, t_arr_len(faces))
-    {
-        Face f = faces[i];
-        fprintf(file, "f ");
-        forn(k, f.count)
-        {
-            FaceElement e = f.faces[k];
-            switch (e.type) {
-            case FACE_V:
-
-                fprintf(file, " %d ", e.v);
-                break;
-            case FACE_VT:
-
-                fprintf(file, " %d/%d ", e.v, e.vt);
-                break;
-            case FACE_VN:
-                fprintf(file, " %d//%d ", e.v, e.vn);
-                break;
-            case FACE_VTN:
-                fprintf(file, " %d/%d/%d ", e.v, e.vt, e.vn);
-                break;
-            }
-        }
-        fprintf(file, "\n");
     }
 
     output_binary();

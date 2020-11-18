@@ -173,6 +173,10 @@ int strncmp( const char *lhs, const char *rhs, size_t count )
 #define t_sinf sinf
 #endif
 
+#ifndef t_memset
+#define t_memset memset
+#endif
+
 #define t_test(name, ...)                \
     t_printf("  Testing %s... ", #name); \
     __VA_ARGS__                          \

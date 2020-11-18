@@ -22,6 +22,7 @@ typedef struct
     // temp stuff
     uint vbo;
     uint ebo;
+    Vec3 color;
 } Mesh;
 
 typedef struct
@@ -51,6 +52,13 @@ typedef struct Camera
     Mat4 projection_matrix;
     Mat4 view_matrix;
 } Camera;
+
+extern f32 rand();
+WASM_JS(
+        function rand() {
+            return Math.random();
+        }
+)
 
 void mesh_load(Mesh *mesh)
 {
@@ -145,6 +153,7 @@ char *vshader =
     "attribute vec3 pos;"
     "attribute vec3 normal;"
     "attribute vec2 uv;"
+    "uniform vec3 u_color;"
     "uniform vec3 u_camera_position;"
     "uniform mat4 modelTransform;"
     "uniform mat4 u_view_matrx;"
@@ -170,12 +179,14 @@ char *fshader =
     "varying vec2 fs_uv;"
     "varying vec3 fs_pos;"
     "uniform vec3 u_camera_position;"
+    "uniform vec3 u_color;"
     "void main() {\n"
     "vec3 lpos = vec3(10, 10, -10);"
     "vec3 ldir = normalize(lpos - fs_pos);"
     // 242, 176, 114
     //"vec3 scolor = vec3(242.0 / 255.0, 176.0 / 255.0, 114.0 / 255.0);"
-    "vec3 scolor = vec3(155.0 / 255.0, 152.0 / 255.0, 212.0 / 255.0);"
+    //"vec3 scolor = vec3(155.0 / 255.0, 152.0 / 255.0, 212.0 / 255.0);"
+    "vec3 scolor = u_color;"
     "vec3 c = 0.05 * scolor * max(0.0, dot(lpos, normalize(fs_normal)));"
     "c += scolor * 0.01;"
     "vec3 eye = normalize(u_camera_position - fs_pos);"
@@ -219,6 +230,7 @@ int model_matrix_loc = -1;
 int view_matrix_loc = -1;
 int proj_matrix_loc = -1;
 int camera_position_loc = -1;
+int color_loc = -1;
 Camera camera;
 
 extern void callback_test(void cb(u8 *result), char *buffer);
@@ -249,43 +261,78 @@ WASM_JS(
 
 Mesh teapot;
 boolean teapot_loaded;
+
+Mesh meshes[256];
+u32 num_meshes;
+
+typedef struct
+{
+    u8 *start;
+    u8 *head;
+} DataStream;
+
+u32 data_stream_read_u32(DataStream *stream)
+{
+    u32 v = *((u32 *)stream->head); 
+    stream->head += sizeof(u32);
+
+    return v;
+}
+
+void data_stream_set_pos(DataStream *stream, u32 pos)
+{
+    stream->head = stream->start + pos;
+}
+
+u32 data_stream_get_pos(DataStream *stream) {
+    return (stream->head - stream->start);
+}
+
 void cbex(u8 *s) {
-    u8 *data = (u8 *)s;
-    u32 *data32 = (u32 *) s;
-    u32 vertex_offset = *(data32);
-    u32 vertex_byte_size = *(data32 + 1);
-    u32 normal_offset = *(data32 + 2);
-    u32 normal_byte_size = *(data32 + 3);
-    u32 texcoord_offset = *(data32 + 4);
-    u32 texcoord_byte_size = *(data32 + 5);
+    DataStream ds = { .head = s, .start = s };
 
-   // TODO: BUG printf uses malloc which was causing corruption in the malloc'd data for the teapot buffers!
-   //
-   // t_printf("odfsdfasdfasdf");
-   //t_printf("vertex_offset = %d\n", vertex_offset);
-   //t_printf("vertex_byte_size = %d\n", vertex_byte_size);
-   //t_printf("normal_offset = %d\n", normal_offset);
-   //t_printf("normal_byte_size = %d\n", normal_byte_size);
+    num_meshes = data_stream_read_u32(&ds);
 
-   teapot.vertices = (f32 *) ((u8*)data + vertex_offset);
+    u32 pos = data_stream_get_pos(&ds);
+    forn(i, num_meshes)
+    {
+        data_stream_set_pos(&ds, pos);
+        u32 mesh_offset = data_stream_read_u32(&ds); 
+        pos = data_stream_get_pos(&ds);
 
-   if (texcoord_offset != 0)
-   {
-       teapot.tex_coords = (f32 *) ((u8*)data + texcoord_offset);
-   }
+        data_stream_set_pos(&ds, mesh_offset);
+        
+        u32 vertex_offset = data_stream_read_u32(&ds);
+        u32 vertex_byte_size = data_stream_read_u32(&ds);
+        u32 normal_offset = data_stream_read_u32(&ds);
+        u32 normal_byte_size = data_stream_read_u32(&ds);
+        u32 texcoord_offset = data_stream_read_u32(&ds);
+        u32 texcoord_byte_size = data_stream_read_u32(&ds);
 
-   if (normal_offset != 0)
-   {
-       teapot.normals = (f32 *) (data + normal_offset);
-   }
+        mesh.vertices = (f32 *) (ds.start + vertex_offset);
+        mesh.num_vertices = (vertex_byte_size / 12);
+        mesh.num_triangles = mesh.num_vertices / 3;
 
-   teapot.num_vertices = (vertex_byte_size / 12);
-   teapot.num_triangles = teapot.num_vertices / 3;
+        if (normal_offset > 0)
+        {
+            mesh.normals = (f32 *) (ds.start + normal_offset);
+        }
 
-   mesh_load(&teapot);
-   teapot_loaded = true;
+        if (texcoord_offset > 0)
+        {
+            mesh.tex_coords = (f32 *) (ds.start + normal_offset);
+        }
 
-   t_free(s);
+        mesh.color = vec3(rand(), rand(), rand());
+
+        mesh_load(&mesh);
+        meshes[i] = mesh;
+
+        t_printf("vertex_offset = %d\n", vertex_offset);
+    }
+
+    teapot_loaded = true;
+    t_free(s);
 }
 
 int coffee_main(int argc, char **argv)
@@ -316,6 +363,7 @@ int coffee_main(int argc, char **argv)
     view_matrix_loc = glGetUniformLocation(program, "u_view_matrx");
     proj_matrix_loc = glGetUniformLocation(program, "u_proj_matrix");
     camera_position_loc = glGetUniformLocation(program, "u_camera_position");
+    color_loc = glGetUniformLocation(program, "u_color");
 
 
     camera = (Camera) { .n = 0.1, .f = 1000, .aspect = (f32) c.window.width / c.window.height, .fov = 50, .position = vec3(2, 2, 2), .target = vec3(0, 0, 0) };
@@ -369,7 +417,11 @@ void coffee_frame(Coffee *c)
         t.m11 = t.m22 = t.m33 = 0.015;
         //t = mat4_mul(mat4_rotY(angle), t);
         glUniformMatrix4fv(model_matrix_loc, 1, 0, (const GLfloat *) &t.values[0]);
-        mesh_draw(&teapot);
+        forn(i, num_meshes) {
+            glUniform3fv(color_loc, (const GLfloat *) &meshes[i].color.values[0]);
+            mesh_draw(&meshes[i]);
+        }
+        //mesh_draw(&teapot);
     }
 
     coffee_push(c);

@@ -2,6 +2,7 @@
 #include "coffee.h"
 #include "coffee_web_js.c"
 #include "toolbox_common.h"
+#include "toolbox_memory.h"
 #include "coffee_gl.h"
 
 typedef struct CoffeeWasm
@@ -22,39 +23,18 @@ typedef struct WasmMemory
     u32 last_alloc_size;
 } WasmMemory;
 
-static WasmMemory wasm_memory;// = { .current = 1234 };
+ToolboxMemoryArena c_wasm_memory_arena;
 
-void *coffee_wasm_request_memory(int size)
+void *coffee_wasm_request_memory(size_t size)
 {
-    u64 current_mem_size = c__wasm_js_get_memory_size();
-    wasm_memory.base          = (u32)&__heap_base;
-
-    int size_to_alloc = size;
-
-    t_assert(wasm_memory.base + wasm_memory.current + size_to_alloc < current_mem_size);
-
-    if (wasm_memory.base + wasm_memory.current + size_to_alloc > current_mem_size) {
-        return 0;
-    }
-
-    wasm_memory.current += size_to_alloc;
-    wasm_memory.last_alloc_size = size;
-
-    //c__wasm_js_print_integer(size);
-    //c__wasm_js_print_integer(wasm_memory.current - size);
-    //c__wasm_js_print_integer(wasm_memory.current);
-    //c__wasm_js_print_integer(wasm_memory.current + wasm_memory.base - current_mem_size);
-
-    return (void *)(wasm_memory.base + wasm_memory.current);
+    return toolbox_memory_arena_alloc(&c_wasm_memory_arena, size);
 }
 
-// TODO: Obviously ridiculous
-void coffee_wasm_free(void *p) {
-    wasm_memory.current -= wasm_memory.last_alloc_size;
-}
+void coffee_wasm_free(void *p) {}
 
 export int main(int argc, char **argv)
 {
+    toolbox_memory_arena_init(&c_wasm_memory_arena, &__heap_base, c__wasm_js_get_memory_size());
     return coffee_main(argc, argv);
 }
 
