@@ -60,13 +60,16 @@ WASM_JS(
 #define t__printf_alloc(...) \
 {\
     size_t _t_printf_len##__LINE__ = t_snprintf(0, 0, ##__VA_ARGS__);\
-    if (_t_printf_len##__LINE__ < 256) t__printf(__VA_ARGS__);\
+    if (_t_printf_len##__LINE__ < 256)\
+    t__printf(__VA_ARGS__)\
+    else {\
     ToolboxMemoryArenaTemp _t_printf_at##__LINE__ = toolbox_memory_arena_temp_start(&c_wasm_memory_arena);\
     char *_t_printf_b##__LINE__ = (char *) toolbox_memory_arena_alloc(&c_wasm_memory_arena, _t_printf_len##__LINE__);\
     t_assert(_t_printf_b##__LINE__);\
     t_snprintf(_t_printf_b##__LINE__, _t_printf_len##__LINE__, ##__VA_ARGS__);\
     c__wasm_js_print_line(_t_printf_b##__LINE__);\
     toolbox_memory_arena_temp_end(_t_printf_at##__LINE__);\
+    }\
 }
 
 export_named(malloc) void *coffee_wasm_request_memory(size_t size);

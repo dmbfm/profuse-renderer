@@ -7,9 +7,9 @@
 
 typedef struct CoffeeWasm
 {
-   int mouse_x_raw;
-   int mouse_y_raw;
-   int mouse_wheel_delta_raw;
+   i32 mouse_x_raw;
+   i32 mouse_y_raw;
+   i32 mouse_wheel_delta_raw;
 } CoffeeWasm;
 
 static CoffeeWasm coffee_wasm;

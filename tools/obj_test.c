@@ -89,7 +89,9 @@ typedef enum
     KEYWORD_SMOOTH,
     KEYWORD_OBJECT,
     KEYWORD_MTLLIB,
-    KEYWORD_OFF
+    KEYWORD_OFF,
+    KEYWORD_NEWMTL,
+    KEYWORD_MAP_KD 
 } Keywords;
 
 boolean is_keyword(const char *name)
@@ -213,13 +215,18 @@ typedef enum
     TOKEN_UNKOWN = 127,
     TOKEN_NAME,
     TOKEN_KEYWORD,
-    TOKEN_VERTEX,
-    TOKEN_NORMAL,
-    TOKEN_TEXCOORD,
     TOKEN_FLOAT,
-    TOKEN_FACE,
     TOKEN_INT,
 } TokenKind;
+
+const char *token_kind_str[] = {
+    [TOKEN_EOL] = "[EOL]",
+    [TOKEN_UNKOWN] = "[Unkown]",
+    [TOKEN_NAME] = "[Name]",
+    [TOKEN_KEYWORD] = "[Keyword]",
+    [TOKEN_INT] = "[Int]",
+    [TOKEN_FLOAT] = "[Float]"
+};
 
 typedef struct Token
 {
@@ -251,8 +258,9 @@ repeat:
         token.kind = TOKEN_EOL;
         stream++;
     } break;
+    case '\t':
     case ' ': {
-        while (*stream == ' ')
+        while (*stream == ' ' || *stream == '\t')
             stream++;
         goto repeat;
     } break;
@@ -309,7 +317,7 @@ repeat:
     case 'X':
     case 'Y':
     case 'Z': {
-        while (isalpha(*stream) || t_isnum(*stream) || *stream == '.' || *stream == '_')
+        while  (isalpha(*stream) || t_isnum(*stream) || *stream == '.' || *stream == '_' || *stream == '\\')
             stream++;
         token.string_value = string_intern_range(start, stream);
         token.kind         = is_keyword(token.string_value) ? TOKEN_KEYWORD : TOKEN_NAME;
@@ -419,25 +427,26 @@ float read_number()
 
 void print_token()
 {
-    switch (token.kind) {
-    case TOKEN_VERTEX:
-        t_printf(" VERTEX ");
-        break;
+    if (token.kind > 0 && token.kind < 127) {
+        t_printf("[%c(%i)]", token.kind, token.kind);
+        return;
+    }
 
-    case TOKEN_FACE:
-        t_printf(" FACE ");
+    switch (token.kind) {
+    case TOKEN_KEYWORD:
+        t_printf(" {%s} ", token.string_value);
         break;
 
     case TOKEN_FLOAT:
-        t_printf(" FLOAT(%f) ", token.float_value);
+        t_printf(" [%ff] ", token.float_value);
         break;
 
     case TOKEN_INT:
-        t_printf(" INT(%d) ", token.int_value);
+        t_printf(" [%d] ", token.int_value);
         break;
 
     case TOKEN_NAME:
-        t_printf(" NAME ");
+        t_printf(" (%s) ", token.string_value);
         break;
 
     case TOKEN_EOL:
@@ -445,7 +454,6 @@ void print_token()
         break;
 
     default:
-        t_printf(" TOKEN %d\n", token.kind);
         break;
     }
 }
@@ -520,18 +528,78 @@ void triangulate_face(Face *f, Face *out1, Face *out2)
 
 void parse_line(char *line);
 
+typedef struct Mtl
+{
+    const char *name;
+    const char *map_Kd;
+} Mtl;
+
+
+#define MAX_MATERIALS 256
+typedef struct MtlLib
+{
+    Mtl materials[MAX_MATERIALS];
+    int num_materials;
+    int current_material;
+} MtlLib;
+
+static MtlLib mtllib;
+
+void set_current_material(const char *name)
+{
+    forn(i, mtllib.num_materials) {
+        Mtl m = mtllib.materials[i];
+
+        if (m.name == name) {
+            mtllib.current_material = i; 
+            return;
+        }
+    }
+
+    mtllib.materials[mtllib.current_material].name = name;
+    mtllib.current_material++;
+    mtllib.num_materials++;
+}
+
+void set_material_map_kd(const char *name)
+{
+    mtllib.materials[mtllib.current_material].map_Kd = name;
+}
+
+int get_material_index(const char *name)
+{
+    forn(i, mtllib.num_materials) {
+        Mtl m = mtllib.materials[i];
+
+        if (m.name == name) {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
 void parse_mtllib_line(char *line)
 {
     stream = line;
     
     next_token();
+
+    if(match_keyword(keywords[KEYWORD_NEWMTL])) {
+        set_current_material(token.string_value);
+        expect_token(TOKEN_NAME);
+        t_printf("newmtl %s\n", token.string_value);
+    } else if (match_keyword(keywords[KEYWORD_MAP_KD])) {
+        set_material_map_kd(token.string_value);
+        expect_token(TOKEN_NAME);
+    }
+
     while (token.kind != TOKEN_EOL) {
-        print_token();
         next_token();
     }
 }
 
-void parse_mtllib(char *name)
+void parse_mtllib(const char *name)
 {
     FILE *f;
     
@@ -546,8 +614,7 @@ void parse_mtllib(char *name)
         parse_mtllib_line(lines[i]);
     }
 
-    exit(0);
-
+    //exit(0);
 }
 
 void parse_line(char *line)
@@ -577,7 +644,7 @@ void parse_line(char *line)
     } else if (match_keyword(keywords[KEYWORD_TEXCOORD])) {
         Vec2 v;
 
-        v.y = read_number();
+        v.x = read_number();
         v.y = read_number();
 
         t_arr_push(parser.texcoords, v);
@@ -609,17 +676,20 @@ void parse_line(char *line)
         expect_token(TOKEN_NAME);
     } else if (match_keyword(keywords[KEYWORD_SMOOTH])) {
         if (token.kind == TOKEN_INT) {
-            t_printf("s %d\n", token.int_value);
+            //t_printf("s %d\n", token.int_value);
             next_token();
         } else if (match_keyword(keywords[KEYWORD_OFF])) {
-            t_printf("s OFF\n");
+            //t_printf("s OFF\n");
         } else {
             // t_printf("Syntax error 's': %s\n", token.string_value);
             abort();
         }
     } else if (match_keyword(keywords[KEYWORD_MTLLIB])) {
+        t_assert(token.kind == TOKEN_NAME);
+        char *oldstream = stream;
         parse_mtllib(token.string_value);
-        expect_token(TOKEN_NAME);
+        stream = oldstream;
+        next_token();
     }
 
     expect_token(TOKEN_EOL);
@@ -633,6 +703,7 @@ typedef struct
     u32 normal_byte_size;
     u32 texcoord_offset;
     u32 texcoord_byte_size;
+    u32 material_id;
 } PFAHeader;
 
 void remove_indices()
@@ -769,7 +840,7 @@ void output_binary()
         u32 num_texcoords = t_arr_len(final_texcoords);
         u32 tempoff;
 
-        u32 vertex_offset    = current_offest + (6 * 4);
+        u32 vertex_offset    = current_offest + sizeof(PFAHeader);
         u32 vertex_byte_size = num_vertices * 12;
         tempoff              = vertex_offset + vertex_byte_size;
 
@@ -788,7 +859,22 @@ void output_binary()
         fwrite(&texcoord_offset, sizeof(u32), 1, bin);
         fwrite(&texcoord_byte_size, sizeof(u32), 1, bin);
 
-        current_offest += sizeof(u32) * 6;
+        u32 material_index = 0;
+        if (parser.objects[idx].material_name)
+        {
+            material_index = get_material_index(parser.objects[idx].material_name);
+
+            if (material_index < 0) {
+                material_index = 0;
+            } else {
+                material_index++;
+            }
+        }
+
+        t_printf("mi: %d at %d\n", material_index, ftell(bin));
+        fwrite(&material_index, sizeof(u32), 1, bin);
+
+        current_offest += sizeof(PFAHeader);
 
         if (t_arr_len(final_vertices) > 0) {
             header.vertex_offset    = current_offest;
@@ -827,6 +913,50 @@ void output_binary()
     }
 
     t_printf("%d bytes written.\n", current_offest);
+
+    fclose(bin);
+}
+
+void output_material_library()
+{
+    FILE *b = fopen("out.pml", "wb");
+
+    t_assert(b);
+
+    u32 current_offset;
+    u32 v = mtllib.num_materials;
+    fwrite(&v, sizeof(u32), 1, b);
+
+    u32 offsets[MAX_MATERIALS];
+
+    fseek(b, sizeof(u32) * mtllib.num_materials, SEEK_CUR);
+
+    forn(i, mtllib.num_materials) {
+        offsets[i] = ftell(b);
+        Mtl m = mtllib.materials[i];
+
+        v = strlen(m.name) + 1;
+        fwrite(&v, sizeof(u32), 1, b);
+        fwrite(m.name, sizeof(char), v, b);
+
+        if (m.map_Kd)
+        {
+            v = strlen(m.map_Kd) + 1;
+            fwrite(&v, sizeof(u32), 1, b);
+            fwrite(m.map_Kd, sizeof(char), v, b);
+        } else {
+            v = 0;
+            fwrite(&v, sizeof(u32), 1, b);
+        }
+    }
+
+    fseek(b, sizeof(u32), SEEK_SET);
+    forn(i, mtllib.num_materials) {
+        v = offsets[i];
+        fwrite(&v, sizeof(u32), 1, b);
+    }
+    
+    fclose(b);
 }
 
 int main(int argc, char **argv)
@@ -848,6 +978,8 @@ int main(int argc, char **argv)
     keywords[KEYWORD_SMOOTH]   = string_intern("s");
     keywords[KEYWORD_OFF]      = string_intern("off");
     keywords[KEYWORD_OBJECT]   = string_intern("o");
+    keywords[KEYWORD_NEWMTL]   = string_intern("newmtl");
+    keywords[KEYWORD_MAP_KD]   = string_intern("map_Kd");
 
     parser_init();
 
@@ -858,6 +990,7 @@ int main(int argc, char **argv)
     }
 
     output_binary();
+    output_material_library();
 
     return 0;
 }

@@ -375,9 +375,6 @@ extern void c__wasm_js_glUniformMatrix4fv(GLuint location, GLsizei count, GLbool
 WASM_JS(
         function c__wasm_js_glUniformMatrix4fv(location, count, transpose, ptr) {
             let mat = new Float32Array(memory.buffer, ptr, 16);
-
-            //console.log(mat);
-
             ctx.uniformMatrix4fv(uniformLocationsPool.get(location), transpose, mat);
         }
 )
@@ -386,7 +383,6 @@ extern void c__wasm_js_glUniform3fv(GLuint location, const GLfloat *value);
 WASM_JS(
         function c__wasm_js_glUniform3fv(loc, ptr) {
             let arr = new Float32Array(memory.buffer, ptr, 3);
-
             ctx.uniform3fv(uniformLocationsPool.get(loc), arr);
         }
 )
