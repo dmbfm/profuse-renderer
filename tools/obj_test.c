@@ -556,9 +556,9 @@ void set_current_material(const char *name)
         }
     }
 
-    mtllib.materials[mtllib.current_material].name = name;
-    mtllib.current_material++;
     mtllib.num_materials++;
+    mtllib.current_material = mtllib.num_materials - 1;
+    mtllib.materials[mtllib.current_material].name = name;
 }
 
 void set_material_map_kd(const char *name)
@@ -588,7 +588,6 @@ void parse_mtllib_line(char *line)
     if(match_keyword(keywords[KEYWORD_NEWMTL])) {
         set_current_material(token.string_value);
         expect_token(TOKEN_NAME);
-        t_printf("newmtl %s\n", token.string_value);
     } else if (match_keyword(keywords[KEYWORD_MAP_KD])) {
         set_material_map_kd(token.string_value);
         expect_token(TOKEN_NAME);

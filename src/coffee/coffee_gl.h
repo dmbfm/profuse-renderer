@@ -69,9 +69,12 @@ CGLFUNC(void, glUniform1i, GLuint location, GLint v0);
 CGLFUNC(void, glGenTextures, GLsizei n, GLuint *textures);
 CGLFUNC(void, glActiveTexture, GLenum texture);
 CGLFUNC(void, glBindTexture, GLenum target, GLuint texture);
-CGLFUNC(void, glTexImage2D, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height,
-        GLint border, GLsizei imageSize, const void *data);
-CGLFUNC(void, glTexParemeteri, GLenum target, GLenum pname, GLint param);
+CGLFUNC(void, glTexImage2D, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height,
+        GLint border, GLenum format, GLenum type, const void *pixels);
+CGLFUNC(void, glTexParameteri, GLenum target, GLenum pname, GLint param);
+CGLFUNC(void, glPixelStorei, GLenum pname, GLint param);
+CGLFUNC(void, glBlendFunc, GLenum sfactor, GLenum dfactor);
+CGLFUNC(void, glGenerateMipmap, GLenum target);
 
 #define GL_DEPTH_BUFFER_BIT                  0x00000100
 #define GL_STENCIL_BUFFER_BIT                0x00000400
@@ -322,5 +325,7 @@ CGLFUNC(void, glTexParemeteri, GLenum target, GLenum pname, GLint param);
 #define GL_UNSIGNED_SHORT_5_5_5_1            0x8034
 #define GL_UNSIGNED_INT_8_8_8_8              0x8035
 #define GL_UNSIGNED_INT_10_10_10_2           0x8036
+#define GL_CLAMP_TO_EDGE                     0x812F
+#define GL_UNPACK_FLIP_Y_WEBGL               0x9240
 
 #endif

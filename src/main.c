@@ -198,6 +198,8 @@ char *fshader =
     "varying vec3 fs_pos;"
     "uniform vec3 u_camera_position;"
     "uniform vec3 u_color;"
+    "uniform int u_use_map;"
+    "uniform sampler2D u_diffuse_tex;"
     "void main() {\n"
     "vec3 lpos = vec3(10, 10, -10);"
     "vec3 ldir = normalize(lpos - fs_pos);"
@@ -212,7 +214,7 @@ char *fshader =
     "vec3 reflight = -normalize((ldir - 2.0 * dot(ldir, n) * n));"
     "c += pow(clamp(0.98 * dot(reflight, eye), 0.0, 1.0), 70.0);"
     "c = pow(clamp(c, 0.0, 1.0), vec3(1.0 / 2.2));"
-    "gl_FragColor = vec4(normalize(fs_normal_view), 1.0);\n"
+    "if (u_use_map == 0) { gl_FragColor = vec4(c, 1.0);  } else {  gl_FragColor = texture2D(u_diffuse_tex, fs_uv); }\n"
     //"gl_FragColor = vec4(fs_uv, 0, 1.0);\n"
     //"gl_FragColor = vec4(c, 1.0);\n"
     "}";
@@ -234,6 +236,8 @@ int view_matrix_loc     = -1;
 int proj_matrix_loc     = -1;
 int camera_position_loc = -1;
 int color_loc           = -1;
+int u_use_map_loc = -1;
+int u_diffuse_tex_loc = -1;
 Camera camera;
 
 // clang-format off
@@ -409,6 +413,9 @@ boolean data_stream_read_serialized_string(DataStream *stream, u32 max_byte_leng
     return true;
 }
 
+
+
+extern void c_wasm_js_webgl_tex_image_2d_from_img_pool(GLenum target, GLint level, GLint internalformat, GLenum format, GLenum type, u32 img_id);
 void image_fetch_callback(u32 mat_id, u32 tex_id)
 {
     t_printf("[image_fetch_callback]: mat = %d, image = %d\n", mat_id, tex_id);
@@ -416,6 +423,25 @@ void image_fetch_callback(u32 mat_id, u32 tex_id)
     Material *mat = (materials + mat_id - 1);
     mat->diffuse_image_id = tex_id;
     mat->fully_loaded = true;
+    
+    glGenTextures(1, &mat->diffuse_texture.gltexture);
+    u32 tex = mat->diffuse_texture.gltexture;
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glPixelStorei(GL_UNPACK_FLIP_Y_WEBGL, 1);
+
+    c_wasm_js_webgl_tex_image_2d_from_img_pool(GL_TEXTURE_2D, 0, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, tex_id);
+
+    glGenerateMipmap(GL_TEXTURE_2D);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    t_printf("[image_fetch_callback] gltexture = %d\n", mat->diffuse_texture.gltexture);
+    
 }
 
 void matlib_fetch_callback(u8* data)
@@ -423,8 +449,6 @@ void matlib_fetch_callback(u8* data)
     DataStream ds = { .head = data, .start = data };
 
     u32 _num_materials = data_stream_read_u32(&ds);
-
-    t_printf("num_materials: %d\n", num_materials);
 
     data_stream_save_point(&ds);
     forn(i, _num_materials) {
@@ -514,6 +538,9 @@ int coffee_main(int argc, char **argv)
 
     c.mouse.cursor_style = COFFEE_CURSOR_STYLE_NORMAL;
 
+    //c.window.width = 1920;
+    //c.window.height = 1080;
+
     coffee_init(&c);
 
     rgl_create_program_vf(vshader, fshader, &program);
@@ -522,6 +549,8 @@ int coffee_main(int argc, char **argv)
     glClear(GL_COLOR_BUFFER_BIT);
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     mesh_load(&mesh);
     glUseProgram(program);
 
@@ -532,6 +561,8 @@ int coffee_main(int argc, char **argv)
     proj_matrix_loc     = glGetUniformLocation(program, "u_proj_matrix");
     camera_position_loc = glGetUniformLocation(program, "u_camera_position");
     color_loc           = glGetUniformLocation(program, "u_color");
+    u_use_map_loc       = glGetUniformLocation(program, "u_use_map");
+    u_diffuse_tex_loc   = glGetUniformLocation(program, "u_diffuse_tex");
 
     camera = (Camera){ .n        = 0.1,
                        .f        = 1000,
@@ -586,10 +617,28 @@ void coffee_frame(Coffee *c)
         t.m11 = t.m22 = t.m33 = 0.015;
         // t = mat4_mul(mat4_rotY(angle), t);
         glUniformMatrix4fv(model_matrix_loc, 1, 0, (const GLfloat *)&t.values[0]);
-        forn(i, num_meshes)
-        {
-            glUniform3fv(color_loc, (const GLfloat *)&meshes[i].color.values[0]);
-            mesh_draw(&meshes[i]);
+
+       //forn(i, num_meshes)
+       for (int i = num_meshes - 1; i >= 0; i--)
+       { 
+           Mesh *m = &meshes[i];
+
+           if (m->material_id != 0) {
+               Material *mat = (materials + m->material_id - 1);
+               if (mat->fully_loaded && mat->diffuse_image_id != 0)
+               {
+                   glActiveTexture(GL_TEXTURE0);
+                   glBindTexture(GL_TEXTURE_2D, mat->diffuse_texture.gltexture);
+                   glUniform1i(u_diffuse_tex_loc, 0);
+                   glUniform1i(u_use_map_loc, 1);
+               }
+           } else {
+                   glUniform1i(u_use_map_loc, 0);
+           }
+
+
+           glUniform3fv(color_loc, (const GLfloat *)&meshes[i].color.values[0]);
+           mesh_draw(m);
         }
     }
 

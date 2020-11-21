@@ -97,6 +97,15 @@ local_function void coffee_web_init_gl_function_pointers()
     glGetUniformLocation = c__wasm_js_glGetUniformLocation;
     glEnable = c__wasm_js_glEnable;
     glUniform3fv = c__wasm_js_glUniform3fv;
+    glActiveTexture = c__wasm_js_glActiveTexture;
+    glGenTextures = c__wasm_js_glGenTextures;
+    glBindTexture = c__wasm_js_glBindTexture;
+    glTexImage2D = c__wasm_js_glTexImage2D;
+    glTexParameteri = c__wasm_js_glTexParameteri;
+    glUniform1i = c__wasm_js_glUniform1i;
+    glPixelStorei = c__wasm_js_glPixelStorei;
+    glBlendFunc = c__wasm_js_glBlendFunc;
+    glGenerateMipmap = c__wasm_js_glGenerateMipmap;
 
 #ifdef COFFEE_GL_WEBGL2
     // Get all WebGL2 pointers here

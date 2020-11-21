@@ -49,7 +49,6 @@ WASM_JS(
 )
 
 // clang-format on
-
 #define t__printf(...) \
 {\
     char __t_printf_buf##__LINE__[256]; \

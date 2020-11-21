@@ -129,7 +129,7 @@ WASM_JS(
         function c__wasm_js_init_gl_context() {
             if (!canvas) { throw("No canvas!"); }
 
-            ctx = canvas.getContext("webgl");
+            ctx = canvas.getContext("webgl", { alpha: false });
 
             if (!ctx) { throw("Failed to create context!"); }
         }
@@ -387,6 +387,13 @@ WASM_JS(
         }
 )
 
+extern void c__wasm_js_glUniform1i(GLuint location, GLint v0);
+WASM_JS(
+        function c__wasm_js_glUniform1i(loc, v0) {
+            ctx.uniform1i(uniformLocationsPool.get(loc), v0);
+        }
+)
+
 extern void c__wasm_js_glEnable(GLenum cap);
 WASM_JS(
         function c__wasm_js_glEnable(cap) {
@@ -394,5 +401,85 @@ WASM_JS(
         }
 )
 
+extern void c__wasm_js_glGenTextures(GLsizei n, GLuint *textures);
+WASM_JS(
+        let glTexturesPool = new ObjectPool();
+)
+WASM_JS(
+        function c__wasm_js_glGenTextures(n, texturesPtr) {
+            for(let i = 0; i < n; i++) {
+                let texture = ctx.createTexture();
+                let id = glTexturesPool.add(texture);
+                u32[(texturesPtr + i) / 4] = id;
+            }
+        }
+)
+
+extern void c__wasm_js_glActiveTexture(GLenum texture);
+WASM_JS(
+        function c__wasm_js_glActiveTexture(texture) {
+            ctx.activeTexture(texture);
+        }
+)
+
+extern void c__wasm_js_glBindTexture(GLenum target, GLuint texture);
+WASM_JS(
+        function c__wasm_js_glBindTexture(target, texture) {
+            ctx.bindTexture(target, glTexturesPool.get(texture));
+        }
+)
+
+extern void c__wasm_js_glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels);
+WASM_JS(
+        function c__wasm_js_glTexImage2D(target, level, internalformat, width, height, border, format, type, pixelsPtr) {
+
+            let b;
+            switch(type) {
+                case ctx.UNSIGNED_BYTE:
+                    b = new Uint8Array(memory.buffer, pixelsPtr);
+                    break;
+                default:
+                    alert("[c__wasm_js_glTexImage2D] Invalid type parameter.");
+                    return;
+            }
+            ctx.texImage2D(target, level, internalformat, width, height, border, format, type, b);
+        }
+)
+
+extern void c_wasm_js_webgl_tex_image_2d_from_img_pool(GLenum target, GLint level, GLint internalformat, GLenum format, GLenum type, u32 img_id);
+WASM_JS(
+        function c_wasm_js_webgl_tex_image_2d_from_img_pool(target, level, internalformat, format, type, img_id) {
+        let img = imagesPool.get(img_id)
+        ctx.texImage2D(target, level, internalformat, format, type, img); 
+        }
+)
+
+extern void c__wasm_js_glTexParameteri(GLenum target, GLenum pname, GLint param);
+WASM_JS(
+        function c__wasm_js_glTexParameteri(target, pname, param) {
+            ctx.texParameteri(target, pname, param);
+        }
+)
+
+extern void c__wasm_js_glPixelStorei(GLenum pname, GLint param);
+WASM_JS(
+        function c__wasm_js_glPixelStorei(pname, param) {
+            ctx.pixelStorei(pname, param);
+        }
+)
+
+extern void c__wasm_js_glBlendFunc(GLenum sfactor, GLenum dfactor);
+WASM_JS(
+        function c__wasm_js_glBlendFunc(sf, df) {
+            ctx.blendFunc(sf, df);
+        }
+)
+
+extern void c__wasm_js_glGenerateMipmap(GLenum target);
+WASM_JS(
+        function c__wasm_js_glGenerateMipmap(target) {
+            ctx.generateMipmap(target);
+        }
+)
 
 // clang-format on
