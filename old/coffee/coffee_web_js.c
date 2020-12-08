@@ -410,7 +410,7 @@ WASM_JS(
             for(let i = 0; i < n; i++) {
                 let texture = ctx.createTexture();
                 let id = glTexturesPool.add(texture);
-                u32[(texturesPtr + i) / 4] = id;
+                u32[(texturesPtr/ 4) + i] = id;
             }
         }
 )

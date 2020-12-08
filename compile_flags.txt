@@ -1,4 +1,3 @@
 -xc
---target=wasm32
 -Isrc/coffee
 -Isrc/toolbox

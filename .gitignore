@@ -7,3 +7,4 @@ build
 *.exe
 *.obj
 *.png
+.test_temp/

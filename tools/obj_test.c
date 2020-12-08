@@ -14,11 +14,11 @@
 //#define MODEL "..\\test_models\\cornell_box.obj"
 #define MODEL "..\\test_models\\sponza.obj"
 
-boolean get_base_dir(char *filepath, char *out, u32 max_len) {
-    char *start = filepath;
+boolean get_base_dir(char *filepath, char *out, u32 max_len)
+{
+    char *start      = filepath;
     char *last_slash = start;
-    while (*start)
-    {
+    while (*start) {
         if (*start == '\\' || *start == '/') {
             last_slash = start;
         }
@@ -30,8 +30,7 @@ boolean get_base_dir(char *filepath, char *out, u32 max_len) {
         return false;
 
     start = filepath;
-    while ((last_slash-start) >= 0)
-    {
+    while ((last_slash - start) >= 0) {
         *out++ = *start;
         start++;
     }
@@ -91,7 +90,7 @@ typedef enum
     KEYWORD_MTLLIB,
     KEYWORD_OFF,
     KEYWORD_NEWMTL,
-    KEYWORD_MAP_KD 
+    KEYWORD_MAP_KD
 } Keywords;
 
 boolean is_keyword(const char *name)
@@ -202,7 +201,7 @@ void parser_set_material(const char *material_name)
             }
         }
 
-        parser.current_object = parser.num_objects;
+        parser.current_object                               = parser.num_objects;
         parser.objects[parser.current_object].material_name = material_name;
         parser.num_objects++;
     }
@@ -220,12 +219,8 @@ typedef enum
 } TokenKind;
 
 const char *token_kind_str[] = {
-    [TOKEN_EOL] = "[EOL]",
-    [TOKEN_UNKOWN] = "[Unkown]",
-    [TOKEN_NAME] = "[Name]",
-    [TOKEN_KEYWORD] = "[Keyword]",
-    [TOKEN_INT] = "[Int]",
-    [TOKEN_FLOAT] = "[Float]"
+    [TOKEN_EOL] = "[EOL]",         [TOKEN_UNKOWN] = "[Unkown]", [TOKEN_NAME] = "[Name]",
+    [TOKEN_KEYWORD] = "[Keyword]", [TOKEN_INT] = "[Int]",       [TOKEN_FLOAT] = "[Float]"
 };
 
 typedef struct Token
@@ -317,7 +312,7 @@ repeat:
     case 'X':
     case 'Y':
     case 'Z': {
-        while  (isalpha(*stream) || t_isnum(*stream) || *stream == '.' || *stream == '_' || *stream == '\\')
+        while (isalpha(*stream) || t_isnum(*stream) || *stream == '.' || *stream == '_' || *stream == '\\')
             stream++;
         token.string_value = string_intern_range(start, stream);
         token.kind         = is_keyword(token.string_value) ? TOKEN_KEYWORD : TOKEN_NAME;
@@ -525,15 +520,21 @@ void triangulate_face(Face *f, Face *out1, Face *out2)
     *out2 = (Face){ .faces = { e21, e22, e23 }, .count = 3 };
 }
 
-
 void parse_line(char *line);
 
 typedef struct Mtl
 {
     const char *name;
-    const char *map_Kd;
-} Mtl;
+    float Ka; // ambient color
+    float Kd; // diffuse color
+    float Ks; // specular color
+    float Ke; // emission color
+    float d;  // opacity
+    float Ns; //specular exponent
 
+    const char *map_Kd;
+    const char *map_bump;
+} Mtl;
 
 #define MAX_MATERIALS 256
 typedef struct MtlLib
@@ -547,17 +548,18 @@ static MtlLib mtllib;
 
 void set_current_material(const char *name)
 {
-    forn(i, mtllib.num_materials) {
+    forn(i, mtllib.num_materials)
+    {
         Mtl m = mtllib.materials[i];
 
         if (m.name == name) {
-            mtllib.current_material = i; 
+            mtllib.current_material = i;
             return;
         }
     }
 
     mtllib.num_materials++;
-    mtllib.current_material = mtllib.num_materials - 1;
+    mtllib.current_material                        = mtllib.num_materials - 1;
     mtllib.materials[mtllib.current_material].name = name;
 }
 
@@ -568,7 +570,8 @@ void set_material_map_kd(const char *name)
 
 int get_material_index(const char *name)
 {
-    forn(i, mtllib.num_materials) {
+    forn(i, mtllib.num_materials)
+    {
         Mtl m = mtllib.materials[i];
 
         if (m.name == name) {
@@ -582,10 +585,10 @@ int get_material_index(const char *name)
 void parse_mtllib_line(char *line)
 {
     stream = line;
-    
+
     next_token();
 
-    if(match_keyword(keywords[KEYWORD_NEWMTL])) {
+    if (match_keyword(keywords[KEYWORD_NEWMTL])) {
         set_current_material(token.string_value);
         expect_token(TOKEN_NAME);
     } else if (match_keyword(keywords[KEYWORD_MAP_KD])) {
@@ -601,7 +604,7 @@ void parse_mtllib_line(char *line)
 void parse_mtllib(const char *name)
 {
     FILE *f;
-    
+
     int nlines;
     char buf[256];
     char buf2[256];
@@ -609,11 +612,12 @@ void parse_mtllib(const char *name)
     t_snprintf(buf2, 256, "%s%s", buf, name);
     char **lines = t_read_file_lines(buf2, &nlines);
 
-    forn(i, nlines) {
+    forn(i, nlines)
+    {
         parse_mtllib_line(lines[i]);
     }
 
-    //exit(0);
+    // exit(0);
 }
 
 void parse_line(char *line)
@@ -675,10 +679,10 @@ void parse_line(char *line)
         expect_token(TOKEN_NAME);
     } else if (match_keyword(keywords[KEYWORD_SMOOTH])) {
         if (token.kind == TOKEN_INT) {
-            //t_printf("s %d\n", token.int_value);
+            // t_printf("s %d\n", token.int_value);
             next_token();
         } else if (match_keyword(keywords[KEYWORD_OFF])) {
-            //t_printf("s OFF\n");
+            // t_printf("s OFF\n");
         } else {
             // t_printf("Syntax error 's': %s\n", token.string_value);
             abort();
@@ -859,8 +863,7 @@ void output_binary()
         fwrite(&texcoord_byte_size, sizeof(u32), 1, bin);
 
         u32 material_index = 0;
-        if (parser.objects[idx].material_name)
-        {
+        if (parser.objects[idx].material_name) {
             material_index = get_material_index(parser.objects[idx].material_name);
 
             if (material_index < 0) {
@@ -930,16 +933,16 @@ void output_material_library()
 
     fseek(b, sizeof(u32) * mtllib.num_materials, SEEK_CUR);
 
-    forn(i, mtllib.num_materials) {
+    forn(i, mtllib.num_materials)
+    {
         offsets[i] = ftell(b);
-        Mtl m = mtllib.materials[i];
+        Mtl m      = mtllib.materials[i];
 
         v = strlen(m.name) + 1;
         fwrite(&v, sizeof(u32), 1, b);
         fwrite(m.name, sizeof(char), v, b);
 
-        if (m.map_Kd)
-        {
+        if (m.map_Kd) {
             v = strlen(m.map_Kd) + 1;
             fwrite(&v, sizeof(u32), 1, b);
             fwrite(m.map_Kd, sizeof(char), v, b);
@@ -950,11 +953,12 @@ void output_material_library()
     }
 
     fseek(b, sizeof(u32), SEEK_SET);
-    forn(i, mtllib.num_materials) {
+    forn(i, mtllib.num_materials)
+    {
         v = offsets[i];
         fwrite(&v, sizeof(u32), 1, b);
     }
-    
+
     fclose(b);
 }
 
