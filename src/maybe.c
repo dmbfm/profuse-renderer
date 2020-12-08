@@ -1,6 +1,6 @@
 #include "maybe.h"
 
-#if 1 //#ifdef __RUN_TESTS
+#ifdef __RUN_TESTS
 #include "test.h"
 
 i32 __test_inc(i32 x)
