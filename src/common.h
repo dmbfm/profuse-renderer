@@ -2,6 +2,7 @@
 #define __COMMON_H
 
 #include <stdint.h>
+#include <stddef.h>
 
 typedef uint8_t u8;
 typedef uint16_t u16;
@@ -18,6 +19,10 @@ typedef double f64;
 
 typedef unsigned char uchar;
 typedef unsigned int uint;
+
+typedef size_t usize;
+typedef intptr_t iptr;
+typedef uintptr_t uptr;
 
 typedef u8 boolean;
 
@@ -40,11 +45,20 @@ typedef char* charptr;
 typedef unsigned char* ucharptr;
 
 #if defined(_MSC_VER)
-#define panic() __debugbreak;
+#define panic() __debugbreak
 #elif defined(__clang__) || defined(__GNUC__)
-#define panic() __builtin_trap;
+#define panic() __builtin_trap()
 #else 
 #define panic() ((*((int *)0)) = 0)
 #endif
+
+#if 1
+#define ASSERT(exp) if (!(exp)) { panic(); } 
+#else
+#define ASSERT(exp)
+#endif
+
+#define max(a,b) (((a) > (b)) ? (a) : (b))
+#define min(a,b) (((a) > (b)) ? (b) : (a))
 
 #endif /* __COMMON_H */

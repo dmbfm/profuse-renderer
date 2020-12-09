@@ -400,6 +400,8 @@ if (sys.platform == "win32"):
 
 tests = EmptyTask() 
 tests.deps.add(create_test_task("maybe", "src/maybe.c", target))
+tests.deps.add(create_test_task("result", "src/result.c", target))
+tests.deps.add(create_test_task("allocators", "src/allocators.c", target))
 
 b.add_task("test", tests)
 
