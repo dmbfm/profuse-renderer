@@ -3,23 +3,6 @@
 #include "error.h"
 #include "result.h"
 
-typedef void *(*AllocatorsRequestMemoryFunc)(usize amout);
-
-typedef struct
-{
-    Result(uptr) (*alloc)(usize);
-    void (*free)(uptr);
-} AllocatorsChildAllocator;
-
-typedef struct
-{
-    uptr base;
-    usize current_offset;
-    usize capacity;
-    boolean initialized;
-    AllocatorsChildAllocator child_allocator;
-} AllocatorsLinear;
-
 static const u32 max_alignment = sizeof(intmax_t);
 
 static boolean is_pot(usize x)
@@ -54,6 +37,10 @@ ErrorCode allocators_linear_init(AllocatorsLinear *allocator, AllocatorsChildAll
 
     if (result_is_error(mbase)) {
         return mbase.error_code;
+    }
+
+    if ((mbase.value % max_alignment) != 0) {
+        return ERR_ALLOCATORS_MEMORY_ALIGNMENT;
     }
 
     allocator->base            = mbase.value;
