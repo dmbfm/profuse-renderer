@@ -22,16 +22,18 @@ typedef struct
 
 static const u32 max_alignment = sizeof(intmax_t);
 
-static boolean is_pot(usize x) {
+static boolean is_pot(usize x)
+{
     return (x & (x - 1)) == 0;
 }
 
-static Result(uptr) align_pointer_forward(uptr ptr, usize alignment) {
+static Result(uptr) align_pointer_forward(uptr ptr, usize alignment)
+{
     if (!is_pot(alignment)) {
         return result_error(uptr, ERR_ALLOCATORS_MEMORY_ALIGNMENT);
     }
 
-    uptr a = (uptr) alignment;
+    uptr a   = (uptr)alignment;
     uptr mod = ptr % a;
 
     if (mod == 0) {
@@ -74,7 +76,7 @@ Result(uptr) allocators_linear_alloc(AllocatorsLinear *allocator, usize amount)
     Result(uptr) result_ptr = align_pointer_forward(allocator->base + allocator->current_offset, max_alignment);
 
     if (result_is_error(result_ptr)) {
-        return result_ptr; 
+        return result_ptr;
     }
 
     uptr result = result_ptr.value;
@@ -92,15 +94,16 @@ Result(uptr) allocators_linear_alloc(AllocatorsLinear *allocator, usize amount)
     return result_ok(uptr, result);
 }
 
-#if 1//#ifdef __RUN_TESTS
+#ifdef __RUN_TESTS
 
-#include <stdlib.h>
-#include "result.h"
 #include "allocators.h"
+#include "result.h"
 #include "test.h"
+#include <stdlib.h>
 
-Result(uptr) __test_alloc(usize amount) {
-    uptr buf = (uptr) malloc(amount);
+Result(uptr) __test_alloc(usize amount)
+{
+    uptr buf = (uptr)malloc(amount);
 
     if (!buf) {
         return result_error(uptr, ERR_OUT_OF_MEMORY);
@@ -109,12 +112,11 @@ Result(uptr) __test_alloc(usize amount) {
     return result_ok(uptr, buf);
 }
 
-void __test_free(uptr buf) {
+void __test_free(uptr buf) {}
 
-}
-
-test(linear_allocator) {
-    AllocatorsLinear alloc = { 0 };
+test(linear_allocator)
+{
+    AllocatorsLinear alloc         = { 0 };
     AllocatorsChildAllocator child = { .alloc = __test_alloc, .free = __test_free };
 
     allocators_linear_init(&alloc, child, 100);
@@ -140,9 +142,9 @@ test(linear_allocator) {
     assert(result_is_error(my));
 }
 
-suite() {
+suite()
+{
     run_test(linear_allocator);
 }
 
 #endif /* __RUN_TESTS */
-
