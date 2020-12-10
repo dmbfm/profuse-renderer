@@ -61,4 +61,10 @@ typedef unsigned char* ucharptr;
 #define max(a,b) (((a) > (b)) ? (a) : (b))
 #define min(a,b) (((a) > (b)) ? (b) : (a))
 
+#define WASM_JS(...)
+
+#define KB(x) (usize)(1024 * (x))
+#define MB(x) (1024 * KB(x))
+#define GB(x) (1024 * MB(x))
+
 #endif /* __COMMON_H */

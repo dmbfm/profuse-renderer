@@ -3,9 +3,9 @@
 
 #include "common.h"
 
-#define maybe(type)           maybe_##type
-#define maybe_some(type, v)   ((maybe(type)){ .is_something = true, .value = v })
-#define maybe_nothing(type)   ((maybe(type)){ 0 })
+#define Maybe(type)           Maybe_##type
+#define maybe_some(type, v)   ((Maybe(type)){ .is_something = true, .value = v })
+#define maybe_nothing(type)   ((Maybe(type)){ 0 })
 #define maybe_is_something(m) (m.is_something != false)
 #define maybe_is_nothing(m)   (m.is_something == false)
 #define maybe_unwrap(m)       (maybe_is_nothing(m) ? panic() : 0, m.value)
@@ -21,11 +21,12 @@
     {                         \
         u8 is_something;      \
         type value;           \
-    } maybe(type)
+    } Maybe(type)
 
 maybe_make_type(u8);
 maybe_make_type(u32);
 maybe_make_type(i32);
 maybe_make_type(f32);
+maybe_make_type(char);
 
 #endif /* __MAYBE_H */
