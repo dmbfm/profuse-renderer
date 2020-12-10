@@ -1,6 +1,6 @@
 #include "platform.h"
 
-#include "platform_web_js_exports.c"
+#include "platform_web_js_imports.c"
 
 extern u8 __heap_base;
 
