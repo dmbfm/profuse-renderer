@@ -1,11 +1,6 @@
 #include "common.h"
 
-// clang-format off
 extern u32 wasm_get_memory_size();
-WASM_JS(
-function wasm_get_memory_size() {
-        return memory.buffer.byteLength;
-}
-)
-
-// clang-format on
+extern u32 wasm_memory_grow(u32);
+extern void wasm_print_line(const char *);
+extern void wasm_print_i32(i32 value);

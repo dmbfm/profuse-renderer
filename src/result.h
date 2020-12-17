@@ -37,5 +37,6 @@ result_make_type(i32);
 result_make_type(uptr);
 result_make_type(char);
 result_make_type(charptr);
+result_make_type(usize);
 
 #endif /* __RESULT_H */

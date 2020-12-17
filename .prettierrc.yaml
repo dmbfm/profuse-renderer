@@ -1,0 +1,11 @@
+# .prettierrc or .prettierrc.yaml
+trailingComma: "none"
+tabWidth: 4
+tabs: false
+semi: true
+singleQuote: false
+printWidth: 96
+bracketSpacing: true
+jsxBracketSameLine: true
+arrowParens: "avoid"
+endOfLine: "lf"

@@ -1,16 +1,14 @@
 let env = {
-  memory,
-  __indirect_function_table: table,
-  ...funcs,
+    memory,
+    __indirect_function_table: table,
+    ...funcs,
+    ...wasm_exports
 };
 
-WebAssembly.instantiateStreaming(fetch("build/main.wasm"), { env }).then(
-  (result) => {
+WebAssembly.instantiateStreaming(fetch("build/main.wasm"), { env }).then(result => {
     instance = result.instance;
-    u32 = new Uint32Array(memory.buffer);
-    u8 = new Uint8Array(memory.buffer);
-    f64 = new Float64Array(memory.buffer);
-    i32 = new Int32Array(memory.buffer);
+
+    initMemoryViews();
 
     instance.exports.main(0, 0);
     malloc = instance.exports.malloc;
@@ -20,5 +18,4 @@ WebAssembly.instantiateStreaming(fetch("build/main.wasm"), { env }).then(
 
     //console.log(instance.exports.malloc(100));
     //console.log(instance.exports.malloc(100));
-  }
-);
+});

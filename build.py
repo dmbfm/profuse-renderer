@@ -6,6 +6,8 @@ from enum import Enum, IntEnum, auto
 from glob import glob
 
 
+# TODO: MSVC debug in builder
+
 class TargetArch(Enum):
     X86_64 = auto()
     Wasm32 = auto()
@@ -257,6 +259,7 @@ class Executable:
     def __build_single(self):
         if (self.target.compiler == TargetCompilers.Mvsc) or (self.target.compiler == TargetCompilers.ClangCl):
             args = [self.target.compiler_command(), *self.get_compile_flags(), self.files[0], "/link", "/out:" + self.__get_executable_output_path()]
+            print(args)
             subprocess.run(args)
         else:
             args = [self.target.compiler_command(), self.files[0], *self.__get_target_specific_compile_flags(), *self.get_compile_flags(), "-o", self.__get_executable_output_path()]
@@ -375,9 +378,18 @@ def create_test_task(name, source, target):
 target = target_win32_clang()
 b = Builder()
 
-sourcefiles = ["src/unity_build.c"] #glob("src/**/*.c", recursive=True)
+ #["src/unity_build.c"] #glob("src/**/*.c", recursive=True)
 
-exe = Executable("main", sourcefiles, target)
+sourcefiles_base = [
+        "src/maybe.c",
+        "src/result.c",
+        "src/format.c"
+        ]
+
+sourcefiles_exe = [*sourcefiles_base, "src/platform_win32.c"] if (target.env == TargetEnv.Win32) else sourcefiles_base
+sourcefiles_wasm = [*sourcefiles_base, "src/platform_web.c"]
+
+exe = Executable("main", sourcefiles_exe, target)
 exe.deps.add(exe.clear())
 
 run = exe.run()
@@ -387,8 +399,9 @@ run.deps.add(exe)
 
 wasmgen = b.add_task("wasm-gen", lambda: exec(open("genwasmjs.py").read()))
 
-wasm = Executable("main", sourcefiles, target=target_wasm32())
+wasm = Executable("main", sourcefiles_wasm, target=target_wasm32())
 wasm.add_compile_flag("-std=c99")
+wasm.add_compile_flag("-g")
 wasm.add_include_dirs("src\\toolbox", "src\\coffee")
 wasm.deps.add(wasmgen)
 
@@ -401,7 +414,11 @@ if (sys.platform == "win32"):
 tests = EmptyTask() 
 tests.deps.add(create_test_task("maybe", "src/maybe.c", target))
 tests.deps.add(create_test_task("result", "src/result.c", target))
-tests.deps.add(create_test_task("allocators", "src/allocators.c", target))
+
+alloc = Executable("alloc", ["alloc.c"], target = target_win32_msvc(), flags=["/Zi"])
+allocrun = alloc.run()
+allocrun.deps.add(alloc)
+b.add_task("alloc", allocrun)
 
 b.add_task("test", tests)
 

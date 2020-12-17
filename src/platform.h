@@ -53,10 +53,11 @@ ErrorCode platform_init(Platform *p);
 ErrorCode platform_deinit(Platform *p);
 void platform_run(Platform *p);
 
-Result(uptr) platform_alloc(usize amount);
-Result(uptr) platform_realloc(usize amount);
-void platform_free(uptr pointer);
+Result(uptr) platform_memory_alloc(usize amount);
+Result(uptr) platform_memory_realloc(usize amount);
+void platform_memory_free(uptr pointer);
 
+void platform_print_fmt(const char *fmt, ...);
 void platform_print_line(const char *string);
 void platform_print_u32(u32);
 void platform_print_f32(f32);
