@@ -365,8 +365,8 @@ class EmptyTask:
         pass
 
 
-def create_test_task(name, source, target):
-    compile_task = Executable(name, [source], target, flags=["-D__RUN_TESTS"], build_dir=".test_temp")
+def create_test_task(name, source, target, flags = []):
+    compile_task = Executable(name, [source], target, flags=["-D__RUN_TESTS", *flags], build_dir=".test_temp")
     run_task = compile_task.run()
     run_task.deps.add(compile_task)
     return run_task
@@ -383,7 +383,8 @@ b = Builder()
 sourcefiles_base = [
         "src/maybe.c",
         "src/result.c",
-        "src/format.c"
+        "src/format.c",
+        "src/math.c"
         ]
 
 sourcefiles_exe = [*sourcefiles_base, "src/platform_win32.c"] if (target.env == TargetEnv.Win32) else sourcefiles_base
@@ -397,7 +398,7 @@ run.deps.add(lambda: print("Build and then run!"))
 run.deps.add(lambda: exec(open("other.py").read()))
 run.deps.add(exe)
 
-wasmgen = b.add_task("wasm-gen", lambda: exec(open("genwasmjs.py").read()))
+wasmgen = b.add_task("wasm-gen", lambda: exec(open(os.path.join(".", "genwasmjs.py")).read()))
 
 wasm = Executable("main", sourcefiles_wasm, target=target_wasm32())
 wasm.add_compile_flag("-std=c99")
@@ -414,6 +415,7 @@ if (sys.platform == "win32"):
 tests = EmptyTask() 
 tests.deps.add(create_test_task("maybe", "src/maybe.c", target))
 tests.deps.add(create_test_task("result", "src/result.c", target))
+tests.deps.add(create_test_task("math", "src/math.c", target, flags=["-lm"]))
 
 alloc = Executable("alloc", ["alloc.c"], target = target_win32_msvc(), flags=["/Zi"])
 allocrun = alloc.run()
