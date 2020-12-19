@@ -2,6 +2,7 @@
 #include "platform.h"
 #include "result.h"
 #include "format.h"
+#include "math.h"
 
 #include "platform_web_js_imports.c"
 
@@ -51,8 +52,8 @@ static Result(usize) memory_bump(PlatformWebMemory *memory, usize amount)
 
     if (next > memory->end) {
         usize need = next - memory->end;
-        usize needpages = need / memory->bytes_per_page;
-        usize oldnumpages = (usize) wasm_memory_grow(1);
+        usize needpages = math_div_ceil_u32(need, memory->bytes_per_page);
+        usize oldnumpages = (usize) wasm_memory_grow(needpages);
         usize current_size = wasm_get_memory_size();
         usize current_pages = current_size / memory->bytes_per_page;
 
@@ -60,10 +61,12 @@ static Result(usize) memory_bump(PlatformWebMemory *memory, usize amount)
             return result_error(usize, ERR_OUT_OF_MEMORY);
         }
 
-        memory->num_pages++;
-        memory->capacity += memory->bytes_per_page;
-        memory->end += memory->bytes_per_page;
-        memory->available += memory->bytes_per_page;
+        usize bytesgrown = needpages * memory->bytes_per_page;
+
+        memory->num_pages += needpages;
+        memory->capacity += bytesgrown;
+        memory->end += bytesgrown;
+        memory->available += bytesgrown;
     }
 
     usize final_amount = next - memory->start - memory->current_offset;
@@ -71,6 +74,12 @@ static Result(usize) memory_bump(PlatformWebMemory *memory, usize amount)
     memory->available -= final_amount;
 
     return result_ok(usize, final_amount);
+}
+
+static void memory_clear(PlatformWebMemory *memory)
+{
+    memory->available = memory->capacity;
+    memory->current_offset = 0;
 }
 
 void platform_print_fmt(const char *fmt, ...)
@@ -102,11 +111,16 @@ export int main(int argc, char **argv)
 
     memory_init(&platform_web.memory);
 
+    platform_print_fmt("sin 0.234 = %f", math_sinf(0.234));
+
     platform_web_print_memory();
     memory_bump(&platform_web.memory, 128);
     platform_web_print_memory();
     memory_bump(&platform_web.memory, 1);
     platform_web_print_memory();
-    memory_bump(&platform_web.memory, platform_web.memory.available + 1);
+    memory_bump(&platform_web.memory, 600 * WasmMemoryPageSize);
+    platform_web_print_memory();
+    memory_clear(&platform_web.memory);
     platform_web_print_memory();
 }
+

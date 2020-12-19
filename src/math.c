@@ -1,6 +1,10 @@
 #include "math.h"
 #include "result.h"
 
+#ifndef __wasm__
+#include <math.h>
+#endif
+
 f32 math_floor_f32(f32 x)
 {
     union
@@ -110,6 +114,44 @@ i32 math_round_f32_to_i32_unsafe(f32 x)
     return math_floor_f32_to_i32_unsafe(x + 0.5f);
 }
 
+i32 math_div_ceil_u32(u32 a, u32 b)
+{
+    return ((a - !!a)/b) + !!a;
+}
+
+#ifdef __wasm__
+// clang-format off
+extern f32 math_wasm_sinf(f32);
+WASM_JS(
+        function math_wasm_sinf(x) { return Math.sin(x) }
+       )
+
+extern f32 math_wasm_cosf(f32);
+WASM_JS(
+        function math_wasm_cosf(x) { return Math.cos(x) }
+       )
+
+// clang-format on
+#endif /* __wasm__ */
+
+f32 math_sinf(f32 x)
+{
+#ifdef __wasm__
+    return math_wasm_sinf(x);
+#else
+    return sinf(x);
+#endif /* __wasm__ */
+}
+
+f32 math_cosf(f32 x)
+{
+#ifdef __wasm__
+    return math_wasm_cosf(x);
+#else
+    return cosf(x);
+#endif /* __wasm__ */
+}
+
 #ifdef __RUN_TESTS
 //#if 1
 #include "test.h"
@@ -191,12 +233,21 @@ test(math_round_f32)
     assert(roundf(f) == math_round_f32(f));
 }
 
+test(math_div_ceil_u32)
+{
+    assert(math_div_ceil_u32(0, 10) == 0);
+    assert(math_div_ceil_u32(5, 10) == 1);
+    assert(math_div_ceil_u32(10, 10) == 1);
+    assert(math_div_ceil_u32(11, 10) == 2);
+}
+
 suite()
 {
     run_test(math_floor_f32);
     run_test(math_floor_f32_to_i32);
     run_test(math_ceil_f32);
     run_test(math_round_f32);
+    run_test(math_div_ceil_u32);
 }
 
 #endif /* __RUN_TESTS */

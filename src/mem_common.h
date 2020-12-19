@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "result.h"
+#include <stdint.h>
 
 enum
 {

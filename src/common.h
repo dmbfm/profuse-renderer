@@ -68,6 +68,9 @@ typedef unsigned char* ucharptr;
 #define ASSERT(exp)
 #endif
 
+#define forn(name,n) for(usize name = 0; name < n; name++)
+#define for_range(name,start,end) for(usize name = start; name < end; name++)
+
 #define c_max(a,b) (((a) > (b)) ? (a) : (b))
 #define c_min(a,b) (((a) > (b)) ? (b) : (a))
 #define c_abs(x)    (((x) > 0) ? (x) : (-(x)))

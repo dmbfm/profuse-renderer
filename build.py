@@ -403,6 +403,7 @@ wasmgen = b.add_task("wasm-gen", lambda: exec(open(os.path.join(".", "genwasmjs.
 wasm = Executable("main", sourcefiles_wasm, target=target_wasm32())
 wasm.add_compile_flag("-std=c99")
 wasm.add_compile_flag("-g")
+wasm.add_compile_flag("-Isrc/include")
 wasm.add_include_dirs("src\\toolbox", "src\\coffee")
 wasm.deps.add(wasmgen)
 
@@ -416,6 +417,7 @@ tests = EmptyTask()
 tests.deps.add(create_test_task("maybe", "src/maybe.c", target))
 tests.deps.add(create_test_task("result", "src/result.c", target))
 tests.deps.add(create_test_task("math", "src/math.c", target, flags=["-lm"]))
+tests.deps.add(create_test_task("math", "src/slice.c", target, flags=["-lm"]))
 
 alloc = Executable("alloc", ["alloc.c"], target = target_win32_msvc(), flags=["/Zi"])
 allocrun = alloc.run()
