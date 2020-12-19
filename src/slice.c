@@ -1,4 +1,4 @@
-#if 1//defined(__RUN_TESTS)
+#if defined(__RUN_TESTS)
 
 #include "common.h"
 
