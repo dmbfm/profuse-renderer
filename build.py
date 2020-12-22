@@ -387,7 +387,8 @@ sourcefiles_base = [
         "src/maybe.c",
         "src/result.c",
         "src/format.c",
-        "src/math.c"
+        "src/math.c",
+        "src/heap.c"
         ]
 
 sourcefiles_exe = [*sourcefiles_base, "src/platform_win32.c"] if (target.env == TargetEnv.Win32) else sourcefiles_base

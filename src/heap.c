@@ -5,7 +5,7 @@
 #else
 #include <stdlib.h>
 
-static Result(uptr) alloc(Allocator *alloc, usize amount, usize alignment)
+static Result(uptr) alloc(Allocator *alloc, usize amount)
 {
     uptr p = (uptr) malloc(amount);
 
@@ -24,7 +24,7 @@ static Result(usize) resize(struct Allocator *allocator,  uptr region, usize new
     return result_error(usize, ERR_OUT_OF_MEMORY);
 }
 
-Allocator heap_allocator = { .alloc = alloc, .resize = resize, .allocator_state = 0 };
+Allocator heap_allocator = { .alloc = alloc, .allocator_state = 0 };
 
 #endif /* __wasm__ */
 

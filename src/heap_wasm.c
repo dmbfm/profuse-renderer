@@ -5,6 +5,7 @@
 #include "math.h"
 #include "mem_common.h"
 #include "result.h"
+#include "format.h"
 
 extern u8 __heap_base;
 
@@ -132,11 +133,12 @@ typedef struct HeapWasmFreeListAllocatorState
     usize min_block_size;
 } HeapWasmFreeListAllocatorState;
 
+
 extern void *memcpy(void *destination, const void *source, size_t num);
 
 local ErrorCode wasm_free_list_allocator_init(HeapWasmFreeListAllocatorState *allocator, usize default_alignment)
 {
-    heap_wasm_memory_init(&allocator->heap);
+    if (!allocator->heap.initialized) heap_wasm_memory_init(&allocator->heap);
 
     // Save the default allocator alignment. If 0 is given, use the default alignment defined above
     allocator->default_alignment = default_alignment == 0 ? HEAP_WASM_MAX_ALIGN : default_alignment;
@@ -204,6 +206,20 @@ local void wasm_free_list_allocator_prepend_block(HeapWasmFreeListAllocatorState
     h->prev       = &allocator->head;
     h->next->prev = h;
     h->prev->next = h;
+}
+
+local void wasm_free_list_print(HeapWasmFreeListAllocatorState *allocator, void (*printfn)(const char *))
+{
+    BlockHeader *current = &allocator->head;
+    usize i = 1;
+    char b[256];
+    printfn("--------- WASM FREE LIST START ------------");
+    while ((current = current->next) != &allocator->head) {
+        format(b, 256, "Block(%u): %lu [%lu, %lu] \n", i, current->size, (uptr)current, (uptr)current + sizeof(BlockHeader) + sizeof(BlockFooter) + current->size);
+        printfn(b);
+        i++;
+    }
+    printfn("--------- WASM FREE LIST END ------------");
 }
 
 local Result(uptr) wasm_free_list_allocator_alloc(HeapWasmFreeListAllocatorState *allocator, usize amount)
@@ -291,8 +307,17 @@ local Result(uptr) wasm_free_list_allocator_alloc(HeapWasmFreeListAllocatorState
     return result_error(uptr, ERR_OUT_OF_MEMORY);
 }
 
-//#ifdef __RUN_TESTS
-#if 1
+
+static HeapWasmFreeListAllocatorState wasm_free_list_allocator_state;
+
+Result(uptr) wasm_free_list_alloc(Allocator *allocator, usize amount) {
+    return wasm_free_list_allocator_alloc(&wasm_free_list_allocator_state, amount);
+}
+
+Allocator heap_wasm_free_list_allocator = { .alloc = wasm_free_list_alloc };
+
+#ifdef __RUN_TESTS
+//#if 1
 
 #include "test.h"
 #undef __RUN_TESTS
@@ -399,7 +424,13 @@ test(wasm_free_list_allocator)
     __mock_memory_init();
 
     HeapWasmFreeListAllocatorState a = { 0 };
+    heap_wasm_memory_init_custom_base(&a.heap, __mock_memory.base);
     wasm_free_list_allocator_init(&a, 8);
+
+    Result(uptr) rx = wasm_free_list_allocator_alloc(&a, 100);
+
+    expect(result_is_ok(rx));
+    expect(rx.value ==  result_unwrap(mem_align_pointer_forward(a.heap.start + sizeof(BlockHeader), HEAP_WASM_MAX_ALIGN)));
 
     __mock_memory_deinit();
 }
