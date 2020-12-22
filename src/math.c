@@ -114,7 +114,7 @@ i32 math_round_f32_to_i32_unsafe(f32 x)
     return math_floor_f32_to_i32_unsafe(x + 0.5f);
 }
 
-i32 math_div_ceil_u32(u32 a, u32 b)
+u32 math_div_ceil_u32(u32 a, u32 b)
 {
     return ((a - !!a)/b) + !!a;
 }

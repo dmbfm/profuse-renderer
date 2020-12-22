@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#define Maybe(type)           Maybe_##type
+#define Maybe(type)           TOKENPASTE(Maybe_, type)
 #define maybe_some(type, v)   ((Maybe(type)){ .is_something = true, .value = v })
 #define maybe_nothing(type)   ((Maybe(type)){ 0 })
 #define maybe_is_something(m) (m.is_something != false)

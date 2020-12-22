@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "maybe.h"
+#include "result.h"
 
 /**
  *
@@ -13,9 +14,9 @@
  *
  */
 
-#define Slice(type) Slice__##type
+#define Slice(type) TOKENPASTE(Slice_, type)
 
-#define make_slice_type(type)  \
+#define slice_make_type(type)  \
     typedef struct Slice(type) \
     {                          \
         usize len;             \
@@ -38,18 +39,20 @@
 
 #define slice_for(name, s) for(usize name = 0; name < slice_len(s); name ++)
 
-make_slice_type(i8);
-make_slice_type(i16);
-make_slice_type(i32);
-make_slice_type(i64);
-make_slice_type(u8);
-make_slice_type(u16);
-make_slice_type(u32);
-make_slice_type(u64);
-make_slice_type(char);
-make_slice_type(usize);
-make_slice_type(f32);
-make_slice_type(f64);
-make_slice_type(Maybe(u32));
+slice_make_type(i8);
+slice_make_type(i16);
+slice_make_type(i32);
+slice_make_type(i64);
+slice_make_type(u8);
+slice_make_type(u16);
+slice_make_type(u32);
+slice_make_type(u64);
+slice_make_type(char);
+slice_make_type(usize);
+slice_make_type(f32);
+slice_make_type(f64);
+slice_make_type(Maybe(u32));
+
+result_make_type(Slice(u8));
 
 #endif /* __SLICE_H */

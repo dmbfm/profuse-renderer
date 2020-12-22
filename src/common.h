@@ -68,6 +68,8 @@ typedef unsigned char* ucharptr;
 #define ASSERT(exp)
 #endif
 
+#define TOKENPASTE(x, y) x ## y
+
 #define forn(name,n) for(usize name = 0; name < n; name++)
 #define for_range(name,start,end) for(usize name = start; name < end; name++)
 

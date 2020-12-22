@@ -20,7 +20,7 @@ f32 math_round_f32(f32 x);
 Result(i32) math_round_f32_to_i32(f32 x);
 i32 math_round_f32_to_i32_unsafe(f32 x);
 
-i32 math_div_ceil_u32(u32 a, u32 b);
+u32 math_div_ceil_u32(u32 a, u32 b);
 
 f32 math_sinf(f32 x);
 f32 math_cosf(f32 x);

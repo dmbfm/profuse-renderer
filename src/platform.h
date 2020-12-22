@@ -4,6 +4,7 @@
 #include "common.h"
 #include "result.h"
 #include "maybe.h"
+#include "allocator.h"
 
 typedef enum
 {

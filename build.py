@@ -366,7 +366,7 @@ class EmptyTask:
 
 
 def create_test_task(name, source, target, flags = []):
-    compile_task = Executable(name, [source], target, flags=["-D__RUN_TESTS", *flags], build_dir=".test_temp")
+    compile_task = Executable(name, [source], target, flags=["-D__RUN_TESTS", "-g", *flags], build_dir=".test_temp")
     run_task = compile_task.run()
     run_task.deps.add(compile_task)
     return run_task
@@ -401,7 +401,7 @@ run.deps.add(exe)
 wasmgen = b.add_task("wasm-gen", lambda: exec(open(os.path.join(".", "genwasmjs.py")).read()))
 
 wasm = Executable("main", sourcefiles_wasm, target=target_wasm32())
-wasm.add_compile_flag("-std=c99")
+#wasm.add_compile_flag("-std=c99")
 wasm.add_compile_flag("-g")
 wasm.add_compile_flag("-Isrc/include")
 wasm.add_include_dirs("src\\toolbox", "src\\coffee")
@@ -418,6 +418,8 @@ tests.deps.add(create_test_task("maybe", "src/maybe.c", target))
 tests.deps.add(create_test_task("result", "src/result.c", target))
 tests.deps.add(create_test_task("math", "src/math.c", target, flags=["-lm"]))
 tests.deps.add(create_test_task("math", "src/slice.c", target, flags=["-lm"]))
+tests.deps.add(create_test_task("heap_wasm", "src/heap.c", target, flags=["-lm"]))
+tests.deps.add(create_test_task("heap", "src/heap_wasm.c", target, flags=["-lm"]))
 
 alloc = Executable("alloc", ["alloc.c"], target = target_win32_msvc(), flags=["/Zi"])
 allocrun = alloc.run()
