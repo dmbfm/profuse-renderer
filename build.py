@@ -414,12 +414,13 @@ if (sys.platform == "win32"):
     b.add_task("env", lambda: subprocess.run(["C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\Common7\\Tools\\VsDevCmd.bat", "-arch=amd64" ]))
 
 tests = EmptyTask() 
+test_flags =  [] if (target.env == TargetEnv.Win32) else ["-lm"]
 tests.deps.add(create_test_task("maybe", "src/maybe.c", target))
 tests.deps.add(create_test_task("result", "src/result.c", target))
-tests.deps.add(create_test_task("math", "src/math.c", target, flags = [] if (target.env == TargetEnv.Win32) else ["-lm"]))
-tests.deps.add(create_test_task("math", "src/slice.c", target, flags=["-lm"]))
-tests.deps.add(create_test_task("heap_wasm", "src/heap.c", target, flags=["-lm"]))
-tests.deps.add(create_test_task("heap", "src/heap_wasm.c", target, flags=["-lm"]))
+tests.deps.add(create_test_task("math", "src/math.c", target, flags=test_flags))
+tests.deps.add(create_test_task("math", "src/slice.c", target, flags=test_flags))
+tests.deps.add(create_test_task("heap_wasm", "src/heap.c", target, flags=test_flags))
+tests.deps.add(create_test_task("heap", "src/heap_wasm.c", target, flags=test_flags))
 
 alloc = Executable("alloc", ["alloc.c"], target = target_win32_msvc(), flags=["/Zi"])
 allocrun = alloc.run()
