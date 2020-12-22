@@ -55,7 +55,7 @@ typedef unsigned char* ucharptr;
 #define WASM_JS(...)
 
 #if defined(_MSC_VER)
-#define panic() __debugbreak
+#define panic() __debugbreak()
 #elif defined(__clang__) || defined(__GNUC__)
 #define panic() __builtin_trap()
 #else 

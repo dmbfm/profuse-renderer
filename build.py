@@ -414,7 +414,7 @@ if (sys.platform == "win32"):
     b.add_task("env", lambda: subprocess.run(["C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\Common7\\Tools\\VsDevCmd.bat", "-arch=amd64" ]))
 
 tests = EmptyTask() 
-test_flags =  [] if (target.env == TargetEnv.Win32) else ["-lm"]
+test_flags = [] if (target.env == TargetEnv.Win32) else ["-lm"]
 tests.deps.add(create_test_task("maybe", "src/maybe.c", target))
 tests.deps.add(create_test_task("result", "src/result.c", target))
 tests.deps.add(create_test_task("math", "src/math.c", target, flags=test_flags))
