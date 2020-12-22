@@ -63,9 +63,9 @@ typedef unsigned char* ucharptr;
 #endif /* defined(_MSC_VER) */
 
 #if 1
-#define ASSERT(exp) if (!(exp)) { panic(); } 
+#define assert(exp) if (!(exp)) { panic(); } 
 #else
-#define ASSERT(exp)
+#define assert(exp)
 #endif
 
 #define TOKENPASTE(x, y) x ## y

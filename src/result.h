@@ -11,9 +11,14 @@
 #define result_error(type, ec) ((Result(type)){ .is_error = true, .error_code = ec })
 #define result_ifok(r)         if (result_is_ok(r))
 #define result_unwrap(r)       (result_is_error(r) ? panic() : 0, r.value)
+
 #define result_raise(r)       \
     if (result_is_error((r))) \
         return (r);
+
+#define result_raise_error_code(r) \
+    if (result_is_error((r))) \
+        return (r).error_code;
 
 #define result_set_ok(r, v) \
     r.is_error   = false;   \

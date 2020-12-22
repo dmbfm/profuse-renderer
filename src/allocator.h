@@ -9,7 +9,8 @@
 
 enum
 {
-    ALLOCATOR_MAX_ALIGNMENT = alignof(max_align_t),
+    // From this: https://github.com/microsoft/mimalloc/blob/master/include/mimalloc-types.h. Seems reasonable 
+    ALLOCATOR_MAX_ALIGNMENT = 8 //alignof(max_align_t),
 };
 
 typedef struct Allocator

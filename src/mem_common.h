@@ -29,30 +29,19 @@ static inline Result(uptr) mem_align_pointer_forward(uptr ptr, usize alignment)
         return result_error(uptr, ERR_ALLOCATORS_MEMORY_ALIGNMENT);
     }
 
-    uptr a   = (uptr)alignment;
-    uptr mod = ptr % a;
+    usize mask   = (alignment - 1);
+    uptr aligned = (ptr + mask) & (~mask);
 
-    if (mod == 0) {
-        return result_ok(uptr, ptr);
-    }
+    /* Why this works:
+     *  MASK = A - 1
+     *  X + MASK =  X + (A - 1)
+     *
+     *  Take for instance, A = 8, i.e., A = 0000 1000.  Then MASK = 0000 0111, and ~MASK = 1111 1000
+     *  X + MASK = X + 7. Then (X + 7) & (1111 1000) means we are always taking (X + 7) in multiples of 8,
+     *  hence this always returns the next multiple of 8 after X.
+     */
 
-    return result_ok(uptr, ptr + (a - (ptr % a)));
-}
-
-static inline Result(uptr) mem_aling_pointer_back(uptr ptr, usize alignment)
-{
-    if (!mem_is_pot(alignment)) {
-        return result_error(uptr, ERR_ALLOCATORS_MEMORY_ALIGNMENT);
-    }
-
-    uptr a   = (uptr)alignment;
-    uptr mod = ptr % a;
-
-    if (mod == 0) {
-        return result_ok(uptr, ptr);
-    }
-
-    return result_ok(uptr, ptr - mod);
+    return result_ok(uptr, aligned);
 }
 
 #endif /* __MEM_COMMON_H */

@@ -15,7 +15,8 @@ extern u32 wasm_memory_grow(u32);
 
 enum
 {
-    HEAP_WASM_PAGE_SIZE = KB(64)
+    HEAP_WASM_PAGE_SIZE = KB(64),
+    HEAP_WASM_MAX_ALIGN = 8
 };
 
 typedef struct HeapWasmMemory
@@ -120,60 +121,68 @@ typedef struct BlockFooter
 {
     u8 flag;
     usize size;
-    usize __fill1;
-    usize __fill2;
 } BlockFooter;
 
 typedef struct HeapWasmFreeListAllocatorState
 {
     BlockHeader head;
-    HeapWasmMemory wasm_memory;
-    uptr start;
+    HeapWasmMemory heap;
     boolean initialized;
+    usize default_alignment;
 } HeapWasmFreeListAllocatorState;
 
 
 extern void * memcpy ( void * destination, const void * source, size_t num );
 
-static void wasm_free_list_allocator_init(HeapWasmFreeListAllocatorState *allocator)
+static ErrorCode wasm_free_list_allocator_init(HeapWasmFreeListAllocatorState *allocator, usize default_alignment)
 {
-    heap_wasm_memory_init(&allocator->wasm_memory);
+    heap_wasm_memory_init(&allocator->heap);
 
-    // Move forward to next max-alinged position...
-    Result(uptr) rstart = mem_align_pointer_forward(allocator->wasm_memory.start, ALLOCATOR_MAX_ALIGNMENT);
+    // Save the default allocator alignment. If 0 is given, use the default alignment defined above
+    allocator->default_alignment = default_alignment == 0 ? HEAP_WASM_MAX_ALIGN : default_alignment;
 
-    if (result_is_error(rstart))
-        panic();
+    // Init allocator head node
+    allocator->head.flag = BLOCK_RESERVED;
+    allocator->head.size = 0;
+    allocator->head.next = 0;
+    allocator->head.prev = 0;
 
-    allocator->start = rstart.value;
-    allocator->head  = (BlockHeader){ .flag = BLOCK_RESERVED,
-                                     .size = allocator->wasm_memory.capacity,
-                                     .next = (BlockHeader *)allocator->start,
-                                     .prev = (BlockHeader *)allocator->start };
+    // Align first block so that the header fits before the user pointer
+    Result(uptr) r_first = mem_align_pointer_forward(allocator->heap.start + sizeof(BlockHeader), allocator->default_alignment);
 
-    HeapWasmMemory *m    = &allocator->wasm_memory;
-    Result(uptr) rfooter_loc = mem_aling_pointer_back(m->end - sizeof(BlockFooter), ALLOCATOR_MAX_ALIGNMENT);
+    // Failed to align!
+    result_raise_error_code(r_first);
 
-    if (result_is_error(rfooter_loc))
-        panic();
+    // This is the first user pointer
+    uptr first = r_first.value;
 
-    uptr footer_loc = rfooter_loc.value;
+    // If we can't fit the footer with something remaining, we're out of memory
+    if ((allocator->heap.end - sizeof(BlockFooter)) <=  first) {
+        return ERR_OUT_OF_MEMORY;
+    }
 
-    usize block_capacity = (footer_loc - allocator->start) - sizeof(BlockHeader) - sizeof(BlockFooter);
+    // Calculate user-available capacity of the block
+    usize block_size = (allocator->heap.end - sizeof(BlockFooter)) - first;
 
-    BlockHeader header = {
-        .flag = BLOCK_FREE, .size = block_capacity, .next = &allocator->head, .prev = &allocator->head
-    };
+    assert(block_size);
 
-    BlockFooter footer = { .flag = BLOCK_FREE, .size = block_capacity };
+    // Define the block's header and footer
+    BlockHeader header = { .flag = BLOCK_FREE, .size = block_size, .next = &allocator->head, .prev = &allocator->head };
+    BlockFooter footer = { .flag = BLOCK_FREE, .size = block_size };
 
-    ASSERT(mem_is_aligned(allocator->start, ALLOCATOR_MAX_ALIGNMENT));
-    ASSERT(mem_is_aligned(footer_loc, ALLOCATOR_MAX_ALIGNMENT));
-    ASSERT(mem_is_aligned((uptr) block_capacity, ALLOCATOR_MAX_ALIGNMENT));
-    ASSERT(footer_loc > allocator->start)
+    // Calculate where the header and footer should be stored at
+    BlockHeader *header_ptr = (BlockHeader *) (first - sizeof(BlockHeader)); 
+    BlockFooter *footer_ptr = (BlockFooter *) (allocator->heap.end - sizeof(BlockFooter));
+    
+    // Copy the header and footer data
+    *header_ptr = header;
+    *footer_ptr = footer;
 
-    memcpy((void*)allocator->start, &header, sizeof(BlockHeader));
-    memcpy((void *)footer_loc, &footer, sizeof(BlockFooter));
+    // Link head to the new/first block
+    allocator->head.next = header_ptr;
+    allocator->head.prev = header_ptr;
+
+    return ERR_OK;
 }
 
 void wasm_free_list_allocator_remove_block(BlockHeader *h)
