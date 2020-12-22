@@ -29,7 +29,7 @@ Allocator heap_allocator = { .alloc = alloc, .resize = resize, .allocator_state 
 #endif /* __wasm__ */
 
 
-#if 1
+#if __RUN_TESTS
 
 #include "test.h"
 

@@ -17,37 +17,37 @@ test(maybe) {
     Maybe(i32) x = maybe_some(i32, 10);
     Maybe(i32) y = maybe_nothing(i32);
 
-    assert(maybe_is_something(x) == true);
-    assert(!maybe_is_nothing(x));
-    assert(x.value == 10);
+    expect(maybe_is_something(x) == true);
+    expect(!maybe_is_nothing(x));
+    expect(x.value == 10);
 
-    assert(maybe_is_nothing(y))
-    assert(!maybe_is_something(y))
-    assert(maybe_is_nothing(maybe_map(i32, y, __test_inc)))
-    assert(maybe_is_something(maybe_map(i32, x, __test_inc)))
+    expect(maybe_is_nothing(y))
+    expect(!maybe_is_something(y))
+    expect(maybe_is_nothing(maybe_map(i32, y, __test_inc)))
+    expect(maybe_is_something(maybe_map(i32, x, __test_inc)))
 
     Maybe(i32) z = maybe_map(i32, x, __test_inc);
-    assert(z.value == 11);
+    expect(z.value == 11);
 
     Maybe(i32) w = maybe_lift(i32, x, y, __test_add);
-    assert(maybe_is_nothing(w));
+    expect(maybe_is_nothing(w));
 
     Maybe(i32) k = maybe_lift(i32, x, z, __test_add);
-    assert(maybe_is_something(k));
-    assert(k.value == 21);
+    expect(maybe_is_something(k));
+    expect(k.value == 21);
 
     maybe_ifsome(y) {
-        assert(false);
+        expect(false);
     }
 
     maybe_set_some(y, 10);
     maybe_ifsome(y) {
-        assert(y.value == 10);
+        expect(y.value == 10);
     }
 
     maybe_set_nothing(x);
     maybe_ifsome(x) {
-        assert(false);
+        expect(false);
     }
 }
 

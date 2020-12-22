@@ -129,6 +129,7 @@ typedef struct HeapWasmFreeListAllocatorState
     HeapWasmMemory heap;
     boolean initialized;
     usize default_alignment;
+    usize min_block_size;
 } HeapWasmFreeListAllocatorState;
 
 extern void *memcpy(void *destination, const void *source, size_t num);
@@ -139,6 +140,9 @@ local ErrorCode wasm_free_list_allocator_init(HeapWasmFreeListAllocatorState *al
 
     // Save the default allocator alignment. If 0 is given, use the default alignment defined above
     allocator->default_alignment = default_alignment == 0 ? HEAP_WASM_MAX_ALIGN : default_alignment;
+
+    // The min block size used in allocations
+    allocator->min_block_size = 128;
 
     // Init allocator head node
     allocator->head.flag = BLOCK_RESERVED;
@@ -225,16 +229,24 @@ local Result(uptr) wasm_free_list_allocator_alloc(HeapWasmFreeListAllocatorState
             // Double-check alignment
             assert(mem_is_aligned(user_pointer, allocator->default_alignment));
 
-            if (current->size > amount_needed_for_new_block) {
-                // In this case, there is enough space to add a new free block after the allocated one
+            // Check if we have enough memory for a new block of at least "min_block_size" free allocable memory
+            if (current->size > (amount_needed_for_new_block + allocator->min_block_size)) {
 
                 // The effective amount that will be allocated, more ore equal than "amount"
                 usize allocated_amount = amount_needed_for_new_block - sizeof(BlockFooter) - sizeof(BlockHeader);
                 usize initial_size = current->size;
 
-                // Set the allocated amount on the header, and remove the block from the free list
+                // The size of the next block
+                usize next_block_size = initial_size - sizeof(BlockFooter) - sizeof(BlockHeader) - allocated_amount;
+                
+                // Make sure it is larger than the min block size
+                assert(next_block_size >= allocator->min_block_size);
+
+                // Set the allocated amount on the header 
                 current->size = allocated_amount;
                 current->flag = BLOCK_RESERVED;
+
+                // Remove the current block from the free list
                 wasm_free_list_allocator_remove_block(current);
 
                 // Set the footer of the current block 
@@ -243,7 +255,6 @@ local Result(uptr) wasm_free_list_allocator_alloc(HeapWasmFreeListAllocatorState
                 ((BlockFooter *)current_footer)->size = current->size;
 
                 // Set the header of the created block
-                usize next_block_size = initial_size - sizeof(BlockFooter) - sizeof(BlockHeader) - allocated_amount;
                 uptr next_header = (uptr) current_footer + sizeof(BlockFooter);
                 ((BlockHeader *) next_header)->flag = BLOCK_FREE;
                 ((BlockHeader *) next_header)->size = next_block_size;
@@ -319,8 +330,8 @@ u32 wasm_memory_grow(u32 pages)
 void __mock_memory_init()
 {
     __mock_memory.base = (uptr)malloc(10 * HEAP_WASM_PAGE_SIZE);
-    assert(__mock_memory.base);
-    assert(mem_is_aligned(__mock_memory.base, ALLOCATOR_MAX_ALIGNMENT));
+    expect(__mock_memory.base);
+    expect(mem_is_aligned(__mock_memory.base, ALLOCATOR_MAX_ALIGNMENT));
     __mock_memory.size      = HEAP_WASM_PAGE_SIZE;
     __mock_memory.max_pages = 10;
     __mock_memory.num_pages = 1;
@@ -350,21 +361,21 @@ test(heap_wasm_memory_bump)
     heap_wasm_memory_init_custom_base(m, __mock_memory.base);
     Result(uptr) rx = heap_wasm_memory_bump(m, 10);
 
-    assert(result_is_ok(rx));
-    assert(rx.value == m->start);
+    expect(result_is_ok(rx));
+    expect(rx.value == m->start);
 
     rx = heap_wasm_memory_bump(m, 10);
-    assert(result_is_ok(rx));
-    assert(rx.value == m->start + 10);
-    assert(m->offset == 20);
-    assert(m->capacity == HEAP_WASM_PAGE_SIZE);
-    assert(m->num_pages == 1);
+    expect(result_is_ok(rx));
+    expect(rx.value == m->start + 10);
+    expect(m->offset == 20);
+    expect(m->capacity == HEAP_WASM_PAGE_SIZE);
+    expect(m->num_pages == 1);
 
     rx = heap_wasm_memory_bump(m, HEAP_WASM_PAGE_SIZE);
-    assert(result_is_ok(rx));
-    assert(m->offset == (20 + HEAP_WASM_PAGE_SIZE));
-    assert(m->capacity == (2 * HEAP_WASM_PAGE_SIZE));
-    assert(m->num_pages == 2);
+    expect(result_is_ok(rx));
+    expect(m->offset == (20 + HEAP_WASM_PAGE_SIZE));
+    expect(m->capacity == (2 * HEAP_WASM_PAGE_SIZE));
+    expect(m->num_pages == 2);
 
     __mock_memory_deinit();
 }
@@ -377,8 +388,8 @@ test(heap_wasm_memory_bump_align)
     heap_wasm_memory_init_custom_base(&m, __mock_memory.base);
 
     Result(uptr) rx = heap_wasm_memory_bump_align(&m, 10, ALLOCATOR_MAX_ALIGNMENT);
-    assert(result_is_ok(rx));
-    assert(mem_is_aligned(rx.value, ALLOCATOR_MAX_ALIGNMENT));
+    expect(result_is_ok(rx));
+    expect(mem_is_aligned(rx.value, ALLOCATOR_MAX_ALIGNMENT));
 
     __mock_memory_deinit();
 }
@@ -388,7 +399,7 @@ test(wasm_free_list_allocator)
     __mock_memory_init();
 
     HeapWasmFreeListAllocatorState a = { 0 };
-    wasm_free_list_allocator_init(&a);
+    wasm_free_list_allocator_init(&a, 8);
 
     __mock_memory_deinit();
 }

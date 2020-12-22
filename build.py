@@ -373,9 +373,12 @@ def create_test_task(name, source, target, flags = []):
 
 ###################  Build script ###########################
 
-#target = get_default_target()
+target = get_default_target()
 
-target = target_win32_clang()
+if (os.name == "nt"):
+    target = target_win32_clang()
+
+#target = target_win32_clang()
 b = Builder()
 
  #["src/unity_build.c"] #glob("src/**/*.c", recursive=True)
@@ -419,8 +422,8 @@ tests.deps.add(create_test_task("maybe", "src/maybe.c", target))
 tests.deps.add(create_test_task("result", "src/result.c", target))
 tests.deps.add(create_test_task("math", "src/math.c", target, flags=test_flags))
 tests.deps.add(create_test_task("math", "src/slice.c", target, flags=test_flags))
-tests.deps.add(create_test_task("heap_wasm", "src/heap.c", target, flags=test_flags))
-tests.deps.add(create_test_task("heap", "src/heap_wasm.c", target, flags=test_flags))
+tests.deps.add(create_test_task("heap", "src/heap.c", target, flags=test_flags))
+tests.deps.add(create_test_task("heap_wasm", "src/heap_wasm.c", target, flags=test_flags))
 
 alloc = Executable("alloc", ["alloc.c"], target = target_win32_msvc(), flags=["/Zi"])
 allocrun = alloc.run()
