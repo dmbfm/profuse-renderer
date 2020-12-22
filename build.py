@@ -416,7 +416,7 @@ if (sys.platform == "win32"):
 tests = EmptyTask() 
 tests.deps.add(create_test_task("maybe", "src/maybe.c", target))
 tests.deps.add(create_test_task("result", "src/result.c", target))
-tests.deps.add(create_test_task("math", "src/math.c", target, flags=["-lm"]))
+tests.deps.add(create_test_task("math", "src/math.c", target, flags = [] if (target.env == TargetEnv.Win32) else ["-lm"]))
 tests.deps.add(create_test_task("math", "src/slice.c", target, flags=["-lm"]))
 tests.deps.add(create_test_task("heap_wasm", "src/heap.c", target, flags=["-lm"]))
 tests.deps.add(create_test_task("heap", "src/heap_wasm.c", target, flags=["-lm"]))
