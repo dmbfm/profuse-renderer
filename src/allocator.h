@@ -16,6 +16,7 @@ enum
 typedef struct Allocator
 {
     Result(uptr) (*alloc)(struct Allocator *allocator, usize amount);
+    void (*free)(struct Allocator *allocator, uptr region);
     //Result(usize) (*resize)(struct Allocator *allocator,  uptr region, usize new_amount, usize alignment);
     uptr allocator_state;
 } Allocator;

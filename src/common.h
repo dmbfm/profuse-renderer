@@ -44,6 +44,10 @@ typedef void* voidptr;
 typedef char* charptr;
 typedef unsigned char* ucharptr;
 
+#define TOKENPASTE(x, y) x ## y
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+
 #if defined(__wasm__)
 #define export __attribute__((used, visibility("default")))
 #define export_named(name) __attribute__((used, visibility("default"), export_name(#name)))
@@ -54,8 +58,19 @@ typedef unsigned char* ucharptr;
 
 #define WASM_JS(...)
 
+#if __wasm__
+extern void __common_wasm_print_message(const char *);
+WASM_JS(
+function __common_wasm_print_message(ptr) {
+    console.log(decodeStringAt(ptr));
+}
+)
+#endif /* __wasm__ */
+
 #if defined(_MSC_VER)
 #define panic() __debugbreak()
+#elif defined(__wasm__)
+#define panic() __common_wasm_print_message("PANIC: " TOSTRING(__FILE__ ) ":" TOSTRING(__LINE__)) 
 #elif defined(__clang__) || defined(__GNUC__)
 #define panic() __builtin_trap()
 #else 
@@ -68,7 +83,6 @@ typedef unsigned char* ucharptr;
 #define assert(exp)
 #endif
 
-#define TOKENPASTE(x, y) x ## y
 
 #define forn(name,n) for(usize name = 0; name < n; name++)
 #define for_range(name,start,end) for(usize name = start; name < end; name++)

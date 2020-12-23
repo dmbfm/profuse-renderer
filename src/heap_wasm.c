@@ -1,11 +1,11 @@
 #include "allocator.h"
 #include "common.h"
 #include "error.h"
+#include "format.h"
 #include "heap.h"
 #include "math.h"
 #include "mem_common.h"
 #include "result.h"
-#include "format.h"
 
 extern u8 __heap_base;
 
@@ -36,7 +36,7 @@ HeapWasmMemory heap_wasm_memory;
 void heap_wasm_memory_init(HeapWasmMemory *m)
 {
     m->start          = HEAP_WASM_HEAP_BASE_UPTR;
-    m->capacity       = wasm_get_memory_size();
+    m->capacity       = (wasm_get_memory_size() - m->start);
     m->end            = (m->start + m->capacity);
     m->offset         = 0;
     m->initialized    = true;
@@ -133,12 +133,12 @@ typedef struct HeapWasmFreeListAllocatorState
     usize min_block_size;
 } HeapWasmFreeListAllocatorState;
 
-
 extern void *memcpy(void *destination, const void *source, size_t num);
 
 local ErrorCode wasm_free_list_allocator_init(HeapWasmFreeListAllocatorState *allocator, usize default_alignment)
 {
-    if (!allocator->heap.initialized) heap_wasm_memory_init(&allocator->heap);
+    if (!allocator->heap.initialized)
+        heap_wasm_memory_init(&allocator->heap);
 
     // Save the default allocator alignment. If 0 is given, use the default alignment defined above
     allocator->default_alignment = default_alignment == 0 ? HEAP_WASM_MAX_ALIGN : default_alignment;
@@ -211,11 +211,12 @@ local void wasm_free_list_allocator_prepend_block(HeapWasmFreeListAllocatorState
 local void wasm_free_list_print(HeapWasmFreeListAllocatorState *allocator, void (*printfn)(const char *))
 {
     BlockHeader *current = &allocator->head;
-    usize i = 1;
+    usize i              = 1;
     char b[256];
     printfn("--------- WASM FREE LIST START ------------");
     while ((current = current->next) != &allocator->head) {
-        format(b, 256, "Block(%u): %lu [%lu, %lu] \n", i, current->size, (uptr)current, (uptr)current + sizeof(BlockHeader) + sizeof(BlockFooter) + current->size);
+        format(b, 256, "Block(%d): %d [%d, %d] \n", i, current->size, (uptr)current,
+               (uptr)current + sizeof(BlockHeader) + sizeof(BlockFooter) + current->size);
         printfn(b);
         i++;
     }
@@ -240,7 +241,7 @@ local Result(uptr) wasm_free_list_allocator_alloc(HeapWasmFreeListAllocatorState
         if (current->size >= amount) {
 
             // Get the pointer to the allocated region
-            uptr user_pointer = (uptr) current + sizeof(BlockHeader);
+            uptr user_pointer = (uptr)current + sizeof(BlockHeader);
 
             // Double-check alignment
             assert(mem_is_aligned(user_pointer, allocator->default_alignment));
@@ -250,49 +251,49 @@ local Result(uptr) wasm_free_list_allocator_alloc(HeapWasmFreeListAllocatorState
 
                 // The effective amount that will be allocated, more ore equal than "amount"
                 usize allocated_amount = amount_needed_for_new_block - sizeof(BlockFooter) - sizeof(BlockHeader);
-                usize initial_size = current->size;
+                usize initial_size     = current->size;
 
                 // The size of the next block
                 usize next_block_size = initial_size - sizeof(BlockFooter) - sizeof(BlockHeader) - allocated_amount;
-                
+
                 // Make sure it is larger than the min block size
                 assert(next_block_size >= allocator->min_block_size);
 
-                // Set the allocated amount on the header 
+                // Set the allocated amount on the header
                 current->size = allocated_amount;
                 current->flag = BLOCK_RESERVED;
 
                 // Remove the current block from the free list
                 wasm_free_list_allocator_remove_block(current);
 
-                // Set the footer of the current block 
-                uptr current_footer = (uptr) current + sizeof(BlockHeader) + current->size;
+                // Set the footer of the current block
+                uptr current_footer                   = (uptr)current + sizeof(BlockHeader) + current->size;
                 ((BlockFooter *)current_footer)->flag = BLOCK_RESERVED;
                 ((BlockFooter *)current_footer)->size = current->size;
 
                 // Set the header of the created block
-                uptr next_header = (uptr) current_footer + sizeof(BlockFooter);
-                ((BlockHeader *) next_header)->flag = BLOCK_FREE;
-                ((BlockHeader *) next_header)->size = next_block_size;
+                uptr next_header                   = (uptr)current_footer + sizeof(BlockFooter);
+                ((BlockHeader *)next_header)->flag = BLOCK_FREE;
+                ((BlockHeader *)next_header)->size = next_block_size;
 
                 // Set the footer of the created block
-                uptr next_footer = (uptr)current + initial_size;
-                ((BlockFooter *) next_footer)->flag = BLOCK_FREE;
-                ((BlockFooter *) next_footer)->size = next_block_size;
+                uptr next_footer                   = (uptr)current + initial_size;
+                ((BlockFooter *)next_footer)->flag = BLOCK_FREE;
+                ((BlockFooter *)next_footer)->size = next_block_size;
 
                 // Add the created block to the free list
-                wasm_free_list_allocator_prepend_block(allocator, (BlockHeader *) next_header);
+                wasm_free_list_allocator_prepend_block(allocator, (BlockHeader *)next_header);
 
             } else {
-                // Allocate the whole block 
+                // Allocate the whole block
 
                 // Mark header as reserved
                 current->flag = BLOCK_RESERVED;
 
                 // Mark footer as reserved
                 BlockFooter *footer = (BlockFooter *)current + sizeof(BlockHeader) + current->size;
-                footer->flag = BLOCK_RESERVED;
-                footer->size = current->size;
+                footer->flag        = BLOCK_RESERVED;
+                footer->size        = current->size;
 
                 // Remove block from free list
                 wasm_free_list_allocator_remove_block(current);
@@ -307,14 +308,70 @@ local Result(uptr) wasm_free_list_allocator_alloc(HeapWasmFreeListAllocatorState
     return result_error(uptr, ERR_OUT_OF_MEMORY);
 }
 
+static void wasm_free_list_allocator_free(HeapWasmFreeListAllocatorState *allocator, uptr region)
+{
+    HeapWasmMemory *memory   = &allocator->heap;
+    BlockHeader *header      = (BlockHeader *)region - sizeof(BlockHeader);
+    BlockFooter *left_footer = (BlockFooter *)((uptr)header - sizeof(BlockFooter));
+
+    BlockFooter *footer       = (BlockFooter *)region + header->size;
+    BlockHeader *right_header = (BlockHeader *)((uptr)footer + sizeof(BlockFooter));
+
+    assert(region >= memory->start);
+    assert(header->flag == BLOCK_RESERVED);
+    assert(footer->flag == BLOCK_RESERVED);
+    assert(header->size == footer->size);
+
+    wasm_free_list_allocator_prepend_block(allocator, header);
+    header->flag = BLOCK_FREE;
+    footer->flag = BLOCK_FREE;
+
+    // Merge left
+    if (((uptr)left_footer > (memory->start + sizeof(BlockHeader))) && (left_footer->flag == BLOCK_FREE)) {
+
+        BlockHeader *left_header = (BlockHeader *)((uptr)left_footer - left_footer->size);
+
+        assert(left_header->flag == BLOCK_FREE);
+
+        left_header->size = (uptr)footer - (uptr)left_header - sizeof(BlockHeader);
+        footer->size      = left_header->size;
+        footer->flag      = BLOCK_FREE;
+
+        wasm_free_list_allocator_remove_block(header);
+        header = left_header;
+    }
+
+    // Merge right
+    if ((uptr)right_header < memory->end && right_header->flag == BLOCK_FREE) {
+        wasm_free_list_allocator_remove_block(right_header);
+
+        BlockFooter *right_footer = (BlockFooter *)((uptr)right_header + right_header->size);
+
+        header->size = ((uptr)right_footer - (uptr)header) - sizeof(BlockHeader);
+
+        right_footer->size = header->size;
+        right_footer->flag = BLOCK_FREE;
+    }
+}
 
 static HeapWasmFreeListAllocatorState wasm_free_list_allocator_state;
 
-Result(uptr) wasm_free_list_alloc(Allocator *allocator, usize amount) {
+static Result(uptr) wasm_free_list_alloc(Allocator *allocator, usize amount)
+{
     return wasm_free_list_allocator_alloc(&wasm_free_list_allocator_state, amount);
 }
 
-Allocator heap_wasm_free_list_allocator = { .alloc = wasm_free_list_alloc };
+static void wasm_free_list_free(Allocator *allocator, uptr region)
+{
+    wasm_free_list_allocator_free(&wasm_free_list_allocator_state, region);
+}
+
+Allocator heap_wasm_free_list_allocator = { .alloc = wasm_free_list_alloc, .free = wasm_free_list_free };
+
+void heap_wasm_free_list_print_blocks(void (*printfn)(const char *))
+{
+    wasm_free_list_print(&wasm_free_list_allocator_state, printfn);
+}
 
 #ifdef __RUN_TESTS
 //#if 1
@@ -430,7 +487,8 @@ test(wasm_free_list_allocator)
     Result(uptr) rx = wasm_free_list_allocator_alloc(&a, 100);
 
     expect(result_is_ok(rx));
-    expect(rx.value ==  result_unwrap(mem_align_pointer_forward(a.heap.start + sizeof(BlockHeader), HEAP_WASM_MAX_ALIGN)));
+    expect(rx.value ==
+           result_unwrap(mem_align_pointer_forward(a.heap.start + sizeof(BlockHeader), HEAP_WASM_MAX_ALIGN)));
 
     __mock_memory_deinit();
 }
