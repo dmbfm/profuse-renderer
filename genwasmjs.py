@@ -3,11 +3,26 @@ import fileinput
 import re
 import os
 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+    RED = '\033[1;31m'  
+
 entries = Path('src/')
 js = ''
 isjs = False
 
 macro_name = "WASM_JS("
+
+print()
+print(bcolors.HEADER + "* Generating javascript code for WASM_JS definitions..." + bcolors.ENDC)
 
 files = (os.path.join(p, f) for p, ds, fs in os.walk(entries) for f in fs)
 with fileinput.input(files) as f:
@@ -29,15 +44,15 @@ for line in js.split("\n"):
     else: 
         idx = 1
     if line.lstrip().startswith("function") or line.lstrip().startswith("async function"):
-        fname = re.findall(r"[\w']+", line)[idx];
+        fname = re.findall(r"[\w']+", line)[idx]
         if fname not in functions:
             functions.append(fname)
         else:
             print(f"Warning: duplicated function '{fname}'")
 
-print("")
-print("Imported JS functions:")
-print(functions)
+print()
+print("Imported JS functions: ", ", ".join(functions))
+print()
 
 with open("build/tg_wasm_js.js", "w") as file:
     with open("js/preface.js", "r") as preface:
@@ -53,4 +68,5 @@ with open("build/tg_wasm_js.js", "w") as file:
         print(f"{contents}", file=file)
 
 
-print("\nGenerated 'build/tg_wasm_js.js' file.")
+print(bcolors.OKGREEN +  u'\u2713' + " Generated 'build/tg_wasm_js.js' file." + bcolors.ENDC)
+print()

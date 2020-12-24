@@ -50,7 +50,7 @@ export int main()
 
     heap_wasm_free_list_print_blocks(wasm_print_line);
 
-    a->free(a, x);
+    a->free(a, (uptr)x);
 
     heap_wasm_free_list_print_blocks(wasm_print_line);
 }

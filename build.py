@@ -3,10 +3,30 @@ import sys
 import subprocess
 import shutil
 from enum import Enum, IntEnum, auto
-from glob import glob
+#from glob import glob
+
+# TODO:
+#   - Abstract debugging information level flags
 
 
-# TODO: MSVC debug in builder
+def block_stdout():
+    sys.stdout = open(os.devnull, 'w')
+
+# Restore
+def enable_stdout():
+    sys.stdout = sys.__stdout__
+
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+    RED = '\033[1;31m'  
 
 class TargetArch(Enum):
     X86_64 = auto()
@@ -182,7 +202,7 @@ class ClearTask:
 
 
 class Executable:
-    def __init__(self, name, files, target, build_dir="build", intermediary_dir="build/obj", flags=get_default_flags(), wasm_stack_size = 10097152):
+    def __init__(self, name, files, target, build_dir="build", intermediary_dir="build/obj", flags=get_default_flags(), wasm_stack_size = 10097152, verbose = False, silent = False):
         self.name = name
         self.files = files
         self.target = target
@@ -191,6 +211,8 @@ class Executable:
         self.flags = flags
         self.deps = Dependencies()
         self.wasm_stack_size = wasm_stack_size
+        self.verbose = verbose
+        self.silent = silent
 
     def add_compile_flag(self, flag):
         self.flags.append(flag)
@@ -250,20 +272,41 @@ class Executable:
 
     def __build_objects(self):
         ps = []
+        stdouts = []
+        stderrs = []
+        print(bcolors.HEADER + "* Building source files..." + bcolors.ENDC)
         for file in self.files:
-            print(self.__get_build_object_args(file))
-            ps.append(subprocess.Popen(self.__get_build_object_args(file)))
+            if self.verbose:
+                print("Building " + file + "...")
+                print("Running command: ", self.__get_build_object_args(file))
+            subp = subprocess.Popen(self.__get_build_object_args(file), stdout = subprocess.PIPE, stderr = subprocess.PIPE, universal_newlines=True)
+            stdouts.append(subp.communicate()[0])
+            stderrs.append(subp.communicate()[1])
+            ps.append(subp)
         for p in ps:
             p.wait()
+        first_error = True
+        for errs in stderrs:
+            if errs != '':
+                if first_error:
+                    print()
+                    print(bcolors.RED + u'\u2717' + " There were warnings or errors:" + bcolors.ENDC)
+                    print()
+                    first_error = False
+                print(bcolors.WARNING + errs + bcolors.ENDC)
+        if first_error:
+            print()
+            print(bcolors.OKGREEN +  u'\u2713' + " Compiled all files" + bcolors.ENDC)
+            print()
 
     def __build_single(self):
         if (self.target.compiler == TargetCompilers.Mvsc) or (self.target.compiler == TargetCompilers.ClangCl):
             args = [self.target.compiler_command(), *self.get_compile_flags(), self.files[0], "/link", "/out:" + self.__get_executable_output_path()]
-            print(args)
+            if self.verbose: print(args)
             subprocess.run(args)
         else:
             args = [self.target.compiler_command(), self.files[0], *self.__get_target_specific_compile_flags(), *self.get_compile_flags(), "-o", self.__get_executable_output_path()]
-            print(args)
+            if self.verbose: print(args)
             subprocess.run(args)
 
     def __get_executable_output_path(self):
@@ -296,8 +339,19 @@ class Executable:
             return [self.target.compiler_command(), *self.__get_object_names(), "-o", self.__get_executable_output_path()]
 
     def __link(self):
-        print(self.get_link_args())
-        subprocess.run(self.get_link_args())
+        print(bcolors.HEADER + "* Linking executable..." + bcolors.ENDC)
+        if self.verbose:
+            print("ARGS = " + ", ".join(self.get_link_args()))
+        p = subprocess.run(self.get_link_args())
+        if p.stderr is not None:
+            print(bcolors.RED + u'\u2717' + " Failed to link executable:" + bcolors.ENDC)
+            print(p.stderr)
+        else:
+            print()
+            print(bcolors.OKGREEN +  u'\u2713' + " Executable linked." + bcolors.ENDC)
+            print()
+
+
 
     def __build(self):
         self.__create_output_dirs()
@@ -327,10 +381,16 @@ class Builder:
             self.tasks["default"] = task
         return task
 
+    def set_default(self, name):
+        if name in self.tasks:
+            self.tasks["default"] = self.tasks[name]
+
     def add_executable(self, exe):
         return self.add_task(exe.name, exe)
 
     def __run_task_bare(self, task):
+        if hasattr(task, "silent") and task.silent:
+            block_stdout()
         if (callable(task)):
             task()
         else:
@@ -338,6 +398,8 @@ class Builder:
             for dep in taskdeps:
                 self.__run_task_bare(dep)
             task.run_task()
+        if hasattr(task, "silent") and task.silent:
+            enable_stdout()
 
     def run_task(self, taskname="default"):
         if taskname not in self.tasks:
@@ -364,7 +426,6 @@ class EmptyTask:
     def run_task(self):
         pass
 
-
 def create_test_task(name, source, target, flags = []):
     compile_task = Executable(name, [source], target, flags=["-D__RUN_TESTS", "-g", *flags], build_dir=".test_temp")
     run_task = compile_task.run()
@@ -373,15 +434,12 @@ def create_test_task(name, source, target, flags = []):
 
 ###################  Build script ###########################
 
-target = get_default_target()
+verbose = False
+for arg in sys.argv:
+    if arg == "-v":
+        verbose = True
 
-if (os.name == "nt"):
-    target = target_win32_clang()
-
-#target = target_win32_clang()
 b = Builder()
-
- #["src/unity_build.c"] #glob("src/**/*.c", recursive=True)
 
 sourcefiles_base = [
         "src/maybe.c",
@@ -391,47 +449,31 @@ sourcefiles_base = [
         "src/heap.c"
         ]
 
-sourcefiles_exe = [*sourcefiles_base, "src/platform_win32.c"] if (target.env == TargetEnv.Win32) else sourcefiles_base
+
+## 'wasm' task
 sourcefiles_wasm = [*sourcefiles_base, "src/platform_web.c"]
 
-exe = Executable("main", sourcefiles_exe, target)
-exe.deps.add(exe.clear())
-
-run = exe.run()
-run.deps.add(lambda: print("Build and then run!"))
-run.deps.add(lambda: exec(open("other.py").read()))
-run.deps.add(exe)
-
 wasmgen = b.add_task("wasm-gen", lambda: exec(open(os.path.join(".", "genwasmjs.py")).read()))
+wasm_task = Executable("main", sourcefiles_wasm, target=target_wasm32(), flags=["-g", CompilerWarningLevel.Wall], verbose=verbose)
+wasm_task.deps.add(wasmgen)
 
-wasm = Executable("main", sourcefiles_wasm, target=target_wasm32())
-#wasm.add_compile_flag("-std=c99")
-wasm.add_compile_flag("-g")
-wasm.add_compile_flag("-Isrc/include")
-wasm.add_include_dirs("src\\toolbox", "src\\coffee")
-wasm.deps.add(wasmgen)
+b.add_task("wasm", wasm_task)
+b.set_default("wasm")
 
-b.add_task("run", run)
-b.add_task("wasm", wasm)
+# 'test' task
+test_flags = [] if (get_default_target().env == TargetEnv.Win32) else ["-lm"]
 
-if (sys.platform == "win32"):
-    b.add_task("env", lambda: subprocess.run(["C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\Common7\\Tools\\VsDevCmd.bat", "-arch=amd64" ]))
-
-tests = EmptyTask() 
-test_flags = [] if (target.env == TargetEnv.Win32) else ["-lm"]
-tests.deps.add(create_test_task("maybe", "src/maybe.c", target))
-tests.deps.add(create_test_task("result", "src/result.c", target))
-tests.deps.add(create_test_task("math", "src/math.c", target, flags=test_flags))
-tests.deps.add(create_test_task("math", "src/slice.c", target, flags=test_flags))
-tests.deps.add(create_test_task("heap", "src/heap.c", target, flags=test_flags))
-tests.deps.add(create_test_task("heap_wasm", "src/heap_wasm.c", target, flags=test_flags))
-
-alloc = Executable("alloc", ["alloc.c"], target = target_win32_msvc(), flags=["/Zi"])
-allocrun = alloc.run()
-allocrun.deps.add(alloc)
-b.add_task("alloc", allocrun)
+tests = EmptyTask()
+tests.deps.add(create_test_task("maybe", "src/maybe.c", get_default_target()))
+tests.deps.add(create_test_task("result", "src/result.c", get_default_target()))
+tests.deps.add(create_test_task("math", "src/math.c", get_default_target(), flags=test_flags))
+tests.deps.add(create_test_task("math", "src/slice.c", get_default_target(), flags=test_flags))
+tests.deps.add(create_test_task("heap", "src/heap.c", get_default_target(), flags=test_flags))
+tests.deps.add(create_test_task("heap_wasm", "src/heap_wasm.c", get_default_target(), flags=test_flags))
 
 b.add_task("test", tests)
+
+## Run build
 
 b.run()
 
