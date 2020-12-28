@@ -31,8 +31,6 @@ typedef struct HeapWasmMemory
     boolean initialized;
 } HeapWasmMemory;
 
-HeapWasmMemory heap_wasm_memory;
-
 void heap_wasm_memory_init(HeapWasmMemory *m)
 {
     m->start          = HEAP_WASM_HEAP_BASE_UPTR;

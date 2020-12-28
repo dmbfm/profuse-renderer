@@ -32,8 +32,8 @@
     typedef struct             \
     {                          \
         boolean is_error;      \
-        type value;            \
         u32 error_code;        \
+        type value;            \
     } Result(type)
 
 result_make_type(u8);

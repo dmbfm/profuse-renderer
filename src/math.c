@@ -80,7 +80,7 @@ f32 math_ceil_f32(f32 x)
             u.f = -1.0;
     }
 
-    return u.f + 1.0;
+    return u.f + 1.0f;
 }
 
 Result(i32) math_ceil_f32_to_i32(f32 x)

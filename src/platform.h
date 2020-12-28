@@ -46,21 +46,24 @@ typedef struct Platform
         PlatformCursorStyle cursor_style;
     } mouse;
 
+    struct
+    {
+        u32 counter;
+    } timing;
+
     void *user_context;
 
 } Platform;
 
-ErrorCode platform_init(Platform *p);
-ErrorCode platform_deinit(Platform *p);
-void platform_run(Platform *p);
+// "User-defined" functions
+Platform p_config();
+void p_init(Platform *p);
+void p_frame(Platform *p);
+void p_shutdown(Platform *p);
 
-Result(uptr) platform_memory_alloc(usize amount);
-Result(uptr) platform_memory_realloc(usize amount);
-void platform_memory_free(uptr pointer);
-
+// Platform API
 void platform_print_fmt(const char *fmt, ...);
 void platform_print_line(const char *string);
-void platform_print_u32(u32);
-void platform_print_f32(f32);
 
 #endif /* __PLATFORM_H */
+

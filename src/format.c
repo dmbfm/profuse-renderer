@@ -210,7 +210,7 @@ int formatv(char *s, size_t n, const char *fmt, va_list args)
 
     t__SnprintfHead head = { ((int)n) - 1, 0, s };
 
-    while ((c = *fmt++)) {
+    while ((c = *fmt++) != 0) {
         switch (c) {
         case '%': {
             t__SnprintfFlags flags;

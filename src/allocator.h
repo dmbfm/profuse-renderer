@@ -5,7 +5,6 @@
 #include "result.h"
 #include "slice.h"
 #include <stddef.h>
-#include <stdalign.h>
 
 enum
 {

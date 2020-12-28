@@ -7,6 +7,7 @@ from enum import Enum, IntEnum, auto
 
 # TODO:
 #   - Abstract debugging information level flags
+#   - Manage command-line options. I.e.,  $ python build.py native -debug
 
 
 def block_stdout():
@@ -202,7 +203,7 @@ class ClearTask:
 
 
 class Executable:
-    def __init__(self, name, files, target, build_dir="build", intermediary_dir="build/obj", flags=get_default_flags(), wasm_stack_size = 10097152, verbose = False, silent = False):
+    def __init__(self, name, files, target, build_dir="build", intermediary_dir="build/obj", flags=get_default_flags(), link_flags=[], wasm_stack_size = 10097152, verbose = False, silent = False):
         self.name = name
         self.files = files
         self.target = target
@@ -213,12 +214,19 @@ class Executable:
         self.wasm_stack_size = wasm_stack_size
         self.verbose = verbose
         self.silent = silent
+        self.link_flags = link_flags
 
     def add_compile_flag(self, flag):
         self.flags.append(flag)
 
     def add_compile_flags(self, flags):
         self.flags = self.flags + flags
+
+    def add_link_flag(self, flag):
+        self.link_flags.append(flag)
+
+    def add_link_flags(self, flags):
+        self.link_flags = self.link_flags + flags
 
     def add_include_dirs(self, *args):
         for d in args:
@@ -294,6 +302,9 @@ class Executable:
                     print()
                     first_error = False
                 print(bcolors.WARNING + errs + bcolors.ENDC)
+        if self.verbose:
+            for out in stdouts:
+                print(out)
         if first_error:
             print()
             print(bcolors.OKGREEN +  u'\u2713' + " Compiled all files" + bcolors.ENDC)
@@ -334,9 +345,9 @@ class Executable:
                 self.__get_executable_output_path()
             ]
         elif (self.target.is_msvc_compatible()):
-            return [self.target.compiler_command(), *self.__get_object_names(), "/link", "/out:" + self.__get_executable_output_path()]
+            return [self.target.compiler_command(), *self.__get_object_names(), "/link", "/out:" + self.__get_executable_output_path(), *self.link_flags]
         else:
-            return [self.target.compiler_command(), *self.__get_object_names(), "-o", self.__get_executable_output_path()]
+            return [self.target.compiler_command(), *self.__get_object_names(), "-o", self.__get_executable_output_path(), *self.link_flags]
 
     def __link(self):
         print(bcolors.HEADER + "* Linking executable..." + bcolors.ENDC)
@@ -440,13 +451,14 @@ for arg in sys.argv:
         verbose = True
 
 b = Builder()
+default_target = get_default_target()
 
 sourcefiles_base = [
         "src/maybe.c",
-        "src/result.c",
         "src/format.c",
         "src/math.c",
-        "src/heap.c"
+        "src/heap.c",
+        "src/main.c"
         ]
 
 
@@ -472,6 +484,21 @@ tests.deps.add(create_test_task("heap", "src/heap.c", get_default_target(), flag
 tests.deps.add(create_test_task("heap_wasm", "src/heap_wasm.c", get_default_target(), flags=test_flags))
 
 b.add_task("test", tests)
+
+## Native task
+
+native_source_files = []
+if default_target.env == TargetEnv.Win32:
+    native_source_files = [*sourcefiles_base, "src/platform_win32.c"]
+
+native_exe_task = Executable("main", native_source_files, default_target, verbose=verbose)
+
+if default_target.env == TargetEnv.Win32:
+    native_exe_task.add_compile_flag("/Z7")
+    native_exe_task.add_compile_flag("/std:c11")
+    native_exe_task.add_compile_flags(["/wd4820", "/wd4204", "/wd4711", "/wd5045"])
+    native_exe_task.link_flags = ["/DEBUG:FULL"]
+b.add_task("native", native_exe_task)
 
 ## Run build
 
