@@ -137,4 +137,33 @@ static inline usize c_string_len(const char *s)
     return len;
 }
 
+#ifdef __wasm__
+export static void *memset(void *ptr, int value, size_t num) {
+    unsigned char v = (unsigned char ) value;
+    unsigned char *p = (unsigned char *) ptr;
+
+    while(num > 0)
+    {
+        *p = v;
+        num--;
+    }
+
+    return ptr;
+}
+
+export static void *memcpy(void *dst, const void *src, size_t num)
+{
+    unsigned char *d = (unsigned char *) dst;
+    unsigned char *s = (unsigned char *) src;
+    
+    while(num > 0)
+    {
+        *d = *s;
+        num--;
+    }
+
+    return dst;
+}
+#endif /* __wasm__ */
+
 #endif /* __COMMON_H */

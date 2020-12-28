@@ -7,12 +7,7 @@
 
 #include "platform_web_js_imports.c"
 
-typedef struct PlatformWeb
-{
-    int x;
-} PlatformWeb;
-
-static PlatformWeb platform_web;
+static Platform platform;
 
 void platform_print_fmt(const char *fmt, ...)
 {
@@ -23,34 +18,29 @@ void platform_print_fmt(const char *fmt, ...)
     wasm_print_line(buf);
 }
 
+void platform_print_line(const char *string) 
+{
+    wasm_print_line(string);
+}
+
 export int main()
 {
-    assert(0);
-    platform_print_fmt("Hello!");
+    platform_print_line("Hello!");
 
+    platform = p_config();
 
-    Allocator *a = &heap_wasm_free_list_allocator;
+    p_init(&platform);
+}
 
-    heap_wasm_free_list_allocator.alloc(&heap_wasm_free_list_allocator, 20);
-    heap_wasm_free_list_print_blocks(wasm_print_line);
+export int frame(f64 timestamp)
+{
+    platform.timing.counter++;
+    p_frame(&platform);
 
-    heap_wasm_free_list_allocator.alloc(&heap_wasm_free_list_allocator, 1024);
-    heap_wasm_free_list_print_blocks(wasm_print_line);
+    return (platform.should_quit == false);
+}
 
-    int *x =
-        (int *)result_unwrap(heap_wasm_free_list_allocator.alloc(&heap_wasm_free_list_allocator, 100 * sizeof(int)));
-
-    forn(i, 100) {
-        x[i] = i;
-    }
-
-    forn(i, 100) {
-        platform_print_fmt("%i\n", x[i]);
-    }
-
-    heap_wasm_free_list_print_blocks(wasm_print_line);
-
-    a->free(a, (uptr)x);
-
-    heap_wasm_free_list_print_blocks(wasm_print_line);
+export void shutdown()
+{
+    p_shutdown(&platform);
 }

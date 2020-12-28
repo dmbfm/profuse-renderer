@@ -18,8 +18,6 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     UNUSED_VARIABLE(lpCmdLine);
     UNUSED_VARIABLE(nShowCmd);
 
-    OutputDebugString("Hello profuse!");
-
     platform = p_config();
 
     p_init(&platform);

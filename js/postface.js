@@ -13,9 +13,10 @@ WebAssembly.instantiateStreaming(fetch("build/main.wasm"), { env }).then(result 
     instance.exports.main(0, 0);
     malloc = instance.exports.malloc;
 
-    //mouseXptr = instance.exports.malloc(4);
-    //mouseYptr = instance.exports.malloc(4);
+    const frame = dt => {
+        if (instance.exports.frame(dt)) requestAnimationFrame(frame);
+        else instance.exports.shutdown();
+    };
 
-    //console.log(instance.exports.malloc(100));
-    //console.log(instance.exports.malloc(100));
+    frame(0);
 });
