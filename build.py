@@ -497,7 +497,7 @@ if default_target.env == TargetEnv.Win32:
     native_exe_task.add_compile_flag("/Z7")
     native_exe_task.add_compile_flag("/std:c11")
     native_exe_task.add_compile_flags(["/wd4820", "/wd4204", "/wd4711", "/wd5045"])
-    native_exe_task.link_flags = ["/DEBUG:FULL"]
+    native_exe_task.link_flags = ["/DEBUG:FULL", "user32.lib"]
 b.add_task("native", native_exe_task)
 
 ## Run build

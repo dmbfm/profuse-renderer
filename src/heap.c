@@ -6,7 +6,7 @@
 #else
 #include <stdlib.h>
 
-static Result(uptr) alloc(Allocator *alloc, usize amount)
+static Result(uptr) heap_alloc(Allocator *alloc, usize amount)
 {
     UNUSED_VARIABLE(alloc);
 
@@ -17,20 +17,14 @@ static Result(uptr) alloc(Allocator *alloc, usize amount)
     return result_ok(uptr, p);
 }
 
-static Result(usize) resize(struct Allocator *allocator,  uptr region, usize new_amount, usize alignment)
+static void heap_free(struct Allocator *allocator,  uptr region)
 {
     UNUSED_VARIABLE(allocator);
-    UNUSED_VARIABLE(alignment);
 
-    if (new_amount == 0) {
-        free((void *) region);
-        return result_ok(usize, 0);
-    }
-
-    return result_error(usize, ERR_OUT_OF_MEMORY);
+    free((void *) region);
 }
 
-Allocator heap_allocator = { .alloc = alloc, .allocator_state = 0 };
+Allocator heap_allocator = { .alloc = heap_alloc, .free = heap_free, .allocator_state = 0 };
 
 #endif /* __wasm__ */
 

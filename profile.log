@@ -1,0 +1,1401 @@
+FUNCTION  coc#client#get_channel()
+    Defined: ~/.config/nvim/plugged/coc.nvim/autoload/coc/client.vim:141
+Called 64 times
+Total time:   0.000476
+ Self time:   0.000476
+
+count  total (s)   self (s)
+   64              0.000102   if s:is_vim
+                                return a:client['channel']
+   64              0.000045   endif
+   64              0.000137   return a:client['chan_id']
+
+FUNCTION  <SNR>55_Highlight_Matching_Pair()
+    Defined: /tmp/.mount_nvim4.zqz5ct/usr/share/nvim/runtime/plugin/matchparen.vim:39
+Called 42 times
+Total time:   0.005667
+ Self time:   0.005667
+
+count  total (s)   self (s)
+                              " Remove any previous match.
+   42              0.000208   if exists('w:paren_hl_on') && w:paren_hl_on
+    2              0.000009     silent! call matchdelete(3)
+    2              0.000005     let w:paren_hl_on = 0
+   42              0.000032   endif
+                            
+                              " Avoid that we remove the popup menu.
+                              " Return when there are no colors (looks like the cursor jumps).
+   42              0.000205   if pumvisible() || (&t_Co < 8 && !has("gui_running"))
+                                return
+   42              0.000028   endif
+                            
+                              " Get the character under the cursor and check if it's in 'matchpairs'.
+   42              0.000132   let c_lnum = line('.')
+   42              0.000106   let c_col = col('.')
+   42              0.000104   let before = 0
+                            
+   42              0.000135   let text = getline(c_lnum)
+   42              0.000745   let matches = matchlist(text, '\(.\)\=\%'.c_col.'c\(.\=\)')
+   42              0.000106   if empty(matches)
+                                let [c_before, c] = ['', '']
+   42              0.000036   else
+   42              0.000236     let [c_before, c] = matches[1:2]
+   42              0.000032   endif
+   42              0.000680   let plist = split(&matchpairs, '.\zs[:,]')
+   42              0.000166   let i = index(plist, c)
+   42              0.000059   if i < 0
+                                " not found, in Insert mode try character before the cursor
+   40              0.000154     if c_col > 1 && (mode() == 'i' || mode() == 'R')
+   16              0.000048       let before = strlen(c_before)
+   16              0.000028       let c = c_before
+   16              0.000046       let i = index(plist, c)
+   40              0.000030     endif
+   40              0.000051     if i < 0
+                                  " not found, nothing to do
+   40              0.000049       return
+                                endif
+    2              0.000001   endif
+                            
+                              " Figure out the arguments for searchpairpos().
+    2              0.000003   if i % 2 == 0
+    1              0.000002     let s_flags = 'nW'
+    1              0.000003     let c2 = plist[i + 1]
+    1              0.000001   else
+    1              0.000002     let s_flags = 'nbW'
+    1              0.000002     let c2 = c
+    1              0.000003     let c = plist[i - 1]
+    2              0.000001   endif
+    2              0.000003   if c == '['
+                                let c = '\['
+                                let c2 = '\]'
+    2              0.000001   endif
+                            
+                              " Find the match.  When it was just before the cursor move it there for a
+                              " moment.
+    2              0.000003   if before > 0
+                                let has_getcurpos = exists("*getcurpos")
+                                if has_getcurpos
+                                  " getcurpos() is more efficient but doesn't exist before 7.4.313.
+                                  let save_cursor = getcurpos()
+                                else
+                                  let save_cursor = winsaveview()
+                                endif
+                                call cursor(c_lnum, c_col - before)
+    2              0.000001   endif
+                            
+    2              0.000017   if !has("syntax") || !exists("g:syntax_on")
+                                let s_skip = "0"
+    2              0.000002   else
+                                " Build an expression that detects whether the current cursor position is
+                                " in certain syntax types (string, comment, etc.), for use as
+                                " searchpairpos()'s skip argument.
+                                " We match "escape" for special items, such as lispEscapeSpecial.
+    2              0.000012     let s_skip = '!empty(filter(map(synstack(line("."), col(".")), ''synIDattr(v:val, "name")''), ' . '''v:val =~? "string\\|character\\|singlequote\\|escape\\|comment"''))'
+                                " If executing the expression determines that the cursor is currently in
+                                " one of the syntax types, then we want searchpairpos() to find the pair
+                                " within those syntax types (i.e., not skip).  Otherwise, the cursor is
+                                " outside of the syntax types and s_skip should keep its value so we skip
+                                " any matching pair inside the syntax types.
+                                " Catch if this throws E363: pattern uses more memory than 'maxmempattern'.
+    2              0.000003     try
+    2              0.000184       execute 'if ' . s_skip . ' | let s_skip = "0" | endif'
+                                catch /^Vim\%((\a\+)\)\=:E363/
+                                  " We won't find anything, so skip searching, should keep Vim responsive.
+                                  return
+    2              0.000002     endtry
+    2              0.000002   endif
+                            
+                              " Limit the search to lines visible in the window.
+    2              0.000008   let stoplinebottom = line('w$')
+    2              0.000005   let stoplinetop = line('w0')
+    2              0.000003   if i % 2 == 0
+    1              0.000003     let stopline = stoplinebottom
+    1              0.000001   else
+    1              0.000003     let stopline = stoplinetop
+    2              0.000001   endif
+                            
+                              " Limit the search time to 300 msec to avoid a hang on very long lines.
+                              " This fails when a timeout is not supported.
+    2              0.000008   if mode() == 'i' || mode() == 'R'
+                                let timeout = exists("b:matchparen_insert_timeout") ? b:matchparen_insert_timeout : g:matchparen_insert_timeout
+    2              0.000001   else
+    2              0.000011     let timeout = exists("b:matchparen_timeout") ? b:matchparen_timeout : g:matchparen_timeout
+    2              0.000001   endif
+    2              0.000002   try
+    2              0.000565     let [m_lnum, m_col] = searchpairpos(c, '', c2, s_flags, s_skip, stopline, timeout)
+                              catch /E118/
+                                " Can't use the timeout, restrict the stopline a bit more to avoid taking
+                                " a long time on closed folds and long lines.
+                                " The "viewable" variables give a range in which we can scroll while
+                                " keeping the cursor at the same position.
+                                " adjustedScrolloff accounts for very large numbers of scrolloff.
+                                let adjustedScrolloff = min([&scrolloff, (line('w$') - line('w0')) / 2])
+                                let bottom_viewable = min([line('$'), c_lnum + &lines - adjustedScrolloff - 2])
+                                let top_viewable = max([1, c_lnum-&lines+adjustedScrolloff + 2])
+                                " one of these stoplines will be adjusted below, but the current values are
+                                " minimal boundaries within the current window
+                                if i % 2 == 0
+                                  if has("byte_offset") && has("syntax_items") && &smc > 0
+                            	let stopbyte = min([line2byte("$"), line2byte(".") + col(".") + &smc * 2])
+                            	let stopline = min([bottom_viewable, byte2line(stopbyte)])
+                                  else
+                            	let stopline = min([bottom_viewable, c_lnum + 100])
+                                  endif
+                                  let stoplinebottom = stopline
+                                else
+                                  if has("byte_offset") && has("syntax_items") && &smc > 0
+                            	let stopbyte = max([1, line2byte(".") + col(".") - &smc * 2])
+                            	let stopline = max([top_viewable, byte2line(stopbyte)])
+                                  else
+                            	let stopline = max([top_viewable, c_lnum - 100])
+                                  endif
+                                  let stoplinetop = stopline
+                                endif
+                                let [m_lnum, m_col] = searchpairpos(c, '', c2, s_flags, s_skip, stopline)
+    2              0.000002   endtry
+                            
+    2              0.000003   if before > 0
+                                if has_getcurpos
+                                  call setpos('.', save_cursor)
+                                else
+                                  call winrestview(save_cursor)
+                                endif
+    2              0.000002   endif
+                            
+                              " If a match is found setup match highlighting.
+    2              0.000007   if m_lnum > 0 && m_lnum >= stoplinetop && m_lnum <= stoplinebottom 
+    2              0.000006     if exists('*matchaddpos')
+    2              0.000162       call matchaddpos('MatchParen', [[c_lnum, c_col - before], [m_lnum, m_col]], 10, 3)
+                                else
+                                  exe '3match MatchParen /\(\%' . c_lnum . 'l\%' . (c_col - before) . 'c\)\|\(\%' . m_lnum . 'l\%' . m_col . 'c\)/'
+    2              0.000001     endif
+    2              0.000005     let w:paren_hl_on = 1
+    2              0.000002   endif
+
+FUNCTION  airline#extensions#coc#get_error()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/extensions/coc.vim:14
+Called 60 times
+Total time:   0.003619
+ Self time:   0.000710
+
+count  total (s)   self (s)
+   60   0.003578   0.000669   return airline#extensions#coc#get('error')
+
+FUNCTION  coc#util#do_autocmd()
+    Defined: ~/.config/nvim/plugged/coc.nvim/autoload/coc/util.vim:708
+Called 1 time
+Total time:   0.000030
+ Self time:   0.000030
+
+count  total (s)   self (s)
+    1              0.000022   if exists('#User#'.a:name)
+                                exe 'doautocmd <nomodeline> User '.a:name
+    1              0.000002   endif
+
+FUNCTION  airline#statusline()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline.vim:190
+Called 73 times
+Total time:   0.001601
+ Self time:   0.001601
+
+count  total (s)   self (s)
+   73              0.000642   if has_key(s:contexts, a:winnr)
+   73              0.000794     return '%{airline#check_mode('.a:winnr.')}'.s:contexts[a:winnr].line
+                              endif
+                              " in rare circumstances this happens...see #276
+                              return ''
+
+FUNCTION  airline#check_mode()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline.vim:199
+Called 73 times
+Total time:   6.544839
+ Self time:   0.012911
+
+count  total (s)   self (s)
+   73              0.000333   if !has_key(s:contexts, a:winnr)
+                                return ''
+   73              0.000074   endif
+   73              0.000341   let context = s:contexts[a:winnr]
+                            
+   73              0.000255   if get(w:, 'airline_active', 1)
+   60              0.000206     let l:m = mode(1)
+   60              0.000125     if l:m ==# "i"
+   26              0.000088       let l:mode = ['insert']
+   34              0.000084     elseif l:m[0] ==# "i"
+                                  let l:mode = ['insert']
+   34              0.000075     elseif l:m ==# "Rv"
+                                  let l:mode =['replace']
+   34              0.000058     elseif l:m[0] ==# "R"
+                                  let l:mode = ['replace']
+   34              0.000358     elseif l:m[0] =~# '\v(v|V||s|S|)'
+                                  let l:mode = ['visual']
+   34              0.000048     elseif l:m ==# "t"
+                                  let l:mode = ['terminal']
+   34              0.000072     elseif l:m[0] ==# "c"
+    2              0.000006       let l:mode = ['commandline']
+   32              0.000048     elseif l:m ==# "no"   " does not work, most likely, Vim does not refresh the statusline in OP mode
+                                  let l:mode = ['normal']
+   32              0.000065     elseif l:m[0:1] ==# 'ni'
+                                  let l:mode = ['insert']
+                                  let l:m = 'ni'
+   32              0.000025     else
+   32              0.000103       let l:mode = ['normal']
+   60              0.000046     endif
+   60              0.000295     if exists("*VMInfos") && !empty(VMInfos())
+                                  " Vim plugin Multiple Cursors https://github.com/mg979/vim-visual-multi
+                                  let l:m = 'multi'
+   60              0.000042     endif
+   60              0.000450     if index(['Rv', 'no', 'ni', 'ix', 'ic', 'multi'], l:m) == -1
+   60              0.000148       let l:m = l:m[0]
+   60              0.000044     endif
+   60              0.000398     let w:airline_current_mode = get(g:airline_mode_map, l:m, l:m)
+   13              0.000011   else
+   13              0.000048     let l:mode = ['inactive']
+   13              0.000060     let w:airline_current_mode = get(g:airline_mode_map, '__')
+   73              0.000061   endif
+                            
+   73              0.000294   if g:airline_detect_modified && &modified
+   60              0.000236     call add(l:mode, 'modified')
+   73              0.000052   endif
+                            
+   73              0.000163   if g:airline_detect_paste && &paste
+                                call add(l:mode, 'paste')
+   73              0.000051   endif
+                            
+   73              0.000806   if g:airline_detect_crypt && exists("+key") && !empty(&key)
+                                call add(l:mode, 'crypt')
+   73              0.000048   endif
+                            
+   73              0.000172   if g:airline_detect_spell && &spell
+                                call add(l:mode, 'spell')
+   73              0.000045   endif
+                            
+   73              0.000154   if &readonly || ! &modifiable
+   13              0.000049     call add(l:mode, 'readonly')
+   73              0.000046   endif
+                            
+   73              0.000362   let mode_string = join(l:mode)
+   73              0.000291   if get(w:, 'airline_lastmode', '') != mode_string
+   20   0.012644   0.000363     call airline#highlighter#highlight_modified_inactive(context.bufnr)
+   20   6.518350   0.000527     call airline#highlighter#highlight(l:mode, context.bufnr)
+   20   0.002688   0.000863     call airline#util#doautocmd('AirlineModeChanged')
+   20              0.000067     let w:airline_lastmode = mode_string
+   73              0.000048   endif
+                            
+   73              0.000101   return ''
+
+FUNCTION  airline#util#append()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/util.vim:49
+Called 420 times
+Total time:   0.006071
+ Self time:   0.006071
+
+count  total (s)   self (s)
+  420              0.001444   if a:minwidth > 0 && airline#util#winwidth() < a:minwidth
+                                return ''
+  420              0.000310   endif
+  420              0.001738   let prefix = s:spc == "\ua0" ? s:spc : s:spc.s:spc
+  420              0.001589   return empty(a:text) ? '' : prefix.g:airline_left_alt_sep.s:spc.a:text
+
+FUNCTION  <SNR>76_get_hunks_empty()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/extensions/hunks.vim:72
+Called 60 times
+Total time:   0.000110
+ Self time:   0.000110
+
+count  total (s)   self (s)
+   60              0.000075   return ''
+
+FUNCTION  <SNR>76_coc_git_enabled()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/extensions/hunks.vim:18
+Called 60 times
+Total time:   0.000529
+ Self time:   0.000529
+
+count  total (s)   self (s)
+   60              0.000306   if !exists("*CocAction") || !get(g:, 'airline#extensions#hunks#coc_git', 0)
+                                 " coc-git extension is disabled by default
+                                 " unless specifically being enabled by the user
+                                 " (as requested from coc maintainer)
+   60              0.000071     return 0
+                              endif
+                              return 1
+
+FUNCTION  <SNR>75_get_syn()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/highlighter.vim:38
+Called 49976 times
+Total time:   3.096975
+ Self time:   3.096975
+
+count  total (s)   self (s)
+49976              0.096867   let color = ''
+49976              0.959582   if hlexists(a:group)
+35288              0.592978     let color = synIDattr(synIDtrans(hlID(a:group)), a:what, a:mode)
+49976              0.046227   endif
+49976              0.149145   if empty(color) || color == -1
+                                " should always exist
+14688              0.560415     let color = synIDattr(synIDtrans(hlID('Normal')), a:what, a:mode)
+                                " however, just in case
+14688              0.049464     if empty(color) || color == -1
+                                  let color = 'NONE'
+14688              0.011035     endif
+49976              0.034291   endif
+49976              0.079601   return color
+
+FUNCTION  <SNR>75_CheckDefined()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/highlighter.vim:126
+Called 4574 times
+Total time:   0.140924
+ Self time:   0.140924
+
+count  total (s)   self (s)
+                              " Checks, whether the definition of the colors is valid and is not empty or NONE
+                              " e.g. if the colors would expand to this:
+                              " hi airline_c ctermfg=NONE ctermbg=NONE
+                              " that means to clear that highlighting group, therefore, fallback to Normal
+                              " highlighting group for the cterm values
+                            
+                              " This only works, if the Normal highlighting group is actually defined, so
+                              " return early, if it has been cleared
+ 4574              0.020574   if !exists("g:airline#highlighter#normal_fg_hi")
+                                let g:airline#highlighter#normal_fg_hi = synIDattr(synIDtrans(hlID('Normal')), 'fg', 'cterm')
+ 4574              0.003462   endif
+ 4574              0.020872   if empty(g:airline#highlighter#normal_fg_hi) || g:airline#highlighter#normal_fg_hi < 0
+                                return a:colors
+ 4574              0.002977   endif
+                            
+ 4574              0.014250   for val in a:colors
+ 4574              0.014946     if !empty(val) && val !=# 'NONE'
+ 4574              0.007132       return a:colors
+                                endif
+                              endfor
+                              " this adds the bold attribute to the term argument of the :hi command,
+                              " but at least this makes sure, the group will be defined
+                              let fg = g:airline#highlighter#normal_fg_hi
+                              let bg = synIDattr(synIDtrans(hlID('Normal')), 'bg', 'cterm')
+                              if bg < 0
+                                " in case there is no background color defined for Normal
+                                let bg = a:colors[3]
+                              endif
+                              return a:colors[0:1] + [fg, bg] + [a:colors[4]]
+
+FUNCTION  airline#themes#get_highlight()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/themes.vim:31
+Called 7920 times
+Total time:   3.709529
+ Self time:   0.125416
+
+count  total (s)   self (s)
+ 7920   3.704783   0.120670   return call('airline#highlighter#get_highlight', [a:group] + a:000)
+
+FUNCTION  airline#mode_changed()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline.vim:279
+Called 20 times
+Total time:   0.000794
+ Self time:   0.000621
+
+count  total (s)   self (s)
+                              " airline#visual_active
+                              " Boolean: for when to get visual wordcount
+                              " needed for the wordcount extension
+   20              0.000353   let g:airline#visual_active = (mode() =~? '[vs]')
+   20   0.000364   0.000191   call airline#update_tabline()
+
+FUNCTION  airline#extensions#coc#get_warning()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/extensions/coc.vim:10
+Called 60 times
+Total time:   0.003778
+ Self time:   0.000717
+
+count  total (s)   self (s)
+   60   0.003742   0.000680   return airline#extensions#coc#get('warning')
+
+FUNCTION  airline#extensions#coc#get_status()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/extensions/coc.vim:45
+Called 60 times
+Total time:   0.003244
+ Self time:   0.000964
+
+count  total (s)   self (s)
+                              " Shorten text for windows < 91 characters
+   60   0.003147   0.000866   return airline#util#shorten(get(g:, 'coc_status', ''), 91, 9)
+
+FUNCTION  nerdtree#slash()
+    Defined: ~/.config/nvim/plugged/nerdtree/autoload/nerdtree.vim:37
+Called 13 times
+Total time:   0.000399
+ Self time:   0.000227
+
+count  total (s)   self (s)
+   13   0.000284   0.000112     if nerdtree#runningWindows()
+                                    if exists('+shellslash') && &shellslash
+                                        return '/'
+                                    endif
+                            
+                                    return '\'
+   13              0.000009     endif
+                            
+   13              0.000014     return '/'
+
+FUNCTION  coc#util#cursor()
+    Defined: ~/.config/nvim/plugged/coc.nvim/autoload/coc/util.vim:35
+Called 12 times
+Total time:   0.000205
+ Self time:   0.000205
+
+count  total (s)   self (s)
+   12              0.000183   return [line('.') - 1, strchars(strpart(getline('.'), 0, col('.') - 1))]
+
+FUNCTION  airline#parts#filetype()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/parts.vim:102
+Called 60 times
+Total time:   0.001603
+ Self time:   0.000879
+
+count  total (s)   self (s)
+   60   0.001558   0.000833   return (airline#util#winwidth() < 90 && strlen(&filetype) > 3) ? matchstr(&filetype, '...'). (&encoding is? 'utf-8' ? '…' : '>') : &filetype
+
+FUNCTION  airline#parts#iminsert()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/parts.vim:82
+Called 60 times
+Total time:   0.000540
+ Self time:   0.000540
+
+count  total (s)   self (s)
+   60              0.000240   if g:airline_detect_iminsert && &iminsert && exists('b:keymap_name')
+                                return toupper(b:keymap_name)
+   60              0.000040   endif
+   60              0.000058   return ''
+
+FUNCTION  airline#update_tabline()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline.vim:273
+Called 34 times
+Total time:   0.000284
+ Self time:   0.000284
+
+count  total (s)   self (s)
+   34              0.000133   if get(g:, 'airline_statusline_ontop', 0)
+                                call airline#extensions#tabline#redraw()
+   34              0.000027   endif
+
+FUNCTION  coc#float#get_related()
+    Defined: ~/.config/nvim/plugged/coc.nvim/autoload/coc/float.vim:1207
+Called 14 times
+Total time:   0.000262
+ Self time:   0.000262
+
+count  total (s)   self (s)
+   14              0.000121   for winid in getwinvar(a:winid, 'related', [])
+                                if getwinvar(winid, 'kind', '') ==# a:kind
+                                  return winid
+                                endif
+   14              0.000018   endfor
+   14              0.000020   return 0
+
+FUNCTION  airline#extensions#coc#get()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/extensions/coc.vim:18
+Called 120 times
+Total time:   0.005970
+ Self time:   0.005970
+
+count  total (s)   self (s)
+  120              0.000527   if !exists(':CocCommand')
+                                return ''
+  120              0.000089   endif
+  120              0.000522   let _backup = get(g:, 'coc_stl_format', '')
+  120              0.000349   let is_err = (a:type  is# 'error')
+  120              0.000144   if is_err
+   60              0.000337     let g:coc_stl_format = get(g:, 'airline#extensions#coc#stl_format_err', '%E{[%e(#%fe)]}')
+   60              0.000044   else
+   60              0.000362     let g:coc_stl_format = get(g:, 'airline#extensions#coc#stl_format_warn', '%W{[%w(#%fw)]}')
+  120              0.000089   endif
+  120              0.000434   let info = get(b:, 'coc_diagnostic_info', {})
+  120              0.000464   if empty(info) | return '' | endif
+                            
+                            
+  120              0.000413   let cnt = get(info, a:type, 0)
+  120              0.000256   if !empty(_backup)
+  120              0.000403     let g:coc_stl_format = _backup
+  120              0.000085   endif
+                            
+  120              0.000211   if empty(cnt)
+  120              0.000156     return ''
+                              else
+                                return (is_err ? s:error_symbol : s:warning_symbol).cnt
+                              endif
+
+FUNCTION  airline#util#winwidth()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/util.vim:19
+Called 401 times
+Total time:   0.005061
+ Self time:   0.005061
+
+count  total (s)   self (s)
+  401              0.001613   let nr = get(a:000, 0, 0)
+  401              0.001097   if get(g:, 'airline_statusline_ontop', 0)
+                                return &columns
+  401              0.000320   else
+  401              0.000944     return winwidth(nr)
+                              endif
+
+FUNCTION  airline#util#doautocmd()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/util.vim:176
+Called 20 times
+Total time:   0.001824
+ Self time:   0.000510
+
+count  total (s)   self (s)
+   20   0.001808   0.000494   exe printf("silent doautocmd %s User %s", s:nomodeline, a:event)
+
+FUNCTION  38()
+    Defined: ~/.config/nvim/plugged/nerdtree/lib/nerdtree/path.vim:695
+Called 13 times
+Total time:   0.002050
+ Self time:   0.000999
+
+count  total (s)   self (s)
+   13              0.000062     let options = a:0 ? a:1 : {}
+   13              0.000024     let toReturn = ''
+                            
+   13              0.000049     if has_key(options, 'format')
+                                    let format = options['format']
+                                    if has_key(self, '_strFor' . format)
+                                        exec 'let toReturn = self._strFor' . format . '()'
+                                    else
+                                        throw 'NERDTree.UnknownFormatError: unknown format "'. format .'"'
+                                    endif
+   13              0.000011     else
+   13   0.001097   0.000134         let toReturn = self._str()
+   13              0.000011     endif
+                            
+   13   0.000211   0.000123     if nerdtree#has_opt(options, 'escape')
+                                    let toReturn = shellescape(toReturn)
+   13              0.000008     endif
+                            
+   13              0.000031     if has_key(options, 'truncateTo')
+                                    let limit = options['truncateTo']
+                                    if strdisplaywidth(toReturn) > limit-1
+                                        while strdisplaywidth(toReturn) > limit-1 && strchars(toReturn) > 0
+                                            let toReturn = substitute(toReturn, '^.', '', '')
+                                        endwhile
+                                        if len(split(toReturn, '/')) > 1
+                                            let toReturn = '</' . join(split(toReturn, '/')[1:], '/') . '/'
+                                        else
+                                            let toReturn = '<' . toReturn
+                                        endif
+                                    endif
+   13              0.000008     endif
+                            
+   13              0.000020     return toReturn
+
+FUNCTION  43()
+    Defined: ~/.config/nvim/plugged/nerdtree/lib/nerdtree/path.vim:790
+Called 13 times
+Total time:   0.000963
+ Self time:   0.000460
+
+count  total (s)   self (s)
+   13   0.000509   0.000110     let l:separator = nerdtree#slash()
+   13              0.000031     let l:leader = l:separator
+                            
+   13   0.000234   0.000131     if nerdtree#runningWindows()
+                                    let l:leader = self.drive . l:separator
+   13              0.000009     endif
+                            
+   13              0.000118     return l:leader . join(self.pathSegments, l:separator)
+
+FUNCTION  AutoPairsDelete()
+    Defined: ~/.config/nvim/plugged/auto-pairs/plugin/auto-pairs.vim:303
+Called 1 time
+Total time:   0.000396
+ Self time:   0.000327
+
+count  total (s)   self (s)
+    1              0.000010   if !b:autopairs_enabled
+                                return "\<BS>"
+    1              0.000001   end
+                            
+    1   0.000091   0.000022   let [before, after, ig] = s:getline()
+   10              0.000027   for [open, close, opt] in b:AutoPairsList
+    9              0.000062     let b = matchstr(before, '\V'.open.'\v\s?$')
+    9              0.000057     let a = matchstr(after, '^\v\s*\V'.close)
+    9              0.000015     if b != '' && a != ''
+                                  if b[-1:-1] == ' '
+                                    if a[0] == ' '
+                                      return "\<BS>\<DELETE>"
+                                    else
+                                      return "\<BS>"
+                                    end
+                                  end
+                                  return s:backspace(b).s:delete(a)
+    9              0.000006     end
+   10              0.000009   endfor
+                            
+    1              0.000002   return "\<BS>"
+                              " delete the pair foo[]| <BS> to foo
+                              for [open, close, opt] in b:AutoPairsList
+                                let m = s:matchend(before, '\V'.open.'\v\s*'.'\V'.close.'\v$')
+                                if len(m) > 0
+                                  return s:backspace(m[2])
+                                end
+                              endfor
+                              return "\<BS>"
+
+FUNCTION  airline#util#wrap()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/util.vim:42
+Called 553 times
+Total time:   0.005084
+ Self time:   0.004384
+
+count  total (s)   self (s)
+  553   0.002884   0.002184   if a:minwidth > 0 && airline#util#winwidth() < a:minwidth
+                                return ''
+  553              0.000391   endif
+  553              0.000755   return a:text
+
+FUNCTION  <SNR>20_getline()
+    Defined: ~/.config/nvim/plugged/auto-pairs/plugin/auto-pairs.vim:139
+Called 1 time
+Total time:   0.000069
+ Self time:   0.000069
+
+count  total (s)   self (s)
+    1              0.000010   let line = getline('.')
+    1              0.000004   let pos = col('.') - 1
+    1              0.000005   let before = strpart(line, 0, pos)
+    1              0.000003   let after = strpart(line, pos)
+    1              0.000002   let afterline = after
+    1              0.000002   if g:AutoPairsMultilineClose
+    1              0.000003     let n = line('$')
+    1              0.000002     let i = line('.')+1
+    1              0.000003     while i <= n
+    1              0.000003       let line = getline(i)
+    1              0.000005       let after = after.' '.line
+    1              0.000012       if !(line =~ '\v^\s*$')
+    1              0.000002         break
+                                  end
+                                  let i = i+1
+    1              0.000002     endwhile
+    1              0.000001   end
+    1              0.000004   return [before, after, afterline]
+
+FUNCTION  airline#extensions#whitespace#check()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/extensions/whitespace.vim:64
+Called 60 times
+Total time:   0.012057
+ Self time:   0.009840
+
+count  total (s)   self (s)
+   60              0.000468   let max_lines = get(g:, 'airline#extensions#whitespace#max_lines', 20000)
+   60              0.000562   if &readonly || !&modifiable || !s:enabled || line('$') > max_lines || get(b:, 'airline_whitespace_disabled', 0)
+                                return ''
+   60              0.000045   endif
+   60              0.000714   let skip_check_ft = extend(s:skip_check_ft, get(g:, 'airline#extensions#whitespace#skip_indent_check_ft', {}), 'force')
+                            
+   60              0.000236   if !exists('b:airline_whitespace_check')
+                                let b:airline_whitespace_check = ''
+                                let checks = get(b:, 'airline_whitespace_checks', get(g:, 'airline#extensions#whitespace#checks', s:default_checks))
+                            
+                                let trailing = 0
+                                let check = 'trailing'
+                                if index(checks, check) > -1 && index(get(skip_check_ft, &ft, []), check) < 0
+                                  try
+                                    let regexp = get(g:, 'airline#extensions#whitespace#trailing_regexp', '\s$')
+                                    let trailing = search(regexp, 'nw')
+                                  catch
+                                    call airline#util#warning(printf('Whitespace: error occurred evaluating "%s"', regexp))
+                                    echomsg v:exception
+                                    return ''
+                                  endtry
+                                endif
+                            
+                                let mixed = 0
+                                let check = 'indent'
+                                if index(checks, check) > -1 && index(get(skip_check_ft, &ft, []), check) < 0
+                                  let mixed = s:check_mixed_indent()
+                                endif
+                            
+                                let mixed_file = ''
+                                let check = 'mixed-indent-file'
+                                if index(checks, check) > -1 && index(get(skip_check_ft, &ft, []), check) < 0
+                                  let mixed_file = s:check_mixed_indent_file()
+                                endif
+                            
+                                let long = 0
+                                if index(checks, 'long') > -1 && &tw > 0
+                                  let long = search('\%>'.&tw.'v.\+', 'nw')
+                                endif
+                            
+                                let conflicts = 0
+                                if index(checks, 'conflicts') > -1
+                                  let conflicts = s:conflict_marker()
+                                endif
+                            
+                                if trailing != 0 || mixed != 0 || long != 0 || !empty(mixed_file) || conflicts != 0
+                                  let b:airline_whitespace_check = s:symbol
+                                  if strlen(s:symbol) > 0
+                                    let space = (g:airline_symbols.space)
+                                  else
+                                    let space = ''
+                                  endif
+                            
+                                  if s:show_message
+                                    if trailing != 0
+                                      let trailing_fmt = get(g:, 'airline#extensions#whitespace#trailing_format', '[%s]trailing')
+                                      let b:airline_whitespace_check .= space.printf(trailing_fmt, trailing)
+                                    endif
+                                    if mixed != 0
+                                      let mixed_indent_fmt = get(g:, 'airline#extensions#whitespace#mixed_indent_format', '[%s]mixed-indent')
+                                      let b:airline_whitespace_check .= space.printf(mixed_indent_fmt, mixed)
+                                    endif
+                                    if long != 0
+                                      let long_fmt = get(g:, 'airline#extensions#whitespace#long_format', '[%s]long')
+                                      let b:airline_whitespace_check .= space.printf(long_fmt, long)
+                                    endif
+                                    if !empty(mixed_file)
+                                      let mixed_indent_file_fmt = get(g:, 'airline#extensions#whitespace#mixed_indent_file_format', '[%s]mix-indent-file')
+                                      let b:airline_whitespace_check .= space.printf(mixed_indent_file_fmt, mixed_file)
+                                    endif
+                                    if conflicts != 0
+                                      let conflicts_fmt = get(g:, 'airline#extensions#whitespace#conflicts_format', '[%s]conflicts')
+                                      let b:airline_whitespace_check .= space.printf(conflicts_fmt, conflicts)
+                                    endif
+                                  endif
+                                endif
+   60              0.000044   endif
+   60   0.002979   0.000762   return airline#util#shorten(b:airline_whitespace_check, 120, 9)
+
+FUNCTION  <SNR>75_hl_group_exists()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/highlighter.vim:93
+Called 2600 times
+Total time:   0.077395
+ Self time:   0.077395
+
+count  total (s)   self (s)
+ 2600              0.029600   if !hlexists(a:group)
+                                return 0
+ 2600              0.032387   elseif empty(synIDattr(hlID(a:group), 'fg'))
+                                return 0
+ 2600              0.001988   endif
+ 2600              0.002726   return 1
+
+FUNCTION  <SNR>75_exec_separator()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/highlighter.vim:183
+Called 3960 times
+Total time:   5.880441
+ Self time:   0.267438
+
+count  total (s)   self (s)
+ 3960              0.010147   if pumvisible()
+                                return
+ 3960              0.002907   endif
+ 3960              0.018254   let group = a:from.'_to_'.a:to.a:suffix
+ 3960   2.256515   0.047126   let l:from = airline#themes#get_highlight(a:from.a:suffix)
+ 3960   1.553099   0.052959   let l:to = airline#themes#get_highlight(a:to.a:suffix)
+ 3960              0.005507   if a:inverse
+  144              0.000846     let colors = [ l:from[1], l:to[1], l:from[3], l:to[3] ]
+ 3816              0.002987   else
+ 3816              0.021851     let colors = [ l:to[1], l:from[1], l:to[3], l:from[3] ]
+ 3960              0.002789   endif
+ 3960              0.018347   let a:dict[group] = colors
+ 3960   1.959862   0.056388   call airline#highlighter#exec(group, colors)
+
+FUNCTION  airline#extensions#hunks#get_raw_hunks()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/extensions/hunks.vim:76
+Called 60 times
+Total time:   0.003919
+ Self time:   0.003280
+
+count  total (s)   self (s)
+   60              0.000345   if !exists('b:source_func') || get(b:, 'source_func', '') is# 's:get_hunks_empty'
+   60              0.000205     if get(g:, 'loaded_signify') && sy#buffer_is_active()
+                                  let b:source_func = 's:get_hunks_signify'
+   60              0.000197     elseif exists('*GitGutterGetHunkSummary')
+                                  let b:source_func = 's:get_hunks_gitgutter'
+   60              0.000152     elseif exists('*changes#GetStats')
+                                  let b:source_func = 's:get_hunks_changes'
+   60              0.000194     elseif exists('*quickfixsigns#vcsdiff#GetHunkSummary')
+                                  let b:source_func = 'quickfixsigns#vcsdiff#GetHunkSummary'
+   60   0.001063   0.000534     elseif s:coc_git_enabled()
+                                  let b:source_func = 's:get_hunks_coc'
+   60              0.000047     else
+   60              0.000139       let b:source_func = 's:get_hunks_empty'
+   60              0.000045     endif
+   60              0.000101   endif
+   60   0.000825   0.000715   return {b:source_func}()
+
+FUNCTION  airline#highlighter#highlight_modified_inactive()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/highlighter.vim:223
+Called 20 times
+Total time:   0.012281
+ Self time:   0.000938
+
+count  total (s)   self (s)
+   20              0.000104   if getbufvar(a:bufnr, '&modified')
+   20              0.000284     let colors = exists('g:airline#themes#{g:airline_theme}#palette.inactive_modified.airline_c') ? g:airline#themes#{g:airline_theme}#palette.inactive_modified.airline_c : []
+                              else
+                                let colors = exists('g:airline#themes#{g:airline_theme}#palette.inactive.airline_c') ? g:airline#themes#{g:airline_theme}#palette.inactive.airline_c : []
+   20              0.000016   endif
+                            
+   20              0.000043   if !empty(colors)
+   20   0.011655   0.000313     call airline#highlighter#exec('airline_c'.(a:bufnr).'_inactive', colors)
+   20              0.000014   endif
+
+FUNCTION  nerdtree#runningWindows()
+    Defined: ~/.config/nvim/plugged/nerdtree/autoload/nerdtree.vim:214
+Called 26 times
+Total time:   0.000276
+ Self time:   0.000276
+
+count  total (s)   self (s)
+   26              0.000258     return has('win16') || has('win32') || has('win64')
+
+FUNCTION  airline#highlighter#highlight()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/highlighter.vim:237
+Called 20 times
+Total time:   6.517822
+ Self time:   0.298647
+
+count  total (s)   self (s)
+   20              0.000071   let bufnr = a:0 ? a:1 : ''
+   20              0.000095   let p = g:airline#themes#{g:airline_theme}#palette
+                            
+                              " draw the base mode, followed by any overrides
+   20              0.000276   let mapped = map(a:modes, 'v:val == a:modes[0] ? v:val : a:modes[0]."_".v:val')
+   20              0.000064   let suffix = a:modes[0] == 'inactive' ? '_inactive' : ''
+   20              0.000048   let airline_grouplist = []
+   20              0.000188   let buffers_in_tabpage = sort(tabpagebuflist())
+   20              0.000058   if exists("*uniq")
+   20              0.000086     let buffers_in_tabpage = uniq(buffers_in_tabpage)
+   20              0.000015   endif
+                              " mapped might be something like ['normal', 'normal_modified']
+                              " if a group is in both modes available, only define the second
+                              " that is how this was done previously overwrite the previous definition
+   60              0.000136   for mode in reverse(mapped)
+   40              0.000298     if exists('g:airline#themes#{g:airline_theme}#palette[mode]')
+   36              0.000183       let dict = g:airline#themes#{g:airline_theme}#palette[mode]
+ 4230              0.009472       for kvp in items(dict)
+ 4194              0.009224         let mode_colors = kvp[1]
+ 4194              0.007745         let name = kvp[0]
+ 4194              0.012679         if name is# 'airline_c' && !empty(bufnr) && suffix is# '_inactive'
+                                      let name = 'airline_c'.bufnr
+ 4194              0.002838         endif
+                                    " do not re-create highlighting for buffers that are no longer visible
+                                    " in the current tabpage
+ 4194              0.025280         if name =~# 'airline_c\d\+'
+ 3672              0.028578           let bnr = matchstr(name, 'airline_c\zs\d\+') + 0
+ 3672              0.013468           if bnr > 0 && index(buffers_in_tabpage, bnr) == -1
+ 3600              0.003610             continue
+   72              0.000046           endif
+  522              0.003146         elseif (name =~# '_to_') || (name[0:10] is# 'airline_tab' && !empty(suffix))
+                                      " group will be redefined below at exec_separator
+                                      " or is not needed for tabline with '_inactive' suffix
+                                      " since active flag is 1 for builder)
+  288              0.000288           continue
+  306              0.000192         endif
+  306   0.008385   0.004198         if s:group_not_done(airline_grouplist, name.suffix)
+  198   0.113159   0.002729           call airline#highlighter#exec(name.suffix, mode_colors)
+  306              0.000226         endif
+                            
+  306              0.000908         if !has_key(p, 'accents') 
+                                      " work around a broken installation
+                                      " shouldn't actually happen, p should always contain accents
+                                      continue
+  306              0.000227         endif
+                            
+  918              0.002347         for accent in keys(s:accents)
+  612              0.001889           if !has_key(p.accents, accent)
+                                        continue
+  612              0.000402           endif
+  612              0.003020           let colors = copy(mode_colors)
+  612              0.001994           if p.accents[accent][0] != ''
+  306              0.001134             let colors[0] = p.accents[accent][0]
+  612              0.000420           endif
+  612              0.001546           if p.accents[accent][2] != ''
+  306              0.000880             let colors[2] = p.accents[accent][2]
+  612              0.000370           endif
+  612              0.001284           if len(colors) >= 5
+  596              0.002659             let colors[4] = get(p.accents[accent], 4, '')
+   16              0.000012           else
+   16              0.000081             call add(colors, get(p.accents[accent], 4, ''))
+  612              0.000405           endif
+  612   0.016560   0.008948           if s:group_not_done(airline_grouplist, name.suffix.'_'.accent)
+  396   0.222273   0.005769             call airline#highlighter#exec(name.suffix.'_'.accent, colors)
+  612              0.000463           endif
+  918              0.000901         endfor
+  342              0.000267       endfor
+                            
+   36              0.000093       if empty(s:separators)
+                                    " nothing to be done
+                                    continue
+   36              0.000024       endif
+                                  " TODO: optimize this
+ 3996              0.011390       for sep in items(s:separators)
+                                    " we cannot check, that the group already exists, else the separators
+                                    " might not be correctly defined. But perhaps we can skip above groups
+                                    " that match the '_to_' name, because they would be redefined here...
+ 3960   5.956661   0.076220         call <sid>exec_separator(dict, sep[1][0], sep[1][1], sep[1][2], suffix)
+ 3996              0.004023       endfor
+   40              0.000029     endif
+   60              0.000089   endfor
+
+FUNCTION  coc#rpc#ready()
+    Defined: ~/.config/nvim/plugged/coc.nvim/autoload/coc/rpc.vim:31
+Called 64 times
+Total time:   0.000636
+ Self time:   0.000636
+
+count  total (s)   self (s)
+   64              0.000343   if empty(s:client) || s:client['running'] == 0
+                                return 0
+   64              0.000048   endif
+   64              0.000071   return 1
+
+FUNCTION  airline#parts#ffenc()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/parts.vim:108
+Called 60 times
+Total time:   0.002248
+ Self time:   0.002248
+
+count  total (s)   self (s)
+   60              0.000357   let expected = get(g:, 'airline#parts#ffenc#skip_expected_string', '')
+   60              0.000188   let bomb     = &l:bomb ? '[BOM]' : ''
+   60              0.000701   let ff       = strlen(&ff) ? '['.&ff.']' : ''
+   60              0.000436   if expected is# &fenc.bomb.ff
+                                return ''
+   60              0.000047   else
+   60              0.000304     return &fenc.bomb.ff
+                              endif
+
+FUNCTION  airline#util#ignore_buf()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/util.vim:136
+Called 60 times
+Total time:   0.002119
+ Self time:   0.002119
+
+count  total (s)   self (s)
+   60              0.000585   let pat = '\c\v'. get(g:, 'airline#ignore_bufadd_pat', ''). get(g:, 'airline#extensions#tabline#ignore_bufadd_pat',  '!|defx|gundo|nerd_tree|startify|tagbar|term://|undotree|vimfiler')
+   60              0.001462   return match(a:name, pat) > -1
+
+FUNCTION  airline#parts#get()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/parts.vim:49
+Called 60 times
+Total time:   0.000356
+ Self time:   0.000356
+
+count  total (s)   self (s)
+   60              0.000318   return get(s:parts, a:key, {})
+
+FUNCTION  airline#parts#paste()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/parts.vim:63
+Called 60 times
+Total time:   0.000291
+ Self time:   0.000291
+
+count  total (s)   self (s)
+   60              0.000255   return g:airline_detect_paste && &paste ? g:airline_symbols.paste : ''
+
+FUNCTION  airline#parts#readonly()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/parts.vim:89
+Called 73 times
+Total time:   0.003934
+ Self time:   0.001815
+
+count  total (s)   self (s)
+                              " only consider regular buffers (e.g. ones that represent actual files,
+                              " but not special ones like e.g. NERDTree)
+   73   0.003127   0.001008   if !empty(&buftype) || airline#util#ignore_buf(bufname('%'))
+   13              0.000019     return ''
+   60              0.000049   endif
+   60              0.000199   if &readonly && !filereadable(bufname('%'))
+                                return '[noperm]'
+   60              0.000043   else
+   60              0.000149     return &readonly ? g:airline_symbols.readonly : ''
+                              endif
+
+FUNCTION  <SNR>19_notify()
+    Defined: ~/.config/nvim/plugged/coc.nvim/autoload/coc/client.vim:181
+Called 64 times
+Total time:   0.005766
+ Self time:   0.005290
+
+count  total (s)   self (s)
+   64   0.001217   0.000741   let channel = coc#client#get_channel(self)
+   64              0.000132   if empty(channel)
+                                return ''
+   64              0.000043   endif
+   64              0.000072   try
+   64              0.000078     if s:is_vim
+                                  call ch_sendraw(channel, json_encode([0, [a:method, a:args]])."\n")
+   64              0.000059     else
+   64              0.001770       call call('rpcnotify', [channel, a:method] + a:args)
+   64              0.000087     endif
+                              catch /.*/
+                                if v:exception =~# 'E475'
+                                  if get(g:, 'coc_vim_leaving', 0)
+                                    return
+                                  endif
+                                  echohl Error | echom '['.self.name.'] server connection lost' | echohl None
+                                  let name = self.name
+                                  call s:on_exit(name, 0)
+                                  execute 'silent do User ConnectionLost'.toupper(name[0]).name[1:]
+                                elseif v:exception =~# 'E12'
+                                  " neovim's bug, ignore it
+                                else
+                                  echohl Error | echo 'Error on notify ('.a:method.'): '.v:exception | echohl None
+                                endif
+   64              0.000071   endtry
+
+FUNCTION  <SNR>23_on_cursor_moved()
+    Defined: ~/.config/nvim/plugged/vim-airline/plugin/airline.vim:83
+Called 14 times
+Total time:   0.000391
+ Self time:   0.000281
+
+count  total (s)   self (s)
+   14              0.000089   if winnr() != s:active_winnr || !exists('w:airline_active')
+                                call s:on_window_changed('CursorMoved')
+   14              0.000011   endif
+   14   0.000237   0.000126   call airline#update_tabline()
+
+FUNCTION  nerdtree#has_opt()
+    Defined: ~/.config/nvim/plugged/nerdtree/autoload/nerdtree.vim:182
+Called 13 times
+Total time:   0.000088
+ Self time:   0.000088
+
+count  total (s)   self (s)
+   13              0.000081     return has_key(a:options, a:name) && a:options[a:name] ==# 1
+
+FUNCTION  airline#highlighter#exec()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/highlighter.vim:102
+Called 4574 times
+Total time:   2.241752
+ Self time:   0.413485
+
+count  total (s)   self (s)
+ 4574              0.009600   if pumvisible()
+                                return
+ 4574              0.003123   endif
+ 4574              0.009307   let colors = a:colors
+ 4574              0.006605   if s:is_win32term
+                                let colors[2] = s:gui2cui(get(colors, 0, ''), get(colors, 2, ''))
+                                let colors[3] = s:gui2cui(get(colors, 1, ''), get(colors, 3, ''))
+ 4574              0.003142   endif
+ 4574   1.393516   0.058101   let old_hi = airline#highlighter#get_highlight(a:group)
+ 4574              0.011913   if len(colors) == 4
+ 3960              0.012678     call add(colors, '')
+ 4574              0.003158   endif
+ 4574              0.043848   let new_hi = [colors[0], colors[1], printf('%s', colors[2]), printf('%s', colors[3]), colors[4]]
+ 4574   0.189073   0.048149   let colors = s:CheckDefined(colors)
+ 4574   0.116172   0.038777   if old_hi != new_hi || !s:hl_group_exists(a:group)
+ 1974   0.299505   0.024972     let cmd = printf('hi %s%s', a:group, s:GetHiCmd(colors))
+ 1974              0.031639     exe cmd
+ 1974              0.008425     if has_key(s:hl_groups, a:group)
+ 1974              0.007210       let s:hl_groups[a:group] = colors
+ 1974              0.001511     endif
+ 4574              0.002968   endif
+
+FUNCTION  <SNR>75_get_array()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/highlighter.vim:54
+Called 12494 times
+Total time:   0.109904
+ Self time:   0.109904
+
+count  total (s)   self (s)
+12494              0.100627   return [ a:guifg, a:guibg, a:ctermfg, a:ctermbg, empty(a:opts) ? '' : join(a:opts, ',') ]
+
+FUNCTION  airline#parts#spell()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/parts.vim:67
+Called 60 times
+Total time:   0.002177
+ Self time:   0.002177
+
+count  total (s)   self (s)
+   60              0.000995   let spelllang = g:airline_detect_spelllang ? printf(" [%s]", toupper(substitute(&spelllang, ',', '/', 'g'))) : ''
+   60              0.000174   if g:airline_detect_spell && &spell
+                                let winwidth = airline#util#winwidth()
+                                if winwidth >= 90
+                                  return g:airline_symbols.spell . spelllang
+                                elseif winwidth >= 70
+                                  return g:airline_symbols.spell
+                                else
+                                  return split(g:airline_symbols.spell, '\zs')[0]
+                                endif
+   60              0.000041   endif
+   60              0.000062   return ''
+
+FUNCTION  <SNR>75_GetHiCmd()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/highlighter.vim:158
+Called 1974 times
+Total time:   0.274533
+ Self time:   0.274533
+
+count  total (s)   self (s)
+                              " a:list needs to have 5 items!
+ 1974              0.003429   let res = ''
+ 1974              0.002984   let i = -1
+11844              0.014763   while i < 4
+ 9870              0.015630     let i += 1
+ 9870              0.030253     let item = get(a:list, i, '')
+ 9870              0.014304     if item is ''
+ 2042              0.001985       continue
+ 7828              0.004999     endif
+ 7828              0.008581     if i == 0
+ 1974              0.007211       let res .= ' guifg='.item
+ 5854              0.006553     elseif i == 1
+ 1900              0.005155       let res .= ' guibg='.item
+ 3954              0.003972     elseif i == 2
+ 1974              0.005477       let res .= ' ctermfg='.item
+ 1980              0.001928     elseif i == 3
+ 1900              0.005099       let res .= ' ctermbg='.item
+   80              0.000074     elseif i == 4
+   80              0.000442       let res .= printf(' gui=%s cterm=%s term=%s', item, item, item)
+ 7828              0.005145     endif
+ 9802              0.009822   endwhile
+ 1974              0.003372   return res
+
+FUNCTION  airline#parts#crypt()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/parts.vim:59
+Called 60 times
+Total time:   0.000904
+ Self time:   0.000904
+
+count  total (s)   self (s)
+   60              0.000857   return g:airline_detect_crypt && exists("+key") && !empty(&key) ? g:airline_symbols.crypt : ''
+
+FUNCTION  airline#parts#mode()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/parts.vim:55
+Called 60 times
+Total time:   0.003554
+ Self time:   0.001051
+
+count  total (s)   self (s)
+   60   0.003502   0.000999   return airline#util#shorten(get(w:, 'airline_current_mode', ''), 79, 1)
+
+FUNCTION  airline#highlighter#get_highlight()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/highlighter.vim:62
+Called 12494 times
+Total time:   4.919528
+ Self time:   1.712649
+
+count  total (s)   self (s)
+                              " only check for the cterm reverse attribute
+                              " TODO: do we need to check all modes (gui, term, as well)?
+12494              0.303326   let reverse = synIDattr(synIDtrans(hlID(a:group)), 'reverse', 'cterm')
+12494              0.069280   if get(g:, 'airline_highlighting_cache', 0) && has_key(s:hl_groups, a:group)
+                                let res = s:hl_groups[a:group]
+                                return reverse ? [ res[1], res[0], res[3], res[2], res[4] ] : res
+12494              0.010367   else
+12494   0.941735   0.143919     let ctermfg = s:get_syn(a:group, 'fg', 'cterm')
+12494   0.917000   0.139882     let ctermbg = s:get_syn(a:group, 'bg', 'cterm')
+12494   0.901958   0.137702     let guifg = s:get_syn(a:group, 'fg', 'gui')
+12494   0.896500   0.138715     let guibg = s:get_syn(a:group, 'bg', 'gui')
+12494              0.271143     let bold = synIDattr(synIDtrans(hlID(a:group)), 'bold')
+12494              0.020387     if reverse
+                                  let res = s:get_array(guibg, guifg, ctermbg, ctermfg, bold ? ['bold'] : a:000)
+12494              0.011272     else
+12494   0.288207   0.178303       let res = s:get_array(guifg, guibg, ctermfg, ctermbg, bold ? ['bold'] : a:000)
+12494              0.010269     endif
+12494              0.008483   endif
+12494              0.058418   let s:hl_groups[a:group] = res
+12494              0.016837   return res
+
+FUNCTION  airline#util#shorten()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/util.vim:28
+Called 180 times
+Total time:   0.007001
+ Self time:   0.004673
+
+count  total (s)   self (s)
+  180   0.004444   0.002116   if airline#util#winwidth() < a:winwidth && len(split(a:text, '\zs')) > a:minwidth
+                                if get(a:000, 0, 0)
+                                  " shorten from tail
+                                  return '…'.matchstr(a:text, '.\{'.a:minwidth.'}$')
+                                else
+                                  " shorten from beginning of string
+                                  return matchstr(a:text, '^.\{'.a:minwidth.'}').'…'
+                                endif
+  180              0.000124   else
+  180              0.000268     return a:text
+                              endif
+
+FUNCTION  coc#float#nvim_refresh_scrollbar()
+    Defined: ~/.config/nvim/plugged/coc.nvim/autoload/coc/float.vim:765
+Called 14 times
+Total time:   0.000582
+ Self time:   0.000320
+
+count  total (s)   self (s)
+   14   0.000476   0.000214   let id = coc#float#get_related(a:winid, 'scrollbar')
+   14              0.000039   if id && nvim_win_is_valid(id)
+                                call coc#float#nvim_scrollbar(a:winid)
+   14              0.000011   endif
+
+FUNCTION  airline#extensions#keymap#status()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/extensions/keymap.vim:10
+Called 60 times
+Total time:   0.002707
+ Self time:   0.002707
+
+count  total (s)   self (s)
+   60              0.000406   if (get(g:, 'airline#extensions#keymap#enabled', 1) && has('keymap'))
+   60              0.000282     let short_codes = get(g:, 'airline#extensions#keymap#short_codes', {})
+   60              0.000363     let label = get(g:, 'airline#extensions#keymap#label', g:airline_symbols.keymap)
+   60              0.000209     let default = get(g:, 'airline#extensions#keymap#default', '')
+   60              0.000129     if (label !=# '')
+   60              0.000156       let label .= ' '
+   60              0.000044     endif
+   60              0.000132     let keymap = &keymap
+   60              0.000171     if has_key(short_codes, keymap)
+                                  let keymap = short_codes[keymap]
+   60              0.000043     endif
+   60              0.000481     return printf('%s', (!empty(keymap) && &iminsert ? (label . keymap) : (!empty(default) ? label . default : default)))
+                              else
+                                return ''
+                              endif
+
+FUNCTION  coc#rpc#notify()
+    Defined: ~/.config/nvim/plugged/coc.nvim/autoload/coc/rpc.vim:95
+Called 64 times
+Total time:   0.007996
+ Self time:   0.001594
+
+count  total (s)   self (s)
+   64   0.001197   0.000561   if !coc#rpc#ready()
+                                return ''
+   64              0.000044   endif
+   64   0.006534   0.000768   call s:client['notify'](a:method, a:args)
+   64              0.000079   return ''
+
+FUNCTION  airline#extensions#hunks#get_hunks()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/extensions/hunks.vim:95
+Called 60 times
+Total time:   0.012751
+ Self time:   0.007001
+
+count  total (s)   self (s)
+   60              0.000309   if !get(w:, 'airline_active', 0)
+                                return ''
+   60              0.000043   endif
+                              " Cache values, so that it isn't called too often
+   60   0.002035   0.001452   if exists("b:airline_hunks") && get(b:,  'airline_changenr', 0) == b:changedtick && airline#util#winwidth() == get(s:, 'airline_winwidth', 0) && get(b:, 'source_func', '') isnot# 's:get_hunks_signify' && get(b:, 'source_func', '') isnot# 's:get_hunks_gitgutter' && get(b:, 'source_func', '') isnot# 's:get_hunks_empty' && get(b:, 'source_func', '') isnot# 's:get_hunks_changes' && get(b:, 'source_func', '') isnot# 's:get_hunks_coc'
+                                return b:airline_hunks
+   60              0.000038   endif
+   60   0.004631   0.000712   let hunks = airline#extensions#hunks#get_raw_hunks()
+   60              0.000093   let string = ''
+   60   0.001041   0.000685   let winwidth = get(airline#parts#get('hunks'), 'minwidth', 100)
+   60              0.000135   if !empty(hunks)
+                                " hunks should contain [added, changed, deleted]
+                                for i in [0, 1, 2]
+                                  if (s:non_zero_only == 0 && airline#util#winwidth() > winwidth) || hunks[i] > 0
+                                    let string .= printf('%s%s ', s:hunk_symbols[i], hunks[i])
+                                  endif
+                                endfor
+   60              0.000043   endif
+   60   0.001139   0.000972   if index(airline#extensions#get_loaded_extensions(), 'branch') == -1 && string[-1:] == ' '
+                                " branch extension not loaded, skip trailing whitespace
+                                let string = string[0:-2]
+   60              0.000042   endif
+                            
+   60              0.000147   let b:airline_hunks = string
+   60              0.000148   let b:airline_changenr = b:changedtick
+   60   0.001343   0.000619   let s:airline_winwidth = airline#util#winwidth()
+   60              0.000094   return string
+
+FUNCTION  airline#util#prepend()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/util.vim:63
+Called 300 times
+Total time:   0.003167
+ Self time:   0.003167
+
+count  total (s)   self (s)
+  300              0.001166   if a:minwidth > 0 && airline#util#winwidth() < a:minwidth
+                                return ''
+  300              0.000196   endif
+  300              0.001171   return empty(a:text) ? '' : a:text.s:spc.g:airline_right_alt_sep.s:spc
+
+FUNCTION  <SNR>75_group_not_done()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/highlighter.vim:26
+Called 918 times
+Total time:   0.011799
+ Self time:   0.011799
+
+count  total (s)   self (s)
+  918              0.003999   if index(a:list, a:name) == -1
+  594              0.002373     call add(a:list, a:name)
+  594              0.000813     return 1
+  324              0.000243   else
+  324              0.000658     if &vbs
+                                  echomsg printf("airline: group: %s already done, skipping", a:name)
+  324              0.000218     endif
+  324              0.000370     return 0
+                              endif
+
+FUNCTION  <SNR>16_Autocmd()
+    Defined: ~/.config/nvim/plugged/coc.nvim/plugin/coc.vim:228
+Called 64 times
+Total time:   0.009201
+ Self time:   0.001205
+
+count  total (s)   self (s)
+   64              0.000215   if !g:coc_workspace_initialized
+                                return
+   64              0.000096   endif
+   64   0.008709   0.000713   call coc#rpc#notify('CocAutocmd', a:000)
+
+FUNCTION  airline#extensions#get_loaded_extensions()
+    Defined: ~/.config/nvim/plugged/vim-airline/autoload/airline/extensions.vim:499
+Called 60 times
+Total time:   0.000167
+ Self time:   0.000167
+
+count  total (s)   self (s)
+   60              0.000125   return s:loaded_ext
+
+FUNCTIONS SORTED ON TOTAL TIME
+count  total (s)   self (s)  function
+   73   6.544839   0.012911  airline#check_mode()
+   20   6.517822   0.298647  airline#highlighter#highlight()
+ 3960   5.880441   0.267438  <SNR>75_exec_separator()
+12494   4.919528   1.712649  airline#highlighter#get_highlight()
+ 7920   3.709529   0.125416  airline#themes#get_highlight()
+49976   3.096975             <SNR>75_get_syn()
+ 4574   2.241752   0.413485  airline#highlighter#exec()
+ 1974   0.274533             <SNR>75_GetHiCmd()
+ 4574   0.140924             <SNR>75_CheckDefined()
+12494   0.109904             <SNR>75_get_array()
+ 2600   0.077395             <SNR>75_hl_group_exists()
+   60   0.012751   0.007001  airline#extensions#hunks#get_hunks()
+   20   0.012281   0.000938  airline#highlighter#highlight_modified_inactive()
+   60   0.012057   0.009840  airline#extensions#whitespace#check()
+  918   0.011799             <SNR>75_group_not_done()
+   64   0.009201   0.001205  <SNR>16_Autocmd()
+   64   0.007996   0.001594  coc#rpc#notify()
+  180   0.007001   0.004673  airline#util#shorten()
+  420   0.006071             airline#util#append()
+  120   0.005970             airline#extensions#coc#get()
+
+FUNCTIONS SORTED ON SELF TIME
+count  total (s)   self (s)  function
+49976              3.096975  <SNR>75_get_syn()
+12494   4.919528   1.712649  airline#highlighter#get_highlight()
+ 4574   2.241752   0.413485  airline#highlighter#exec()
+   20   6.517822   0.298647  airline#highlighter#highlight()
+ 1974              0.274533  <SNR>75_GetHiCmd()
+ 3960   5.880441   0.267438  <SNR>75_exec_separator()
+ 4574              0.140924  <SNR>75_CheckDefined()
+ 7920   3.709529   0.125416  airline#themes#get_highlight()
+12494              0.109904  <SNR>75_get_array()
+ 2600              0.077395  <SNR>75_hl_group_exists()
+   73   6.544839   0.012911  airline#check_mode()
+  918              0.011799  <SNR>75_group_not_done()
+   60   0.012057   0.009840  airline#extensions#whitespace#check()
+   60   0.012751   0.007001  airline#extensions#hunks#get_hunks()
+  420              0.006071  airline#util#append()
+  120              0.005970  airline#extensions#coc#get()
+   42              0.005667  <SNR>55_Highlight_Matching_Pair()
+   64   0.005766   0.005290  <SNR>19_notify()
+  401              0.005061  airline#util#winwidth()
+  180   0.007001   0.004673  airline#util#shorten()
+

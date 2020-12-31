@@ -34,7 +34,7 @@
         boolean is_error;      \
         u32 error_code;        \
         type value;            \
-    } Result(type)
+    } Result(type) \
 
 result_make_type(u8);
 result_make_type(u16);

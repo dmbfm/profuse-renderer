@@ -9,13 +9,22 @@
 
 static Platform platform;
 
-void platform_print_fmt(const char *fmt, ...)
+void platform_print_fmt(Allocator * a, const char *fmt, ...)
 {
     va_list arg;
     va_start(arg, fmt);
-    char buf[512];
-    formatv(buf, 512, fmt, arg);
-    wasm_print_line(buf);
+    if (!a) {
+        char buf[512];
+        formatv(buf, 512, fmt, arg);
+        wasm_print_line(buf);
+    } else {
+        usize len = formatv(0, 0, fmt, arg);
+        Result(uptr) rbuff = a->alloc(a, len + 1);
+        char *buff = (char *) result_unwrap(rbuff);
+        formatv(buff, len, fmt, arg);
+        wasm_print_line(buff);
+    }
+    va_end(arg);
 }
 
 void platform_print_line(const char *string) 

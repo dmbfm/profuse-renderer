@@ -59,16 +59,16 @@ typedef unsigned char *ucharptr;
 #define WASM_JS(...)
 
 #ifdef __wasm__
-extern void __common_wasm_print_message(const char *);
+extern void common_wasm_print_message(const char *);
 // clang-format off
 WASM_JS(
-        function __common_wasm_print_message(ptr) { console.log(decodeStringAt(ptr)); }
+        function common_wasm_print_message(ptr) { console.log(decodeStringAt(ptr)); }
 )
 // clang-format on
 
-static inline void __common_wasm_panic_message(const char *msg)
+static inline void common_wasm_panic_message(const char *msg)
 {
-    __common_wasm_print_message(msg);
+    common_wasm_print_message(msg);
     __builtin_trap();
 }
 
@@ -77,7 +77,7 @@ static inline void __common_wasm_panic_message(const char *msg)
 #if defined(_MSC_VER)
 #define panic() __debugbreak()
 #elif defined(__wasm__)
-#define panic() __common_wasm_panic_message("PANIC: " TOSTRING(__FILE__) ":" TOSTRING(__LINE__))
+#define panic() common_wasm_panic_message("PANIC: " TOSTRING(__FILE__) ":" TOSTRING(__LINE__))
 #elif defined(__clang__) || defined(__GNUC__)
 #define panic() __builtin_trap()
 #else

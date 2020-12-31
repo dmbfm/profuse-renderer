@@ -273,6 +273,10 @@ int format(char *s, usize n, const char *fmt, ...)
     va_list args;
     va_start(args, fmt);
 
-    return formatv(s, n, fmt, args);
+    int result = formatv(s, n, fmt, args);
+
+    va_end(args);
+
+    return result;
 }
 

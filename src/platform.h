@@ -6,6 +6,14 @@
 #include "maybe.h"
 #include "allocator.h"
 
+#if defined(_WIN32)
+#include "platform_win32.h"
+#elif defined(__wasm__)
+#include "platform_web.h"
+#else
+#error "Unsupported platform!"
+#endif /* defined(_WIN32) */
+
 typedef enum
 {
     PLATFORM_CURSOR_STYLE_NORMAL,
@@ -53,16 +61,20 @@ typedef struct Platform
 
     void *user_context;
 
+#if defined(_WIN32)
+    PlatformWin32 win32;
+#endif
+
 } Platform;
 
 // "User-defined" functions
-Platform p_config();
+Platform p_config(void);
 void p_init(Platform *p);
 void p_frame(Platform *p);
 void p_shutdown(Platform *p);
 
 // Platform API
-void platform_print_fmt(const char *fmt, ...);
+void platform_print_fmt(Allocator *a, const char *fmt, ...);
 void platform_print_line(const char *string);
 
 #endif /* __PLATFORM_H */

@@ -1,0 +1,2 @@
+-xc
+--target=wasm32
