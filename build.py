@@ -17,6 +17,21 @@ def block_stdout():
 def enable_stdout():
     sys.stdout = sys.__stdout__
 
+def command_exists(name):
+    return shutil.which(name) is not None
+
+def get_wasm_ld_command_name():
+    if command_exists("wasm-ld"):
+        return "wasm-ld"
+    elif command_exists("wasm-ld-10"):
+        return "wasm-ld-10"
+    elif command_exists("wasm-ld-11"):
+        return "wasm-ld-11"
+    elif command_exists("wasm-ld-12"):
+        return "wasm-ld-12"
+    else:
+        return None
+
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -331,7 +346,7 @@ class Executable:
     def get_link_args(self):
         if (self.target.arch == TargetArch.Wasm32):
             return [
-                "wasm-ld",
+                get_wasm_ld_command_name(),
                 "--export-dynamic",
                 "--import-table",
                 "-no-entry",

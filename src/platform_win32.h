@@ -2,7 +2,7 @@
 #define __PLATFORM_WIN32_H 
 
 #ifdef _WIN32
-#include <Windows.h>
+#include <windows.h>
 
 typedef struct PlatformWin32
 {

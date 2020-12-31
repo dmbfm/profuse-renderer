@@ -84,6 +84,12 @@ static inline void common_wasm_panic_message(const char *msg)
 #define panic() ((*((int *)0)) = 0)
 #endif /* defined(_MSC_VER) */
 
+#if defined(_WIN32) && !defined(_WIN64)
+#define CSTDCALL __stdcall
+#else
+#define CSTDCALL
+#endif
+
 #if 1
 #define assert(exp) \
     if (!(exp)) {   \

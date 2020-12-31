@@ -1,9 +1,12 @@
 #define WIN32_LEAN_AND_MEAN
 #include "common.h"
 #include "platform.h"
-#include <Windows.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <windows.h>
+
+// TODO:
+// - Create custom windows header file containing only the stuff we actually need.
 
 static Platform platform;
 
@@ -130,4 +133,3 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 
     return 1;
 }
-
