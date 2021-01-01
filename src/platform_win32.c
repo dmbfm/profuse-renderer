@@ -6,16 +6,18 @@
 
 #include "gen/win32_gl.c"
 
-// clang-format off
 DECL_FUNC_POINTER(static, PROC, wglGetProcAdressFunc, wgl_get_proc_address, LPCSTR name);
 DECL_FUNC_POINTER(static, HGLRC, wglCreateContextFunc, wgl_create_context, HDC Arg1);
 DECL_FUNC_POINTER(static, BOOL, wglDeleteContextFunc, wgl_delete_context, HGLRC Arg);
 DECL_FUNC_POINTER(static, BOOL, wglMakeCurrentFunc, wgl_make_current, HDC Arg1, HGLRC Arg2);
-DECL_FUNC_POINTER(static, BOOL, wglChoosePixelFormatARBFunc, wgl_choose_pixel_format_arb, HDC hdc, const int *piAttribIList,
-                  const FLOAT *pfAttribFList, UINT nMaxFormats, int *piFormats, UINT *nNumFormats);
-DECL_FUNC_POINTER(static, HGLRC, wglCreateContextAttribsARBFunc, wgl_create_context_attribs_arb, HDC hDC, HGLRC hshareContext,
-                  const int *attribList);
-// clang-format on
+
+DECL_FUNC_POINTER(
+    static, BOOL, wglChoosePixelFormatARBFunc, wgl_choose_pixel_format_arb, HDC hdc, const int *piAttribIList,
+    const FLOAT *pfAttribFList, UINT nMaxFormats, int *piFormats, UINT *nNumFormats);
+
+DECL_FUNC_POINTER(
+    static, HGLRC, wglCreateContextAttribsARBFunc, wgl_create_context_attribs_arb, HDC hDC, HGLRC hshareContext,
+    const int *attribList);
 
 static Platform platform;
 
