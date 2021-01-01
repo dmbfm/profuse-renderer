@@ -24,7 +24,7 @@ macro_name = "WASM_JS("
 print()
 print(bcolors.HEADER + "* Generating javascript code for WASM_JS definitions..." + bcolors.ENDC)
 
-files = (os.path.join(p, f) for p, ds, fs in os.walk(entries) for f in fs)
+files = (os.path.join(p, f) for p, _, fs in os.walk(entries) for f in fs)
 with fileinput.input(files) as f:
     for line in f:
         if not isjs:

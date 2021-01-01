@@ -3,9 +3,9 @@
 
 #include "common.h"
 
-#define CGLFUNC(ret, name, ...)                     \
+#define GLFUNC(ret, name, ...)                   \
     typedef ret(CSTDCALL gl_##name)(__VA_ARGS__); \
-    gl_##name *name;
+    extern gl_##name *name;
 
 typedef float GLfloat;
 typedef unsigned int GLbitfield;
@@ -26,49 +26,51 @@ typedef signed long int CGLintptr;
 typedef CGLintptr GLsizeiptr;
 typedef CGLintptr GLintptr;
 
-CGLFUNC(void, glClearColor, GLfloat r, GLfloat g, GLfloat b, GLfloat a);
-CGLFUNC(void, glClear, GLbitfield mask);
-CGLFUNC(GLuint, glCreateShader, GLenum shaderType);
-CGLFUNC(void, glCompileShader, GLuint shader);
-CGLFUNC(void, glDeleteShader, GLuint shader);
-CGLFUNC(void, glGetShaderInfoLog, GLuint shader, GLsizei bufSize, GLsizei *length, GLchar *infoLog);
-CGLFUNC(void, glGetShaderiv, GLuint shader, GLenum pname, GLint *params);
-CGLFUNC(GLuint, glCreateProgram, void);
-CGLFUNC(void, glShaderSource, GLuint shader, GLsizei count, const GLchar **string, const GLint *length);
-CGLFUNC(void, glLinkProgram, GLuint program);
-CGLFUNC(void, glAttachShader, GLuint program, GLuint shader);
-CGLFUNC(void, glGetProgramiv, GLuint program, GLenum pname, GLint *params);
-CGLFUNC(void, glGetProgramInfoLog, GLuint program, GLsizei bufSize, GLsizei *length, GLchar *infoLog);
-CGLFUNC(void, glUseProgram, GLuint program);
-CGLFUNC(void, glDrawArrays, GLenum mode, GLint first, GLsizei count);
-CGLFUNC(void, glDrawElements, GLenum mode, GLsizei count, GLenum type, void *indices);
-CGLFUNC(void, glGenVertexArrays, GLsizei n, GLuint *arrays);
-CGLFUNC(void, glBindVertexArray, GLuint vertexArray);
-CGLFUNC(void, glVertexAttrib1f, GLuint index, GLfloat v0);
-CGLFUNC(const GLubyte *, glGetString, GLenum name);
-CGLFUNC(void, glGetIntegerv, GLenum pname, GLint *params);
-CGLFUNC(void, glGenBuffers, GLsizei n, GLuint *buffers);
-CGLFUNC(void, glBindBuffer, GLenum target, GLuint buffer);
-CGLFUNC(void, glBufferData, GLenum target, GLsizeiptr size, const void *data, GLenum usage);
-CGLFUNC(void, glBufferSubData, GLenum target, GLintptr offset, GLsizeiptr size, const void *data);
-CGLFUNC(void, glVertexAttribPointer, GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride,
-        const void *pointer);
-CGLFUNC(void, glEnableVertexAttribArray, GLuint index);
-CGLFUNC(void, glDisableVertexAttribArray, GLuint index);
-CGLFUNC(void, glEnable, GLenum name);
-CGLFUNC(GLint, glGetUniformLocation, GLuint program, const GLchar *pname);
-CGLFUNC(void, glUniformMatrix4fv, GLuint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-CGLFUNC(void, glUniform3fv, GLuint location, const GLfloat *value);
-CGLFUNC(void, glUniform1i, GLuint location, GLint v0);
-CGLFUNC(void, glGenTextures, GLsizei n, GLuint *textures);
-CGLFUNC(void, glActiveTexture, GLenum texture);
-CGLFUNC(void, glBindTexture, GLenum target, GLuint texture);
-CGLFUNC(void, glTexImage2D, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height,
-        GLint border, GLenum format, GLenum type, const void *pixels);
-CGLFUNC(void, glTexParameteri, GLenum target, GLenum pname, GLint param);
-CGLFUNC(void, glPixelStorei, GLenum pname, GLint param);
-CGLFUNC(void, glBlendFunc, GLenum sfactor, GLenum dfactor);
-CGLFUNC(void, glGenerateMipmap, GLenum target);
+GLFUNC(void, glClearColor, GLfloat r, GLfloat g, GLfloat b, GLfloat a);
+GLFUNC(void, glClear, GLbitfield mask);
+GLFUNC(GLuint, glCreateShader, GLenum shaderType);
+GLFUNC(void, glCompileShader, GLuint shader);
+GLFUNC(void, glDeleteShader, GLuint shader);
+GLFUNC(void, glGetShaderInfoLog, GLuint shader, GLsizei bufSize, GLsizei *length, GLchar *infoLog);
+GLFUNC(void, glGetShaderiv, GLuint shader, GLenum pname, GLint *params);
+GLFUNC(GLuint, glCreateProgram, void);
+GLFUNC(void, glShaderSource, GLuint shader, GLsizei count, const GLchar **string, const GLint *length);
+GLFUNC(void, glLinkProgram, GLuint program);
+GLFUNC(void, glAttachShader, GLuint program, GLuint shader);
+GLFUNC(void, glGetProgramiv, GLuint program, GLenum pname, GLint *params);
+GLFUNC(void, glGetProgramInfoLog, GLuint program, GLsizei bufSize, GLsizei *length, GLchar *infoLog);
+GLFUNC(void, glUseProgram, GLuint program);
+GLFUNC(void, glDrawArrays, GLenum mode, GLint first, GLsizei count);
+GLFUNC(void, glDrawElements, GLenum mode, GLsizei count, GLenum type, void *indices);
+GLFUNC(void, glGenVertexArrays, GLsizei n, GLuint *arrays);
+GLFUNC(void, glBindVertexArray, GLuint vertexArray);
+GLFUNC(void, glVertexAttrib1f, GLuint index, GLfloat v0);
+GLFUNC(const GLubyte *, glGetString, GLenum name);
+GLFUNC(void, glGetIntegerv, GLenum pname, GLint *params);
+GLFUNC(void, glGenBuffers, GLsizei n, GLuint *buffers);
+GLFUNC(void, glBindBuffer, GLenum target, GLuint buffer);
+GLFUNC(void, glBufferData, GLenum target, GLsizeiptr size, const void *data, GLenum usage);
+GLFUNC(void, glBufferSubData, GLenum target, GLintptr offset, GLsizeiptr size, const void *data);
+GLFUNC(
+   void, glVertexAttribPointer, GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride,
+   const void *pointer);
+GLFUNC(void, glEnableVertexAttribArray, GLuint index);
+GLFUNC(void, glDisableVertexAttribArray, GLuint index);
+GLFUNC(void, glEnable, GLenum name);
+GLFUNC(GLint, glGetUniformLocation, GLuint program, const GLchar *pname);
+GLFUNC(void, glUniformMatrix4fv, GLuint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+GLFUNC(void, glUniform3fv, GLuint location, const GLfloat *value);
+GLFUNC(void, glUniform1i, GLuint location, GLint v0);
+GLFUNC(void, glGenTextures, GLsizei n, GLuint *textures);
+GLFUNC(void, glActiveTexture, GLenum texture);
+GLFUNC(void, glBindTexture, GLenum target, GLuint texture);
+GLFUNC(
+   void, glTexImage2D, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border,
+   GLenum format, GLenum type, const void *pixels);
+GLFUNC(void, glTexParameteri, GLenum target, GLenum pname, GLint param);
+GLFUNC(void, glPixelStorei, GLenum pname, GLint param);
+GLFUNC(void, glBlendFunc, GLenum sfactor, GLenum dfactor);
+GLFUNC(void, glGenerateMipmap, GLenum target);
 
 #define GL_DEPTH_BUFFER_BIT                  0x00000100
 #define GL_STENCIL_BUFFER_BIT                0x00000400
@@ -321,5 +323,68 @@ CGLFUNC(void, glGenerateMipmap, GLenum target);
 #define GL_UNSIGNED_INT_10_10_10_2           0x8036
 #define GL_CLAMP_TO_EDGE                     0x812F
 #define GL_UNPACK_FLIP_Y_WEBGL               0x9240
+
+#define WGL_NUMBER_PIXEL_FORMATS_ARB              0x2000
+#define WGL_DRAW_TO_WINDOW_ARB                    0x2001
+#define WGL_DRAW_TO_BITMAP_ARB                    0x2002
+#define WGL_ACCELERATION_ARB                      0x2003
+#define WGL_NEED_PALETTE_ARB                      0x2004
+#define WGL_NEED_SYSTEM_PALETTE_ARB               0x2005
+#define WGL_SWAP_LAYER_BUFFERS_ARB                0x2006
+#define WGL_SWAP_METHOD_ARB                       0x2007
+#define WGL_NUMBER_OVERLAYS_ARB                   0x2008
+#define WGL_NUMBER_UNDERLAYS_ARB                  0x2009
+#define WGL_TRANSPARENT_ARB                       0x200A
+#define WGL_TRANSPARENT_RED_VALUE_ARB             0x2037
+#define WGL_TRANSPARENT_GREEN_VALUE_ARB           0x2038
+#define WGL_TRANSPARENT_BLUE_VALUE_ARB            0x2039
+#define WGL_TRANSPARENT_ALPHA_VALUE_ARB           0x203A
+#define WGL_TRANSPARENT_INDEX_VALUE_ARB           0x203B
+#define WGL_SHARE_DEPTH_ARB                       0x200C
+#define WGL_SHARE_STENCIL_ARB                     0x200D
+#define WGL_SHARE_ACCUM_ARB                       0x200E
+#define WGL_SUPPORT_GDI_ARB                       0x200F
+#define WGL_SUPPORT_OPENGL_ARB                    0x2010
+#define WGL_DOUBLE_BUFFER_ARB                     0x2011
+#define WGL_STEREO_ARB                            0x2012
+#define WGL_PIXEL_TYPE_ARB                        0x2013
+#define WGL_COLOR_BITS_ARB                        0x2014
+#define WGL_RED_BITS_ARB                          0x2015
+#define WGL_RED_SHIFT_ARB                         0x2016
+#define WGL_GREEN_BITS_ARB                        0x2017
+#define WGL_GREEN_SHIFT_ARB                       0x2018
+#define WGL_BLUE_BITS_ARB                         0x2019
+#define WGL_BLUE_SHIFT_ARB                        0x201A
+#define WGL_ALPHA_BITS_ARB                        0x201B
+#define WGL_ALPHA_SHIFT_ARB                       0x201C
+#define WGL_ACCUM_BITS_ARB                        0x201D
+#define WGL_ACCUM_RED_BITS_ARB                    0x201E
+#define WGL_ACCUM_GREEN_BITS_ARB                  0x201F
+#define WGL_ACCUM_BLUE_BITS_ARB                   0x2020
+#define WGL_ACCUM_ALPHA_BITS_ARB                  0x2021
+#define WGL_DEPTH_BITS_ARB                        0x2022
+#define WGL_STENCIL_BITS_ARB                      0x2023
+#define WGL_AUX_BUFFERS_ARB                       0x2024
+#define WGL_NO_ACCELERATION_ARB                   0x2025
+#define WGL_GENERIC_ACCELERATION_ARB              0x2026
+#define WGL_FULL_ACCELERATION_ARB                 0x2027
+#define WGL_SWAP_EXCHANGE_ARB                     0x2028
+#define WGL_SWAP_COPY_ARB                         0x2029
+#define WGL_SWAP_UNDEFINED_ARB                    0x202A
+#define WGL_TYPE_RGBA_ARB                         0x202B
+#define WGL_TYPE_COLORINDEX_ARB                   0x202C
+#define WGL_SAMPLE_BUFFERS_ARB                    0x2041
+#define WGL_SAMPLES_ARB                           0x2042
+#define WGL_CONTEXT_MAJOR_VERSION_ARB             0x2091
+#define WGL_CONTEXT_MINOR_VERSION_ARB             0x2092
+#define WGL_CONTEXT_LAYER_PLANE_ARB               0x2093
+#define WGL_CONTEXT_FLAGS_ARB                     0x2094
+#define WGL_CONTEXT_PROFILE_MASK_ARB              0x9126
+#define WGL_CONTEXT_DEBUG_BIT_ARB                 0x0001
+#define WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB    0x0002
+#define WGL_CONTEXT_CORE_PROFILE_BIT_ARB          0x00000001
+#define WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
+#define ERROR_INVALID_VERSION_ARB                 0x2095
+#define ERROR_INVALID_PROFILE_ARB                 0x2096
 
 #endif /* _PLATFORM_GL_H */

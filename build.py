@@ -506,13 +506,13 @@ native_source_files = []
 if default_target.env == TargetEnv.Win32:
     native_source_files = [*sourcefiles_base, "src/platform_win32.c"]
 
-native_exe_task = Executable("main", native_source_files, default_target, verbose=verbose)
+native_exe_task = Executable("main", native_source_files, default_target, verbose=verbose, flags=[ CompilerOptimLevel.O0 ])
 
 if default_target.env == TargetEnv.Win32:
     native_exe_task.add_compile_flag("/Z7")
     native_exe_task.add_compile_flag("/std:c11")
     native_exe_task.add_compile_flags(["/wd4820", "/wd4204", "/wd4711", "/wd5045"])
-    native_exe_task.link_flags = ["/DEBUG:FULL", "user32.lib"]
+    native_exe_task.link_flags = ["/DEBUG:FULL", "user32.lib", "opengl32.lib", "gdi32.lib"]
 b.add_task("native", native_exe_task)
 
 ## Run build

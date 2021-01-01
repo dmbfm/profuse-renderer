@@ -29,6 +29,7 @@ void p_init(Platform *p)
     *x = 10;
     platform_print_fmt(a, "x = %d", *x);
 
+
     a->free(a, (uptr)x);
 }
 

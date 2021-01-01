@@ -44,9 +44,10 @@ typedef void *voidptr;
 typedef char *charptr;
 typedef unsigned char *ucharptr;
 
-#define TOKENPASTE(x, y) x##y
-#define STRINGIFY(x)     #x
-#define TOSTRING(x)      STRINGIFY(x)
+#define TOKENPASTE(x, y)   x##y
+#define TOKENCOMBINE(x, y) TOKENPASTE(x, y)
+#define STRINGIFY(x)       #x
+#define TOSTRING(x)        STRINGIFY(x)
 
 #if defined(__wasm__)
 #define export __attribute__((used, visibility("default")))
@@ -89,6 +90,10 @@ static inline void common_wasm_panic_message(const char *msg)
 #else
 #define CSTDCALL
 #endif
+
+#define DECL_FUNC_POINTER(qualifier, ret, typename, varname, ...) \
+    typedef ret(CSTDCALL typename)(__VA_ARGS__);                  \
+    qualifier typename *varname;
 
 #if 1
 #define assert(exp) \
@@ -144,12 +149,12 @@ static inline usize c_string_len(const char *s)
 }
 
 #ifdef __wasm__
-export static void *memset(void *ptr, int value, size_t num) {
-    unsigned char v = (unsigned char ) value;
-    unsigned char *p = (unsigned char *) ptr;
+export static void *memset(void *ptr, int value, size_t num)
+{
+    unsigned char v  = (unsigned char)value;
+    unsigned char *p = (unsigned char *)ptr;
 
-    while(num > 0)
-    {
+    while (num > 0) {
         *p = v;
         num--;
     }
@@ -159,11 +164,10 @@ export static void *memset(void *ptr, int value, size_t num) {
 
 export static void *memcpy(void *dst, const void *src, size_t num)
 {
-    unsigned char *d = (unsigned char *) dst;
-    unsigned char *s = (unsigned char *) src;
-    
-    while(num > 0)
-    {
+    unsigned char *d = (unsigned char *)dst;
+    unsigned char *s = (unsigned char *)src;
+
+    while (num > 0) {
         *d = *s;
         num--;
     }

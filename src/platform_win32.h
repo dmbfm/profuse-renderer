@@ -2,7 +2,8 @@
 #define __PLATFORM_WIN32_H 
 
 #ifdef _WIN32
-#include <windows.h>
+
+#include "win32_api.h"
 
 typedef struct PlatformWin32
 {
