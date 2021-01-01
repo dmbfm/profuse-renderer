@@ -13,7 +13,7 @@ lines = f.readlines()
 parsed_funcs = []
 while idx < len(lines):
     line = lines[idx]
-    if line.lstrip().startswith("CGLFUNC"):
+    if line.lstrip().startswith("GLFUNC"):
         final = ""
         inner = line[8:].rstrip('\n')
         r = read_until_char(inner, ')')
@@ -30,6 +30,9 @@ while idx < len(lines):
     idx += 1
 
 w = open(os.path.join("src", "gen", "win32_gl.c"), "w")
+
+w.write("void *gl_get_proc_adress(const char *name);\n")
+w.write("#define GL_GETPROC(name) name = (gl_##name *)gl_get_proc_adress(#name)\n");
 
 for func in parsed_funcs:
     line = "gl_{0} *{0};\n".format(func[1])

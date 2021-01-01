@@ -1,3 +1,5 @@
+void *gl_get_proc_adress(const char *name);
+#define GL_GETPROC(name) name = (gl_##name *)gl_get_proc_adress(#name)
 gl_glClearColor *glClearColor;
 gl_glClear *glClear;
 gl_glCreateShader *glCreateShader;

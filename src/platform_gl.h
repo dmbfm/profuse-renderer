@@ -51,8 +51,7 @@ GLFUNC(void, glGenBuffers, GLsizei n, GLuint *buffers);
 GLFUNC(void, glBindBuffer, GLenum target, GLuint buffer);
 GLFUNC(void, glBufferData, GLenum target, GLsizeiptr size, const void *data, GLenum usage);
 GLFUNC(void, glBufferSubData, GLenum target, GLintptr offset, GLsizeiptr size, const void *data);
-GLFUNC(
-   void, glVertexAttribPointer, GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride,
+GLFUNC(void, glVertexAttribPointer, GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride,
    const void *pointer);
 GLFUNC(void, glEnableVertexAttribArray, GLuint index);
 GLFUNC(void, glDisableVertexAttribArray, GLuint index);
@@ -64,8 +63,7 @@ GLFUNC(void, glUniform1i, GLuint location, GLint v0);
 GLFUNC(void, glGenTextures, GLsizei n, GLuint *textures);
 GLFUNC(void, glActiveTexture, GLenum texture);
 GLFUNC(void, glBindTexture, GLenum target, GLuint texture);
-GLFUNC(
-   void, glTexImage2D, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border,
+GLFUNC(void, glTexImage2D, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border,
    GLenum format, GLenum type, const void *pixels);
 GLFUNC(void, glTexParameteri, GLenum target, GLenum pname, GLint param);
 GLFUNC(void, glPixelStorei, GLenum pname, GLint param);

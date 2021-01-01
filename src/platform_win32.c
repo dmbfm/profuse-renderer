@@ -4,8 +4,18 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-// TODO:
-// - Create custom windows header file containing only the stuff we actually need.
+#include "gen/win32_gl.c"
+
+// clang-format off
+DECL_FUNC_POINTER(static, PROC, wglGetProcAdressFunc, wgl_get_proc_address, LPCSTR name);
+DECL_FUNC_POINTER(static, HGLRC, wglCreateContextFunc, wgl_create_context, HDC Arg1);
+DECL_FUNC_POINTER(static, BOOL, wglDeleteContextFunc, wgl_delete_context, HGLRC Arg);
+DECL_FUNC_POINTER(static, BOOL, wglMakeCurrentFunc, wgl_make_current, HDC Arg1, HGLRC Arg2);
+DECL_FUNC_POINTER(static, BOOL, wglChoosePixelFormatARBFunc, wgl_choose_pixel_format_arb, HDC hdc, const int *piAttribIList,
+                  const FLOAT *pfAttribFList, UINT nMaxFormats, int *piFormats, UINT *nNumFormats);
+DECL_FUNC_POINTER(static, HGLRC, wglCreateContextAttribsARBFunc, wgl_create_context_attribs_arb, HDC hDC, HGLRC hshareContext,
+                  const int *attribList);
+// clang-format on
 
 static Platform platform;
 
@@ -28,21 +38,6 @@ void platform_print_fmt(Allocator *a, const char *fmt, ...)
 
     va_end(args);
 }
-
-void *gl_get_proc_adress(const char *name);
-#define GL_GETPROC(name) name = (gl_##name *)gl_get_proc_adress(#name)
-#include "gen/win32_gl.c"
-
-DECL_FUNC_POINTER(static, PROC, wglGetProcAdressFunc, wgl_get_proc_address, LPCSTR name);
-DECL_FUNC_POINTER(static, HGLRC, wglCreateContextFunc, wgl_create_context, HDC Arg1);
-DECL_FUNC_POINTER(static, BOOL, wglDeleteContextFunc, wgl_delete_context, HGLRC Arg);
-DECL_FUNC_POINTER(static, BOOL, wglMakeCurrentFunc, wgl_make_current, HDC Arg1, HGLRC Arg2);
-DECL_FUNC_POINTER(
-    static, BOOL, wglChoosePixelFormatARBFunc, wgl_choose_pixel_format_arb, HDC hdc, const int *piAttribIList,
-    const FLOAT *pfAttribFList, UINT nMaxFormats, int *piFormats, UINT *nNumFormats);
-DECL_FUNC_POINTER(
-    static, HGLRC, wglCreateContextAttribsARBFunc, wgl_create_context_attribs_arb, HDC hDC, HGLRC hshareContext,
-    const int *attribList);
 
 static ErrorCode platform_win32_load_wgl()
 {
@@ -149,7 +144,7 @@ static ErrorCode platform_win32_init_wgl_extensions()
     return ERR_OK;
 }
 
-void *gl_get_proc_adress(const char *name)
+static void *gl_get_proc_adress(const char *name)
 {
     void *p = (void *)wgl_get_proc_address(name);
     if (p == 0 || (p == (void *)0x1) || (p == (void *)0x2) || (p == (void *)0x3) || (p == (void *)-1)) {
