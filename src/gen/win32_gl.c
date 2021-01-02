@@ -10,6 +10,7 @@ gl_glGetShaderiv *glGetShaderiv;
 gl_glCreateProgram *glCreateProgram;
 gl_glShaderSource *glShaderSource;
 gl_glLinkProgram *glLinkProgram;
+gl_glDeleteProgram *glDeleteProgram;
 gl_glAttachShader *glAttachShader;
 gl_glGetProgramiv *glGetProgramiv;
 gl_glGetProgramInfoLog *glGetProgramInfoLog;
@@ -54,6 +55,7 @@ static void platform_win32_gl_init_function_pointers(void)
     GL_GETPROC(glCreateProgram);
     GL_GETPROC(glShaderSource);
     GL_GETPROC(glLinkProgram);
+    GL_GETPROC(glDeleteProgram);
     GL_GETPROC(glAttachShader);
     GL_GETPROC(glGetProgramiv);
     GL_GETPROC(glGetProgramInfoLog);
@@ -96,6 +98,7 @@ static void platform_win32_gl_init_function_pointers(void)
     assert(glCreateProgram);
     assert(glShaderSource);
     assert(glLinkProgram);
+    assert(glDeleteProgram);
     assert(glAttachShader);
     assert(glGetProgramiv);
     assert(glGetProgramInfoLog);

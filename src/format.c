@@ -3,6 +3,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 
+#ifdef __wasm__
 // Sketchy snprintf implementation
 typedef struct t__SnprintfHead
 {
@@ -267,6 +268,13 @@ int formatv(char *s, size_t n, const char *fmt, va_list args)
 
     return head.nchars;
 }
+#else
+#include <stdio.h>
+int formatv(char *s, usize n, const char *fmt, va_list arg)
+{
+    return vsnprintf(s, n, fmt, arg);
+}
+#endif
 
 int format(char *s, usize n, const char *fmt, ...)
 {

@@ -473,7 +473,9 @@ sourcefiles_base = [
         "src/format.c",
         "src/math.c",
         "src/heap.c",
-        "src/main.c"
+        "src/main.c",
+        "src/utils.c",
+        "src/renderer_gl.c"
         ]
 
 

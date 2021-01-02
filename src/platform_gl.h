@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#define GLFUNC(ret, name, ...)                   \
+#define GLFUNC(ret, name, ...)                    \
     typedef ret(CSTDCALL gl_##name)(__VA_ARGS__); \
     extern gl_##name *name;
 
@@ -26,6 +26,7 @@ typedef signed long int CGLintptr;
 typedef CGLintptr GLsizeiptr;
 typedef CGLintptr GLintptr;
 
+// clang-format off
 GLFUNC(void, glClearColor, GLfloat r, GLfloat g, GLfloat b, GLfloat a);
 GLFUNC(void, glClear, GLbitfield mask);
 GLFUNC(GLuint, glCreateShader, GLenum shaderType);
@@ -36,6 +37,7 @@ GLFUNC(void, glGetShaderiv, GLuint shader, GLenum pname, GLint *params);
 GLFUNC(GLuint, glCreateProgram, void);
 GLFUNC(void, glShaderSource, GLuint shader, GLsizei count, const GLchar **string, const GLint *length);
 GLFUNC(void, glLinkProgram, GLuint program);
+GLFUNC(void, glDeleteProgram, GLuint program);
 GLFUNC(void, glAttachShader, GLuint program, GLuint shader);
 GLFUNC(void, glGetProgramiv, GLuint program, GLenum pname, GLint *params);
 GLFUNC(void, glGetProgramInfoLog, GLuint program, GLsizei bufSize, GLsizei *length, GLchar *infoLog);
@@ -69,6 +71,7 @@ GLFUNC(void, glTexParameteri, GLenum target, GLenum pname, GLint param);
 GLFUNC(void, glPixelStorei, GLenum pname, GLint param);
 GLFUNC(void, glBlendFunc, GLenum sfactor, GLenum dfactor);
 GLFUNC(void, glGenerateMipmap, GLenum target);
+// clang-format on
 
 #define GL_DEPTH_BUFFER_BIT                  0x00000100
 #define GL_STENCIL_BUFFER_BIT                0x00000400
@@ -321,6 +324,7 @@ GLFUNC(void, glGenerateMipmap, GLenum target);
 #define GL_UNSIGNED_INT_10_10_10_2           0x8036
 #define GL_CLAMP_TO_EDGE                     0x812F
 #define GL_UNPACK_FLIP_Y_WEBGL               0x9240
+#define GL_INFO_LOG_LENGTH                   0x8B84
 
 #define WGL_NUMBER_PIXEL_FORMATS_ARB              0x2000
 #define WGL_DRAW_TO_WINDOW_ARB                    0x2001

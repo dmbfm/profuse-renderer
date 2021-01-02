@@ -297,7 +297,9 @@ static void platform_win32_pull(Platform *p)
     }
 }
 
-static void platform_win32_push(Platform *p) {}
+static void platform_win32_push(Platform *p) {
+    SwapBuffers(p->win32.device_context);
+}
 
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
