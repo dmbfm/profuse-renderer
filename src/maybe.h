@@ -28,5 +28,6 @@ maybe_make_type(u32);
 maybe_make_type(i32);
 maybe_make_type(f32);
 maybe_make_type(char);
+maybe_make_type(charptr);
 
 #endif /* __MAYBE_H */

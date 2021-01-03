@@ -85,12 +85,10 @@ void p_init(Platform *p)
 
 void p_frame(Platform *p)
 {
-    glClearColor(0, 1, 0, 1);
+    glClearColor((f32)p->mouse.x / 2000, 1, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT);
 
     glDrawArrays(GL_TRIANGLES, 0, 3);
-
-    platform_print_fmt(a, "(%d, %d)", p->mouse.delta_x, p->mouse.delta_y);
 }
 
 void p_shutdown(Platform *p)

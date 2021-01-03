@@ -32,11 +32,11 @@ typedef struct Platform
 
     struct
     {
-        Maybe(char) *title;
+        Maybe(charptr) title;
         Maybe(u32) x;
         Maybe(u32) y;
         Maybe(u32) width;
-        Maybe(u32) heigh;
+        Maybe(u32) height;
 
         boolean resized;
     } window;
@@ -76,6 +76,21 @@ void p_shutdown(Platform *p);
 // Platform API
 void platform_print_fmt(Allocator *a, const char *fmt, ...);
 void platform_print_line(const char *string);
+
+static inline void platform_init_defaults(Platform *p)
+{
+    if (maybe_is_nothing(p->window.width)) {
+        p->window.width = maybe_some(u32, 800);
+    }
+
+    if (maybe_is_nothing(p->window.height)) {
+        p->window.height = maybe_some(u32, 600);
+    }
+
+    if (maybe_is_nothing(p->window.title)) {
+        p->window.title = maybe_some(charptr, "ProfusePlatformWindow");
+    }
+}
 
 #endif /* __PLATFORM_H */
 

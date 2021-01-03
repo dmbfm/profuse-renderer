@@ -208,12 +208,12 @@ static void platform_win32_init_window(Platform *p)
     HWND windowhandle = CreateWindowEx(
         0,
         windowclass.lpszClassName,
-        "ProfuseWindowName",
+        maybe_is_something(p->window.title) ? p->window.title.value : "ProfuseWindowName",
         WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT,
-        CW_USEDEFAULT,
-        CW_USEDEFAULT,
-        CW_USEDEFAULT,
+        maybe_is_something(p->window.x) ? p->window.x.value : CW_USEDEFAULT,
+        maybe_is_something(p->window.y) ? p->window.y.value : CW_USEDEFAULT,
+        maybe_is_something(p->window.width) ? p->window.width.value : CW_USEDEFAULT,
+        maybe_is_something(p->window.height) ? p->window.height.value : CW_USEDEFAULT,
         0,
         0,
         windowclass.hInstance,
@@ -341,6 +341,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 
     platform = p_config();
 
+    platform_init_defaults(&platform);
     platform_win32_init_window(&platform);
     platform_win32_init_gl(&platform);
 
