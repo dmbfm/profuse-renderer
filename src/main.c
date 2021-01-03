@@ -34,6 +34,12 @@ char *fshader =
     "gl_FragColor = vec4(1.0f, 0, 0, 1.0f);\n"
     "}";
 
+const f32 triangle_vertices[] = {
+    -0.5, -0.5, 0,
+    0, 0.5, 0,
+    0.5, -0.5, 0
+};
+
 Platform p_config(void)
 {
     Platform p = { 0 };
@@ -58,13 +64,33 @@ void p_init(Platform *p)
 
     a->free(a, (uptr)x);
 
-    rgl_create_program_raw(a, vshader, fshader);
+    Result(GLuint) rprogram = rgl_create_program_raw(a, vshader, fshader);
+    GLuint program = result_unwrap(rprogram);
+    glUseProgram(program);
+
+#ifndef __wasm__
+    GLuint vao;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+#endif
+
+    GLuint buffer;
+    glGenBuffers(1, &buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(triangle_vertices), triangle_vertices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, 0, 0, 0);
+    glEnableVertexAttribArray(0);
 }
 
 void p_frame(Platform *p)
 {
     glClearColor(0, 1, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT);
+
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+
+    platform_print_fmt(a, "(%d, %d)", p->mouse.delta_x, p->mouse.delta_y);
 }
 
 void p_shutdown(Platform *p)

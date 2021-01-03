@@ -1,6 +1,8 @@
 #include "common.h"
+#include "heap.h"
 #include "platform.h"
 #include "platform_gl.h"
+#include "utils.h"
 #include <stdarg.h>
 #include <stdio.h>
 
@@ -35,6 +37,13 @@ void platform_print_fmt(Allocator *a, const char *fmt, ...)
     if (!a) {
         char buf[256];
         vsnprintf(buf, 256, fmt, args);
+        platform_print_line(buf);
+    } else {
+        usize len = vsnprintf(0, 0, fmt, args);
+        len++;
+        Result(uptr) rbuf = a->alloc(a, len);
+        char *buf         = (char *)result_unwrap(rbuf);
+        vsnprintf(buf, len, fmt, args);
         platform_print_line(buf);
     }
 
@@ -163,6 +172,12 @@ static LRESULT CALLBACK platform_win32_window_proc(HWND hwnd, UINT uMsg, WPARAM 
     LRESULT result = 0;
 
     switch (uMsg) {
+        case WM_MOUSEMOVE:
+            {
+                p->win32.mouse_x_raw = GET_X_LPARAM(lParam);
+                p->win32.mouse_y_raw = GET_Y_LPARAM(lParam);
+            }
+            break;
         case WM_DESTROY:
             {
                 p->should_quit = true;
@@ -286,10 +301,18 @@ static ErrorCode platform_win32_init_gl(Platform *p)
     return ERR_OK;
 }
 
-static void platform_win32_pull(Platform *p)
+static void platform_win32_pull_mouse(Platform *p)
 {
-    platform.timing.counter++;
+    p->mouse.last_x  = p->mouse.x;
+    p->mouse.last_y  = p->mouse.y;
+    p->mouse.x       = p->win32.mouse_x_raw;
+    p->mouse.y       = p->win32.mouse_y_raw;
+    p->mouse.delta_x = p->mouse.x - p->mouse.last_x;
+    p->mouse.delta_y = p->mouse.y - p->mouse.last_y;
+}
 
+static void platform_win32_pull_messages(Platform *p)
+{
     MSG msg;
     while (PeekMessage(&msg, p->win32.window_handle, 0, 0, PM_REMOVE) != 0) {
         TranslateMessage(&msg);
@@ -297,7 +320,15 @@ static void platform_win32_pull(Platform *p)
     }
 }
 
-static void platform_win32_push(Platform *p) {
+static void platform_win32_pull(Platform *p)
+{
+    platform.timing.counter++;
+    platform_win32_pull_messages(p);
+    platform_win32_pull_mouse(p);
+}
+
+static void platform_win32_push(Platform *p)
+{
     SwapBuffers(p->win32.device_context);
 }
 

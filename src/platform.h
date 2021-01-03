@@ -43,13 +43,13 @@ typedef struct Platform
 
     struct
     {
-        int x;
-        int y;
-        int last_x;
-        int last_y;
-        int delta_x;
-        int delta_y;
-        int mouse_wheel_delta;
+        i32 x;
+        i32 y;
+        i32 last_x;
+        i32 last_y;
+        i32 delta_x;
+        i32 delta_y;
+        i32 mouse_wheel_delta;
         PlatformButtonState left_button;
         PlatformCursorStyle cursor_style;
     } mouse;

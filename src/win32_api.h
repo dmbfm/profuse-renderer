@@ -54,12 +54,14 @@
 /*
  * Window Messages
  */
-
+#define RID_INPUT  0x10000003
+#define RID_HEADER 0x10000005
 #define WM_NULL    0x0000
 #define WM_CREATE  0x0001
 #define WM_DESTROY 0x0002
 #define WM_MOVE    0x0003
 #define WM_SIZE    0x0005
+#define WM_INPUT   0x00FF
 
 #define WM_ACTIVATE 0x0006
 /*
@@ -69,39 +71,30 @@
 #define WA_ACTIVE      1
 #define WA_CLICKACTIVE 2
 
-#define WM_SETFOCUS      0x0007
-#define WM_KILLFOCUS     0x0008
-#define WM_ENABLE        0x000A
-#define WM_SETREDRAW     0x000B
-#define WM_SETTEXT       0x000C
-#define WM_GETTEXT       0x000D
-#define WM_GETTEXTLENGTH 0x000E
-#define WM_PAINT         0x000F
-#define WM_CLOSE         0x0010
-#ifndef _WIN32_WCE
-#define WM_QUERYENDSESSION 0x0011
-#define WM_QUERYOPEN       0x0013
-#define WM_ENDSESSION      0x0016
-#endif
-#define WM_QUIT           0x0012
-#define WM_ERASEBKGND     0x0014
-#define WM_SYSCOLORCHANGE 0x0015
-#define WM_SHOWWINDOW     0x0018
-#define WM_WININICHANGE   0x001A
-#if (WINVER >= 0x0400)
-#define WM_SETTINGCHANGE WM_WININICHANGE
-#endif /* WINVER >= 0x0400 */
-
-#define WM_DEVMODECHANGE 0x001B
-#define WM_ACTIVATEAPP   0x001C
-#define WM_FONTCHANGE    0x001D
-#define WM_TIMECHANGE    0x001E
-#define WM_CANCELMODE    0x001F
-#define WM_SETCURSOR     0x0020
-#define WM_MOUSEACTIVATE 0x0021
-#define WM_CHILDACTIVATE 0x0022
-#define WM_QUEUESYNC     0x0023
-
+#define WM_SETFOCUS         0x0007
+#define WM_KILLFOCUS        0x0008
+#define WM_ENABLE           0x000A
+#define WM_SETREDRAW        0x000B
+#define WM_SETTEXT          0x000C
+#define WM_GETTEXT          0x000D
+#define WM_GETTEXTLENGTH    0x000E
+#define WM_PAINT            0x000F
+#define WM_CLOSE            0x0010
+#define WM_MOUSEMOVE        0x0200
+#define WM_QUIT             0x0012
+#define WM_ERASEBKGND       0x0014
+#define WM_SYSCOLORCHANGE   0x0015
+#define WM_SHOWWINDOW       0x0018
+#define WM_WININICHANGE     0x001A
+#define WM_DEVMODECHANGE    0x001B
+#define WM_ACTIVATEAPP      0x001C
+#define WM_FONTCHANGE       0x001D
+#define WM_TIMECHANGE       0x001E
+#define WM_CANCELMODE       0x001F
+#define WM_SETCURSOR        0x0020
+#define WM_MOUSEACTIVATE    0x0021
+#define WM_CHILDACTIVATE    0x0022
+#define WM_QUEUESYNC        0x0023
 #define WM_GETMINMAXINFO    0x0024
 #define WS_OVERLAPPED       0x00000000L
 #define WS_POPUP            0x80000000L
@@ -124,6 +117,14 @@
 #define WS_MINIMIZEBOX      0x00020000L
 #define WS_MAXIMIZEBOX      0x00010000L
 #define WS_OVERLAPPEDWINDOW (WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX)
+
+#define GET_X_LPARAM(lp) ((int)(short)LOWORD(lp))
+#define GET_Y_LPARAM(lp) ((int)(short)HIWORD(lp))
+
+#define LOWORD(l)        ((WORD)((DWORD)(l)))
+#define HIWORD(l)        ((WORD)(((DWORD)(l) >> 16) & 0xFFFF))
+#define LOBYTE(w)        ((BYTE)(w))
+#define HIBYTE(w)        ((BYTE)(((WORD)(w) >> 8) & 0xFF))
 
 /*
  * ShowWindow() Commands
@@ -175,7 +176,9 @@ typedef void *LPVOID;
 typedef LONG_PTR LRESULT;
 typedef UINT *UINT_PTR;
 typedef UINT_PTR WPARAM;
-typedef UINT_PTR LPARAM;
+typedef LONG_PTR LPARAM;
+typedef unsigned short USHORT;
+typedef unsigned long ULONG;
 
 typedef HANDLE HICON;
 typedef HICON HCURSOR;
@@ -186,6 +189,8 @@ typedef unsigned char BYTE;
 typedef unsigned short WORD;
 typedef unsigned long DWORD;
 typedef WORD ATOM;
+typedef void *HRAWINPUT;
+typedef UINT *PUINT;
 
 typedef LRESULT(CALLBACK *WNDPROC)(HWND, UINT, WPARAM, LPARAM);
 
@@ -326,5 +331,61 @@ LRESULT DispatchMessageA(const MSG *lpMsg);
 #define DispatchMessage DispatchMessageA
 
 BOOL SwapBuffers(HDC Arg1);
+
+typedef struct tagRAWINPUTHEADER
+{
+    DWORD dwType;
+    DWORD dwSize;
+    HANDLE hDevice;
+    WPARAM wParam;
+} RAWINPUTHEADER, *PRAWINPUTHEADER, *LPRAWINPUTHEADER;
+
+typedef struct tagRAWMOUSE
+{
+    USHORT usFlags;
+    union
+    {
+        ULONG ulButtons;
+        struct
+        {
+            USHORT usButtonFlags;
+            USHORT usButtonData;
+        } DUMMYSTRUCTNAME;
+    } DUMMYUNIONNAME;
+    ULONG ulRawButtons;
+    LONG lLastX;
+    LONG lLastY;
+    ULONG ulExtraInformation;
+} RAWMOUSE, *PRAWMOUSE, *LPRAWMOUSE;
+
+typedef struct tagRAWKEYBOARD
+{
+    USHORT MakeCode;
+    USHORT Flags;
+    USHORT Reserved;
+    USHORT VKey;
+    UINT Message;
+    ULONG ExtraInformation;
+} RAWKEYBOARD, *PRAWKEYBOARD, *LPRAWKEYBOARD;
+
+typedef struct tagRAWHID
+{
+    DWORD dwSizeHid;
+    DWORD dwCount;
+    BYTE bRawData[1];
+} RAWHID, *PRAWHID, *LPRAWHID;
+
+typedef struct tagRAWINPUT
+{
+    RAWINPUTHEADER header;
+    union
+    {
+        RAWMOUSE mouse;
+        RAWKEYBOARD keyboard;
+        RAWHID hid;
+    } data;
+} RAWINPUT, *PRAWINPUT, *LPRAWINPUT;
+
+UINT GetRawInputData(HRAWINPUT hRawInput, UINT uiCommand, LPVOID pData, PUINT pcbSize, UINT cbSizeHeader);
 
 #endif /* __WIN32_API_H */
