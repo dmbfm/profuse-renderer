@@ -10,6 +10,7 @@ typedef struct PlatformWin32
 {
     HWND window_handle;
     HDC device_context;
+    HCURSOR cursor_handle;
 } PlatformWin32;
 
 #endif /* _WIN32 */

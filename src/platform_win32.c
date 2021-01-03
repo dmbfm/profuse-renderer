@@ -172,6 +172,13 @@ static LRESULT CALLBACK platform_win32_window_proc(HWND hwnd, UINT uMsg, WPARAM 
     LRESULT result = 0;
 
     switch (uMsg) {
+        case WM_SETCURSOR:
+            {
+                if (LOWORD(lParam) == HTCLIENT) {
+                    SetCursor(p->win32.cursor_handle);
+                    result = true;
+                }
+            }
         case WM_MOUSEMOVE:
             {
                 p->mouse.raw.x = GET_X_LPARAM(lParam);
@@ -255,6 +262,9 @@ static void platform_win32_init_window(Platform *p)
 
     // Get and save the device context
     p->win32.device_context = GetDC(windowhandle);
+
+    // Save the cursosr handle
+    p->win32.cursor_handle = windowclass.hCursor;
 
     // Save cached values
     p->window.cached.cursor_style = p->window.cursor_style.value;
@@ -350,13 +360,19 @@ static void platform_win32_pull(Platform *p)
     platform_win32_pull_mouse(p);
 }
 
-static void platform_win32_push(Platform *p)
+static void platform_win32_window_push(Platform *p)
 {
     if (p->window.cached.cursor_style != p->window.cursor_style.value) {
-        SetCursor(LoadCursorA(0, platform_win32_get_cursor_name(p)));
+        HCURSOR hc =LoadCursorA(0, platform_win32_get_cursor_name(p)); 
+        SetCursor(hc);
+        p->win32.cursor_handle = hc;
         p->window.cached.cursor_style = p->window.cursor_style.value;
     }
+}
 
+static void platform_win32_push(Platform *p)
+{
+    platform_win32_window_push(p);
     SwapBuffers(p->win32.device_context);
 }
 

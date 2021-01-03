@@ -1,6 +1,7 @@
 #ifndef __WIN32_API_H
 #define __WIN32_API_H
 
+#define HTCLIENT 1
 #define CS_VREDRAW         0x0001
 #define CS_HREDRAW         0x0002
 #define CS_DBLCLKS         0x0008
