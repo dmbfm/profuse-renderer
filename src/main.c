@@ -85,8 +85,19 @@ void p_init(Platform *p)
 
 void p_frame(Platform *p)
 {
-    glClearColor((f32)p->mouse.x / 2000, 1, 0, 1);
+    f32 r = (f32)p->mouse.x / p->window.width.value;
+    f32 g = (f32)p->mouse.y / p->window.height.value;
+    float b = (1.0f - r) * (1.0f - g);
+
+    glClearColor(r, g, b, 1);
     glClear(GL_COLOR_BUFFER_BIT);
+
+    platform_print_fmt(a, "(%d, %d)", p->mouse.x, p->mouse.y);
+
+    if (r > 0.5)
+        p->window.cursor_style.value = PLATFORM_CURSOR_STYLE_HAND;
+    else 
+        p->window.cursor_style.value = PLATFORM_CURSOR_STYLE_NORMAL;
 
     glDrawArrays(GL_TRIANGLES, 0, 3);
 }

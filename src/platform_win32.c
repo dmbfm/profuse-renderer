@@ -174,8 +174,8 @@ static LRESULT CALLBACK platform_win32_window_proc(HWND hwnd, UINT uMsg, WPARAM 
     switch (uMsg) {
         case WM_MOUSEMOVE:
             {
-                p->win32.mouse_x_raw = GET_X_LPARAM(lParam);
-                p->win32.mouse_y_raw = GET_Y_LPARAM(lParam);
+                p->mouse.raw.x = GET_X_LPARAM(lParam);
+                p->mouse.raw.y = GET_Y_LPARAM(lParam);
             }
             break;
         case WM_DESTROY:
@@ -192,6 +192,16 @@ static LRESULT CALLBACK platform_win32_window_proc(HWND hwnd, UINT uMsg, WPARAM 
     return result;
 }
 
+static LPCSTR platform_win32_get_cursor_name(Platform *p)
+{
+    if (maybe_is_nothing(p->window.cursor_style)) return IDC_ARROW;
+
+    switch(p->window.cursor_style.value) {
+        case PLATFORM_CURSOR_STYLE_NORMAL: return IDC_ARROW;
+        case PLATFORM_CURSOR_STYLE_HAND: return IDC_HAND;
+    }
+}
+
 static void platform_win32_init_window(Platform *p)
 {
     // Register window class
@@ -201,8 +211,18 @@ static void platform_win32_init_window(Platform *p)
     windowclass.lpszClassName = "ProfuseWindowClass";
     windowclass.hInstance     = GetModuleHandleA(0);
     windowclass.lpfnWndProc   = platform_win32_window_proc;
+    windowclass.hCursor       = LoadCursorA(0, platform_win32_get_cursor_name(p));
 
     RegisterClass(&windowclass);
+
+    u32 cwidth  = maybe_is_something(p->window.width) ? p->window.width.value : 800;
+    u32 cheight = maybe_is_something(p->window.height) ? p->window.height.value : 600;
+
+    RECT rect = { .left = 0, .top = 0, .right = cwidth, .bottom = cheight };
+    AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);
+
+    u32 wwidth  = rect.right - rect.left;
+    u32 wheight = rect.bottom - rect.top;
 
     // Create window with handle
     HWND windowhandle = CreateWindowEx(
@@ -212,8 +232,8 @@ static void platform_win32_init_window(Platform *p)
         WS_OVERLAPPEDWINDOW,
         maybe_is_something(p->window.x) ? p->window.x.value : CW_USEDEFAULT,
         maybe_is_something(p->window.y) ? p->window.y.value : CW_USEDEFAULT,
-        maybe_is_something(p->window.width) ? p->window.width.value : CW_USEDEFAULT,
-        maybe_is_something(p->window.height) ? p->window.height.value : CW_USEDEFAULT,
+        wwidth,
+        wheight,
         0,
         0,
         windowclass.hInstance,
@@ -235,6 +255,9 @@ static void platform_win32_init_window(Platform *p)
 
     // Get and save the device context
     p->win32.device_context = GetDC(windowhandle);
+
+    // Save cached values
+    p->window.cached.cursor_style = p->window.cursor_style.value;
 }
 
 static ErrorCode platform_win32_init_gl(Platform *p)
@@ -305,8 +328,8 @@ static void platform_win32_pull_mouse(Platform *p)
 {
     p->mouse.last_x  = p->mouse.x;
     p->mouse.last_y  = p->mouse.y;
-    p->mouse.x       = p->win32.mouse_x_raw;
-    p->mouse.y       = p->win32.mouse_y_raw;
+    p->mouse.x       = p->mouse.raw.x;
+    p->mouse.y       = p->mouse.raw.y;
     p->mouse.delta_x = p->mouse.x - p->mouse.last_x;
     p->mouse.delta_y = p->mouse.y - p->mouse.last_y;
 }
@@ -329,6 +352,11 @@ static void platform_win32_pull(Platform *p)
 
 static void platform_win32_push(Platform *p)
 {
+    if (p->window.cached.cursor_style != p->window.cursor_style.value) {
+        SetCursor(LoadCursorA(0, platform_win32_get_cursor_name(p)));
+        p->window.cached.cursor_style = p->window.cursor_style.value;
+    }
+
     SwapBuffers(p->win32.device_context);
 }
 

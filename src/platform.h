@@ -17,8 +17,9 @@
 typedef enum
 {
     PLATFORM_CURSOR_STYLE_NORMAL,
-    PLATFORM_CURSOR_STYLE_NONE
+    PLATFORM_CURSOR_STYLE_HAND,
 } PlatformCursorStyle;
+maybe_make_type(PlatformCursorStyle);
 
 typedef struct
 {
@@ -37,8 +38,14 @@ typedef struct Platform
         Maybe(u32) y;
         Maybe(u32) width;
         Maybe(u32) height;
+        Maybe(PlatformCursorStyle) cursor_style;
 
         boolean resized;
+
+        struct
+        {
+            PlatformCursorStyle cursor_style;
+        } cached;
     } window;
 
     struct
@@ -51,7 +58,13 @@ typedef struct Platform
         i32 delta_y;
         i32 mouse_wheel_delta;
         PlatformButtonState left_button;
-        PlatformCursorStyle cursor_style;
+
+        struct
+        {
+            i32 x;
+            i32 y;
+        } raw;
+
     } mouse;
 
     struct
@@ -89,6 +102,10 @@ static inline void platform_init_defaults(Platform *p)
 
     if (maybe_is_nothing(p->window.title)) {
         p->window.title = maybe_some(charptr, "ProfusePlatformWindow");
+    }
+
+    if (maybe_is_nothing(p->window.cursor_style)) {
+        p->window.cursor_style = maybe_some(PlatformCursorStyle, PLATFORM_CURSOR_STYLE_NORMAL);
     }
 }
 

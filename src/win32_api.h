@@ -121,10 +121,29 @@
 #define GET_X_LPARAM(lp) ((int)(short)LOWORD(lp))
 #define GET_Y_LPARAM(lp) ((int)(short)HIWORD(lp))
 
-#define LOWORD(l)        ((WORD)((DWORD)(l)))
-#define HIWORD(l)        ((WORD)(((DWORD)(l) >> 16) & 0xFFFF))
-#define LOBYTE(w)        ((BYTE)(w))
-#define HIBYTE(w)        ((BYTE)(((WORD)(w) >> 8) & 0xFF))
+#define LOWORD(l) ((WORD)((DWORD)(l)))
+#define HIWORD(l) ((WORD)(((DWORD)(l) >> 16) & 0xFFFF))
+#define LOBYTE(w) ((BYTE)(w))
+#define HIBYTE(w) ((BYTE)(((WORD)(w) >> 8) & 0xFF))
+
+#define MAKEINTRESOURCE(i) ((LPSTR)((ULONG_PTR)((WORD)(i))))
+#define IDC_ARROW           MAKEINTRESOURCE(32512)
+#define IDC_IBEAM           MAKEINTRESOURCE(32513)
+#define IDC_WAIT            MAKEINTRESOURCE(32514)
+#define IDC_CROSS           MAKEINTRESOURCE(32515)
+#define IDC_UPARROW         MAKEINTRESOURCE(32516)
+#define IDC_SIZE            MAKEINTRESOURCE(32640) /* OBSOLETE: use IDC_SIZEALL */
+#define IDC_ICON            MAKEINTRESOURCE(32641) /* OBSOLETE: use IDC_ARROW */
+#define IDC_SIZENWSE        MAKEINTRESOURCE(32642)
+#define IDC_SIZENESW        MAKEINTRESOURCE(32643)
+#define IDC_SIZEWE          MAKEINTRESOURCE(32644)
+#define IDC_SIZENS          MAKEINTRESOURCE(32645)
+#define IDC_SIZEALL         MAKEINTRESOURCE(32646)
+#define IDC_NO              MAKEINTRESOURCE(32648) /*not in win3.1 */
+#define IDC_HAND            MAKEINTRESOURCE(32649)
+#define IDC_APPSTARTING     MAKEINTRESOURCE(32650) /*not in win3.1 */
+#define IDC_HELP            MAKEINTRESOURCE(32651)
+
 
 /*
  * ShowWindow() Commands
@@ -191,7 +210,11 @@ typedef unsigned long DWORD;
 typedef WORD ATOM;
 typedef void *HRAWINPUT;
 typedef UINT *PUINT;
-
+#if defined(_WIN64)
+ typedef unsigned __int64 ULONG_PTR;
+#else
+ typedef unsigned long ULONG_PTR;
+#endif
 typedef LRESULT(CALLBACK *WNDPROC)(HWND, UINT, WPARAM, LPARAM);
 
 typedef struct tagWNDCLASSA
@@ -387,5 +410,18 @@ typedef struct tagRAWINPUT
 } RAWINPUT, *PRAWINPUT, *LPRAWINPUT;
 
 UINT GetRawInputData(HRAWINPUT hRawInput, UINT uiCommand, LPVOID pData, PUINT pcbSize, UINT cbSizeHeader);
+
+typedef struct tagRECT
+{
+    LONG left;
+    LONG top;
+    LONG right;
+    LONG bottom;
+} RECT, *PRECT, *NPRECT, *LPRECT;
+
+BOOL AdjustWindowRect(LPRECT lpRect, DWORD dwStyle, BOOL bMenu);
+
+HCURSOR SetCursor(HCURSOR hCursor);
+HCURSOR LoadCursorA(HINSTANCE hInstance, LPCSTR lpCursorName);
 
 #endif /* __WIN32_API_H */
