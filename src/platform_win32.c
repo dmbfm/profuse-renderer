@@ -177,8 +177,10 @@ static LRESULT CALLBACK platform_win32_window_proc(HWND hwnd, UINT uMsg, WPARAM 
                 if (LOWORD(lParam) == HTCLIENT) {
                     SetCursor(p->win32.cursor_handle);
                     result = true;
+                } else {
+                    result = DefWindowProcA(wParam, uMsg, wParam, lParam);
                 }
-            }
+            } break;
         case WM_MOUSEMOVE:
             {
                 p->mouse.raw.x = GET_X_LPARAM(lParam);
