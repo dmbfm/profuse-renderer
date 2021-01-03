@@ -172,6 +172,11 @@ static LRESULT CALLBACK platform_win32_window_proc(HWND hwnd, UINT uMsg, WPARAM 
     LRESULT result = 0;
 
     switch (uMsg) {
+        case WM_SIZE:
+            {
+                p->window.width.value = LOWORD(lParam);
+                p->window.height.value = HIWORD(lParam);
+            } break;
         case WM_SETCURSOR:
             {
                 if (LOWORD(lParam) == HTCLIENT) {
