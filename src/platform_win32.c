@@ -166,17 +166,84 @@ static void *gl_get_proc_adress(const char *name)
     return p;
 }
 
+typedef enum
+{
+    ButtonStatePressed,
+    ButtonStateReleased,
+    ButtonStateDown,
+    ButtonStateUp
+} ButtonStateType;
+
+static void button_state_set(PlatformButtonState *b, ButtonStateType type)
+{
+    boolean pressed = false;
+    switch (type) {
+        case ButtonStatePressed:
+            pressed = true;
+        case ButtonStateReleased:
+            {
+                b->is_down   = pressed;
+                b->was_down  = !pressed;
+                b->just_down = pressed;
+                b->is_up     = !pressed;
+                b->was_up    = pressed;
+                b->just_up   = !pressed;
+            }
+            break;
+
+        case ButtonStateDown:
+            pressed = true;
+        case ButtonStateUp:
+            {
+                b->is_down = pressed;
+                b->is_up   = !pressed;
+
+                b->was_down = pressed;
+                b->was_up   = !pressed;
+
+                b->just_down = false;
+                b->just_up   = false;
+            }
+            break;
+    }
+}
+
+static inline void platform_win32_start_mouse_tracking(Platform *p)
+{
+    TRACKMOUSEEVENT tme = { .cbSize = sizeof(TRACKMOUSEEVENT), .dwFlags = TME_LEAVE, .hwndTrack = p->win32.window_handle };
+    TrackMouseEvent(&tme);
+    p->win32.reset_mouse_tracking = false;
+}
+
 static LRESULT CALLBACK platform_win32_window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     Platform *p    = (Platform *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
     LRESULT result = 0;
 
     switch (uMsg) {
+        case WM_MOUSELEAVE:
+            {
+                button_state_set(&platform.mouse.left_button, ButtonStateUp);
+                p->win32.reset_mouse_tracking = true;
+            }
+            break;
+        case WM_LBUTTONDOWN:
+            {
+                button_state_set(&p->mouse.left_button, ButtonStatePressed);
+            }
+            break;
+        case WM_LBUTTONUP:
+            {
+                button_state_set(&p->mouse.left_button, ButtonStateReleased);
+            }
+            break;
         case WM_SIZE:
             {
-                p->window.width.value = LOWORD(lParam);
+                p->window.width.value  = LOWORD(lParam);
                 p->window.height.value = HIWORD(lParam);
-            } break;
+                p->window.was_resized  = true;
+            }
+            break;
         case WM_SETCURSOR:
             {
                 if (LOWORD(lParam) == HTCLIENT) {
@@ -185,11 +252,16 @@ static LRESULT CALLBACK platform_win32_window_proc(HWND hwnd, UINT uMsg, WPARAM 
                 } else {
                     result = DefWindowProcA(wParam, uMsg, wParam, lParam);
                 }
-            } break;
+            }
+            break;
         case WM_MOUSEMOVE:
             {
                 p->mouse.raw.x = GET_X_LPARAM(lParam);
                 p->mouse.raw.y = GET_Y_LPARAM(lParam);
+
+                if (p->win32.reset_mouse_tracking) {
+                    platform_win32_start_mouse_tracking(p);
+                }
             }
             break;
         case WM_DESTROY:
@@ -208,11 +280,14 @@ static LRESULT CALLBACK platform_win32_window_proc(HWND hwnd, UINT uMsg, WPARAM 
 
 static LPCSTR platform_win32_get_cursor_name(Platform *p)
 {
-    if (maybe_is_nothing(p->window.cursor_style)) return IDC_ARROW;
+    if (maybe_is_nothing(p->window.cursor_style))
+        return IDC_ARROW;
 
-    switch(p->window.cursor_style.value) {
-        case PLATFORM_CURSOR_STYLE_NORMAL: return IDC_ARROW;
-        case PLATFORM_CURSOR_STYLE_HAND: return IDC_HAND;
+    switch (p->window.cursor_style.value) {
+        case PLATFORM_CURSOR_STYLE_NORMAL:
+            return IDC_ARROW;
+        case PLATFORM_CURSOR_STYLE_HAND:
+            return IDC_HAND;
     }
 }
 
@@ -275,6 +350,9 @@ static void platform_win32_init_window(Platform *p)
 
     // Save cached values
     p->window.cached.cursor_style = p->window.cursor_style.value;
+
+    // Start mouse tracking
+    platform_win32_start_mouse_tracking(p);
 }
 
 static ErrorCode platform_win32_init_gl(Platform *p)
@@ -367,7 +445,8 @@ static void platform_win32_pull_time(Platform *p)
     QueryPerformanceCounter(&curr_time);
     p->win32.qpc_time = curr_time;
 
-    if (prev_time.QuadPart == 0) return;
+    if (prev_time.QuadPart == 0)
+        return;
 
     delta_time.QuadPart = curr_time.QuadPart - prev_time.QuadPart;
 
@@ -376,7 +455,7 @@ static void platform_win32_pull_time(Platform *p)
 
     p->timing.counter++;
     p->timing.time += delta_time.QuadPart;
-    p->timing.delta_s = delta_time.QuadPart;
+    p->timing.delta_s  = delta_time.QuadPart;
     p->timing.delta_ms = delta_ms;
 }
 
@@ -390,16 +469,36 @@ static void platform_win32_pull(Platform *p)
 static void platform_win32_window_push(Platform *p)
 {
     if (p->window.cached.cursor_style != p->window.cursor_style.value) {
-        HCURSOR hc =LoadCursorA(0, platform_win32_get_cursor_name(p)); 
+        HCURSOR hc = LoadCursorA(0, platform_win32_get_cursor_name(p));
         SetCursor(hc);
-        p->win32.cursor_handle = hc;
+        p->win32.cursor_handle        = hc;
         p->window.cached.cursor_style = p->window.cursor_style.value;
     }
+
+    p->window.was_resized = false;
+}
+
+static void platform_win32_push_button(PlatformButtonState *b)
+{
+    if (b->was_down)
+        b->was_down = false;
+    if (b->just_down)
+        b->just_down = false;
+    if (b->was_up)
+        b->was_up = false;
+    if (b->just_up)
+        b->just_up = false;
+}
+
+static void platform_win32_push_mouse(Platform *p)
+{
+    platform_win32_push_button(&p->mouse.left_button);
 }
 
 static void platform_win32_push(Platform *p)
 {
     platform_win32_window_push(p);
+    platform_win32_push_mouse(p);
     SwapBuffers(p->win32.device_context);
 }
 

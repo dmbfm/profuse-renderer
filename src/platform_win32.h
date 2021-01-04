@@ -13,6 +13,8 @@ typedef struct PlatformWin32
     HCURSOR cursor_handle;
     LARGE_INTEGER qpc_freq;
     LARGE_INTEGER qpc_time;
+
+    boolean reset_mouse_tracking;
 } PlatformWin32;
 
 #endif /* _WIN32 */

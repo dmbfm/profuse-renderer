@@ -89,10 +89,24 @@ void p_frame(Platform *p)
     f32 g = (f32)p->mouse.y / p->window.height.value;
     float b = (1.0f - r) * (1.0f - g);
 
+    if (p->mouse.left_button.is_down)
+    {
+        r = 1;
+        g = 1;
+        b = 1;
+    } else if (p->mouse.left_button.was_down)
+    {
+        r = g = b = 0;
+    }
+
+
     glClearColor(r, g, b, 1);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    //platform_print_fmt(a, "(%d, %d)", p->mouse.x, p->mouse.y);
+    if (p->window.was_resized)
+    {
+        glViewport(0, 0, p->window.width.value, p->window.height.value); 
+    }
 
     if (r > 0.5)
         p->window.cursor_style.value = PLATFORM_CURSOR_STYLE_HAND;

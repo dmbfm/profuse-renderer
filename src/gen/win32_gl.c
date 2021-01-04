@@ -42,6 +42,7 @@ gl_glTexParameteri *glTexParameteri;
 gl_glPixelStorei *glPixelStorei;
 gl_glBlendFunc *glBlendFunc;
 gl_glGenerateMipmap *glGenerateMipmap;
+gl_glViewport *glViewport;
 
 static void platform_win32_gl_init_function_pointers(void)
 {
@@ -87,6 +88,7 @@ static void platform_win32_gl_init_function_pointers(void)
     GL_GETPROC(glPixelStorei);
     GL_GETPROC(glBlendFunc);
     GL_GETPROC(glGenerateMipmap);
+    GL_GETPROC(glViewport);
 
     assert(glClearColor);
     assert(glClear);
@@ -130,4 +132,5 @@ static void platform_win32_gl_init_function_pointers(void)
     assert(glPixelStorei);
     assert(glBlendFunc);
     assert(glGenerateMipmap);
+    assert(glViewport);
 }

@@ -1,6 +1,15 @@
 #ifndef __WIN32_API_H
 #define __WIN32_API_H
 
+
+#define TME_HOVER       0x00000001
+#define TME_LEAVE       0x00000002
+#if(WINVER >= 0x0500)
+#define TME_NONCLIENT   0x00000010
+#endif /* WINVER >= 0x0500 */
+#define TME_QUERY       0x40000000
+#define TME_CANCEL      0x80000000
+
 #define HTCLIENT           1
 #define CS_VREDRAW         0x0001
 #define CS_HREDRAW         0x0002
@@ -72,31 +81,50 @@
 #define WA_ACTIVE      1
 #define WA_CLICKACTIVE 2
 
-#define WM_SETFOCUS         0x0007
-#define WM_KILLFOCUS        0x0008
-#define WM_ENABLE           0x000A
-#define WM_SETREDRAW        0x000B
-#define WM_SETTEXT          0x000C
-#define WM_GETTEXT          0x000D
-#define WM_GETTEXTLENGTH    0x000E
-#define WM_PAINT            0x000F
-#define WM_CLOSE            0x0010
-#define WM_MOUSEMOVE        0x0200
-#define WM_QUIT             0x0012
-#define WM_ERASEBKGND       0x0014
-#define WM_SYSCOLORCHANGE   0x0015
-#define WM_SHOWWINDOW       0x0018
-#define WM_WININICHANGE     0x001A
-#define WM_DEVMODECHANGE    0x001B
-#define WM_ACTIVATEAPP      0x001C
-#define WM_FONTCHANGE       0x001D
-#define WM_TIMECHANGE       0x001E
-#define WM_CANCELMODE       0x001F
-#define WM_SETCURSOR        0x0020
-#define WM_MOUSEACTIVATE    0x0021
-#define WM_CHILDACTIVATE    0x0022
-#define WM_QUEUESYNC        0x0023
-#define WM_GETMINMAXINFO    0x0024
+#define WM_SETFOCUS       0x0007
+#define WM_KILLFOCUS      0x0008
+#define WM_ENABLE         0x000A
+#define WM_SETREDRAW      0x000B
+#define WM_SETTEXT        0x000C
+#define WM_GETTEXT        0x000D
+#define WM_GETTEXTLENGTH  0x000E
+#define WM_PAINT          0x000F
+#define WM_CLOSE          0x0010
+#define WM_MOUSEMOVE      0x0200
+#define WM_QUIT           0x0012
+#define WM_ERASEBKGND     0x0014
+#define WM_SYSCOLORCHANGE 0x0015
+#define WM_SHOWWINDOW     0x0018
+#define WM_WININICHANGE   0x001A
+#define WM_DEVMODECHANGE  0x001B
+#define WM_ACTIVATEAPP    0x001C
+#define WM_FONTCHANGE     0x001D
+#define WM_TIMECHANGE     0x001E
+#define WM_CANCELMODE     0x001F
+#define WM_SETCURSOR      0x0020
+#define WM_MOUSEACTIVATE  0x0021
+#define WM_CHILDACTIVATE  0x0022
+#define WM_QUEUESYNC      0x0023
+#define WM_GETMINMAXINFO  0x0024
+#define WM_MOUSEFIRST     0x0200
+#define WM_MOUSEMOVE      0x0200
+#define WM_LBUTTONDOWN    0x0201
+#define WM_LBUTTONUP      0x0202
+#define WM_LBUTTONDBLCLK  0x0203
+#define WM_RBUTTONDOWN    0x0204
+#define WM_RBUTTONUP      0x0205
+#define WM_RBUTTONDBLCLK  0x0206
+#define WM_MBUTTONDOWN    0x0207
+#define WM_MBUTTONUP      0x0208
+#define WM_MBUTTONDBLCLK  0x0209
+#define WM_MOUSEWHEEL     0x020A
+#define WM_XBUTTONDOWN    0x020B
+#define WM_XBUTTONUP      0x020C
+#define WM_XBUTTONDBLCLK  0x020D
+#define WM_MOUSEHWHEEL    0x020E
+#define WM_MOUSEHOVER     0x02A1
+#define WM_MOUSELEAVE     0x02A3
+
 #define WS_OVERLAPPED       0x00000000L
 #define WS_POPUP            0x80000000L
 #define WS_CHILD            0x40000000L
@@ -450,4 +478,14 @@ typedef union _LARGE_INTEGER
 } LARGE_INTEGER;
 BOOL QueryPerformanceCounter(LARGE_INTEGER *lpPerformanceCount);
 BOOL QueryPerformanceFrequency(LARGE_INTEGER *lpFrequency);
+
+typedef struct tagTRACKMOUSEEVENT
+{
+    DWORD cbSize;
+    DWORD dwFlags;
+    HWND hwndTrack;
+    DWORD dwHoverTime;
+} TRACKMOUSEEVENT, *LPTRACKMOUSEEVENT;
+BOOL TrackMouseEvent(LPTRACKMOUSEEVENT lpEventTrack);
+
 #endif /* __WIN32_API_H */

@@ -71,6 +71,7 @@ GLFUNC(void, glTexParameteri, GLenum target, GLenum pname, GLint param);
 GLFUNC(void, glPixelStorei, GLenum pname, GLint param);
 GLFUNC(void, glBlendFunc, GLenum sfactor, GLenum dfactor);
 GLFUNC(void, glGenerateMipmap, GLenum target);
+GLFUNC(void, glViewport, GLint x, GLint y, GLsizei width, GLsizei height);
 // clang-format on
 
 #define GL_DEPTH_BUFFER_BIT                  0x00000100

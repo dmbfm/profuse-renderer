@@ -24,7 +24,11 @@ maybe_make_type(PlatformCursorStyle);
 typedef struct
 {
     boolean is_down;
+    boolean is_up;
     boolean was_down;
+    boolean was_up;
+    boolean just_down;
+    boolean just_up;
 } PlatformButtonState;
 
 typedef struct Platform
@@ -40,7 +44,7 @@ typedef struct Platform
         Maybe(u32) height;
         Maybe(PlatformCursorStyle) cursor_style;
 
-        boolean resized;
+        boolean was_resized;
 
         struct
         {
