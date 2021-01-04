@@ -92,7 +92,7 @@ void p_frame(Platform *p)
     glClearColor(r, g, b, 1);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    platform_print_fmt(a, "(%d, %d)", p->mouse.x, p->mouse.y);
+    //platform_print_fmt(a, "(%d, %d)", p->mouse.x, p->mouse.y);
 
     if (r > 0.5)
         p->window.cursor_style.value = PLATFORM_CURSOR_STYLE_HAND;

@@ -11,6 +11,8 @@ typedef struct PlatformWin32
     HWND window_handle;
     HDC device_context;
     HCURSOR cursor_handle;
+    LARGE_INTEGER qpc_freq;
+    LARGE_INTEGER qpc_time;
 } PlatformWin32;
 
 #endif /* _WIN32 */

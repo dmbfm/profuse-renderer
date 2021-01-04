@@ -360,9 +360,29 @@ static void platform_win32_pull_messages(Platform *p)
     }
 }
 
+static void platform_win32_pull_time(Platform *p)
+{
+    LARGE_INTEGER prev_time = p->win32.qpc_time;
+    LARGE_INTEGER curr_time, delta_time;
+    QueryPerformanceCounter(&curr_time);
+    p->win32.qpc_time = curr_time;
+
+    if (prev_time.QuadPart == 0) return;
+
+    delta_time.QuadPart = curr_time.QuadPart - prev_time.QuadPart;
+
+    double delta_ms = delta_time.QuadPart * 1000;
+    delta_ms /= p->win32.qpc_freq.QuadPart;
+
+    p->timing.counter++;
+    p->timing.time += delta_time.QuadPart;
+    p->timing.delta_s = delta_time.QuadPart;
+    p->timing.delta_ms = delta_ms;
+}
+
 static void platform_win32_pull(Platform *p)
 {
-    platform.timing.counter++;
+    platform_win32_pull_time(p);
     platform_win32_pull_messages(p);
     platform_win32_pull_mouse(p);
 }
@@ -395,6 +415,8 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     platform_init_defaults(&platform);
     platform_win32_init_window(&platform);
     platform_win32_init_gl(&platform);
+
+    QueryPerformanceFrequency(&platform.win32.qpc_freq);
 
     p_init(&platform);
 

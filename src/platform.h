@@ -69,7 +69,10 @@ typedef struct Platform
 
     struct
     {
-        u32 counter;
+        f64 time;
+        f64 delta_s;
+        f64 delta_ms;
+        u64 counter;
     } timing;
 
     void *user_context;
