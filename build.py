@@ -490,7 +490,7 @@ b.add_task("wasm", wasm_task)
 b.set_default("wasm")
 
 # 'test' task
-test_flags = [] if (get_default_target().env == TargetEnv.Win32) else ["-lm"]
+test_flags = ["/Z7"] if (get_default_target().env == TargetEnv.Win32) else ["-lm"]
 
 tests = EmptyTask()
 tests.deps.add(create_test_task("maybe", "src/maybe.c", get_default_target()))
@@ -498,7 +498,9 @@ tests.deps.add(create_test_task("result", "src/result.c", get_default_target()))
 tests.deps.add(create_test_task("math", "src/math.c", get_default_target(), flags=test_flags))
 tests.deps.add(create_test_task("math", "src/slice.c", get_default_target(), flags=test_flags))
 tests.deps.add(create_test_task("heap", "src/heap.c", get_default_target(), flags=test_flags))
-tests.deps.add(create_test_task("heap_wasm", "src/heap_wasm.c", get_default_target(), flags=test_flags))
+#tests.deps.add(create_test_task("heap_wasm", "src/heap_wasm.c", get_default_target(), flags=test_flags))
+tests.deps.add(create_test_task("list", "src/list.c", get_default_target(), flags=test_flags))
+tests.deps.add(create_test_task("string_intern", "src/string_intern.c", get_default_target(), flags=test_flags))
 
 b.add_task("test", tests)
 

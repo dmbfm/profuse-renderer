@@ -4,6 +4,9 @@
 #include "allocator.h"
 #include "common.h"
 #include "result.h"
+#include "slice.h"
+
+// NOTE: Will using the header like we do in here cause alignment issues?
 
 typedef struct ListHdr
 {
@@ -45,15 +48,19 @@ typedef struct ListHdr
 // Free the list
 #define list_free(l) (__list_allocator(l)->free(__list_allocator(l), (uptr)l - sizeof(ListHdr)), (l) = 0)
 
-#define list_fill_len(l, v) \
-    for(int i = 0; i < list_len(l); i++) (l)[i] = (v)
+#define list_fill_len(l, v)               \
+    for (int i = 0; i < list_len(l); i++) \
+    (l)[i] = (v)
 
-#define list_fill_cap(l, v) \
-    for(int i = 0; i < list_cap(l); i++) list_push(l, v)
+#define list_fill_cap(l, v)               \
+    for (int i = 0; i < list_cap(l); i++) \
+    list_push(l, v)
 
-#define list_fill_n(l, n, v) \
-    for(int i = 0; i < n; i++) (n < list_len(l) ? (l)[i] = (v) : list_push(l, v))
+#define list_fill_n(l, n, v)    \
+    for (int i = 0; i < n; i++) \
+    (n < list_len(l) ? (l)[i] = (v) : list_push(l, v))
 
+#define list_as_slice(type, l) slice_from_array(type, (l), list_len(l))
 
 static inline uptr __list_growf(uptr list, usize increment, usize element_size)
 {
