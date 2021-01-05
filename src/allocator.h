@@ -9,6 +9,7 @@
 typedef struct Allocator
 {
     Result(uptr) (*alloc)(struct Allocator *allocator, usize amount);
+    Result(uptr) (*realloc)(struct Allocator *allocator, uptr region, usize amount);
     void (*free)(struct Allocator *allocator, uptr region);
     uptr allocator_state;
 } Allocator;

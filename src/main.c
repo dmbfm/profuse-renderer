@@ -47,6 +47,7 @@ Platform p_config(void)
     return p;
 }
 
+#include "list.h"
 void p_init(Platform *p)
 {
     UNUSED_VARIABLE(p);
