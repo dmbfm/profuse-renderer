@@ -60,6 +60,8 @@ typedef struct ListHdr
     for (int i = 0; i < n; i++) \
     (n < list_len(l) ? (l)[i] = (v) : list_push(l, v))
 
+#define list_for(name,l) for(usize name = 0; name < list_len(l); name++) 
+
 #define list_as_slice(type, l) slice_from_array(type, (l), list_len(l))
 
 static inline uptr __list_growf(uptr list, usize increment, usize element_size)

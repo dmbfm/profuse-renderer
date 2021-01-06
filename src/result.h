@@ -17,7 +17,7 @@
         return (r);
 
 #define result_raise_error_code(r) \
-    if (result_is_error((r))) \
+    if (result_is_error((r)))      \
         return (r).error_code;
 
 #define result_set_ok(r, v) \
@@ -34,7 +34,7 @@
         boolean is_error;      \
         u32 error_code;        \
         type value;            \
-    } Result(type) \
+    } Result(type)
 
 result_make_type(u8);
 result_make_type(u16);

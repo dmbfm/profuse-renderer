@@ -23,6 +23,7 @@ typedef unsigned int uint;
 typedef size_t usize;
 typedef intptr_t iptr;
 typedef uintptr_t uptr;
+typedef void *voidptr;
 
 typedef u8 boolean;
 

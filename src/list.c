@@ -18,7 +18,7 @@ test(list_push)
         list_push(xs, i);
     }
 
-    forn(i, 1000)
+    list_for(i, xs)
     {
         expect(xs[i] == i);
     }
@@ -51,6 +51,7 @@ test(list_as_slice)
 suite()
 {
     run_test(list_push);
+    run_test(list_as_slice);
 }
 
 #endif /* defined(__RUN_TESTS) */
