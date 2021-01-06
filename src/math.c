@@ -5,6 +5,10 @@
 #include <math.h>
 #endif
 
+// TODO:
+// - Mat3
+// - Mat4 projection/lookat matrix tests
+
 f32 math_floor_f32(f32 x)
 {
     union
@@ -849,6 +853,25 @@ test(vec4_len)
     expect(math_is_equalf(vec4_len(v), 72.433663444f));
 }
 
+test(mat4_mul)
+{
+    Mat4 m1     = { 0, 2, 0, 0, 0, 0, 0, 4, 0, 3, 0, 0, 0, 0, 1, 0 };
+    Mat4 m2     = { 1, 4, 0, 1, 2, 0, 5, 0, 3, 5, 0, 2, 5, 0, 4, 0 };
+    Mat4 result = { 0, 2, 1, 16, 0, 19, 0, 0, 0, 6, 2, 20, 0, 22, 0, 0 };
+
+    expect(mat4_is_equal(mat4_mul(mat4_id(), mat4_id()), mat4_id()));
+    expect(mat4_is_equal(mat4_mul(mat4_id(), mat4_diag(2.5f)), mat4_diag(2.5f)));
+    expect(mat4_is_equal(mat4_mul(m1, m2), result));
+}
+
+test(mat4_translation)
+{
+    f32 t = 10.0f;
+    Mat4 result = {1, 0, 0, 0,  0, 1, 0, 0,  0, 0, 1, 0,  t, t, t, 1};
+
+    expect(mat4_is_equal(result, mat4_translation(vec3(t, t, t))));
+}
+
 suite()
 {
     run_test(math_floor_f32);
@@ -883,6 +906,8 @@ suite()
     run_test(vec4_dot);
     run_test(vec4_len);
 
+    run_test(mat4_mul);
+    run_test(mat4_translation);
 }
 
 #endif /* __RUN_TESTS */
