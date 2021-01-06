@@ -116,7 +116,7 @@ i32 math_round_f32_to_i32_unsafe(f32 x)
 
 u32 math_div_ceil_u32(u32 a, u32 b)
 {
-    return ((a - !!a)/b) + !!a;
+    return ((a - !!a) / b) + !!a;
 }
 
 // TODO: This is not a good equality tests for floats:
@@ -182,7 +182,7 @@ f32 math_tanf(f32 x)
 #endif /* __wasm__ */
 }
 
-f32 math_sqrtf(f32 x) 
+f32 math_sqrtf(f32 x)
 {
 #ifdef __wasm__
     return math_wasm_sqrtf(x);
@@ -191,10 +191,9 @@ f32 math_sqrtf(f32 x)
 #endif
 }
 
-
 Vec2 vec2(f32 x, f32 y)
 {
-    return (Vec2){ .x = x, .y = x };
+    return (Vec2){ .x = x, .y = y };
 }
 
 Vec2 vec2_fill(f32 x)
@@ -247,9 +246,19 @@ Vec2 vec2_normalized(Vec2 v)
     return vec2_smul(1.0f / vec2_len(v), v);
 }
 
+boolean vec2_is_equal(Vec2 a, Vec2 b)
+{
+    return math_is_equalf(a.x, b.x) && math_is_equalf(a.y, b.y);
+}
+
 Vec3 vec3(f32 x, f32 y, f32 z)
 {
     return (Vec3){ .x = x, .y = y, .z = z };
+}
+
+Vec3 vec3_fill(f32 value)
+{
+    return vec3(value, value, value);
 }
 
 Vec3 vec3_zero()
@@ -313,7 +322,7 @@ Vec3 vec3_j()
 }
 
 Vec3 vec3_k()
-{   
+{
     return vec3(0, 0, 1);
 }
 
@@ -565,9 +574,8 @@ Mat4 mat4_rotY(float angle)
     return result;
 }
 
-
-#ifdef __RUN_TESTS
-//#if 1
+//#ifdef __RUN_TESTS
+#if 1
 #include "test.h"
 #include <math.h>
 
@@ -655,6 +663,192 @@ test(math_div_ceil_u32)
     expect(math_div_ceil_u32(11, 10) == 2);
 }
 
+test(vec2_is_equal)
+{
+    Vec2 v1 = vec2(1.0f, 2.0f);
+
+    expect(vec2_is_equal(v1, v1));
+}
+
+test(vec2_add)
+{
+    Vec2 v1 = vec2(1.0f, 2.0f);
+    Vec2 v2 = vec2(3.0f, 4.0f);
+    Vec2 v3 = vec2_add(v1, v2);
+
+    expect(math_is_equalf(v3.x, 4.0f));
+    expect(math_is_equalf(v3.y, 6.0f));
+}
+
+test(vec2_sub)
+{
+    Vec2 v1 = vec2(1.0f, 2.0f);
+    Vec2 v2 = vec2(3.0f, 4.0f);
+    Vec2 v3 = vec2_sub(v1, v2);
+
+    expect(vec2_is_equal(v3, vec2(-2.0f, -2.0f)));
+}
+
+test(vec2_mul)
+{
+    Vec2 v1 = vec2(1.0f, 2.0f);
+    Vec2 v2 = vec2(3.0f, 4.0f);
+    Vec2 v3 = vec2_mul(v1, v2);
+
+    expect(vec2_is_equal(v3, vec2(3.0f, 8.0f)));
+}
+
+test(vec2_smul)
+{
+    Vec2 v2 = vec2(3.0f, 4.0f);
+    Vec2 v3 = vec2_smul(2.0f, v2);
+
+    expect(vec2_is_equal(v3, vec2(6.0f, 8.0f)));
+}
+
+test(vec2_dot)
+{
+    Vec2 v1 = vec2(1.0f, 2.0f);
+    Vec2 v2 = vec2(3.0f, 4.0f);
+
+    expect(math_is_equalf(vec2_dot(v1, v2), 11.0f));
+}
+
+test(vec2_len)
+{
+    Vec2 v = vec2(3.4f, 72.34f);
+
+    expect(math_is_equalf(vec2_len(v), 72.41985639));
+}
+
+test(vec2_fill)
+{
+    Vec2 v = vec2_fill(2.0f);
+
+    expect(vec2_is_equal(v, vec2(2.0, 2.0)));
+}
+
+test(vec3_is_equal)
+{
+    Vec3 v1 = vec3(1.0f, 2.0f, 3.0f);
+
+    expect(vec3_is_equal(v1, v1));
+}
+
+test(vec3_add)
+{
+    Vec3 v1 = vec3(1.0f, 2.0f, 6.0f);
+    Vec3 v2 = vec3(3.0f, 4.0f, 8.0f);
+    Vec3 v3 = vec3_add(v1, v2);
+
+    expect(vec3_is_equal(v3, vec3(4.0f, 6.0f, 14.0f)));
+}
+
+test(vec3_sub)
+{
+    Vec3 v1 = vec3(1.0f, 2.0f, 6.0f);
+    Vec3 v2 = vec3(3.0f, 4.0f, 8.0f);
+    Vec3 v3 = vec3_sub(v1, v2);
+
+    expect(vec3_is_equal(v3, vec3(-2.0f, -2.0f, -2.0f)));
+}
+
+test(vec3_mul)
+{
+    Vec3 v1 = vec3(1.0f, 2.0f, 6.0f);
+    Vec3 v2 = vec3(3.0f, 4.0f, 8.0f);
+    Vec3 v3 = vec3_mul(v1, v2);
+
+    expect(vec3_is_equal(v3, vec3(3.0f, 8.0f, 48.0f)));
+}
+
+test(vec3_smul)
+{
+    Vec3 v2 = vec3(3.0f, 4.0f, 8.0f);
+    Vec3 v3 = vec3_smul(2.0f, v2);
+
+    expect(vec3_is_equal(v3, vec3(6.0f, 8.0f, 16.0f)));
+}
+
+test(vec3_dot)
+{
+    Vec3 v1 = vec3(1.0f, 2.0f, 6.0f);
+    Vec3 v2 = vec3(3.0f, 4.0f, 8.0f);
+
+    expect(math_is_equalf(vec3_dot(v1, v2), 59.0f));
+}
+
+test(vec3_len)
+{
+    Vec3 v = vec3(3.4f, 72.34f, 1.0f);
+
+    expect(math_is_equalf(vec3_len(v), 72.42676024));
+}
+
+test(vec3_cross)
+{
+    expect(vec3_is_equal(vec3_cross(vec3_j(), vec3_k()), vec3_i()));
+    expect(vec3_is_equal(vec3_cross(vec3_i(), vec3_j()), vec3_k()));
+    expect(vec3_is_equal(vec3_cross(vec3_k(), vec3_i()), vec3_j()));
+}
+
+test(vec4_is_equal)
+{
+    Vec4 v1 = vec4(1.0f, 2.0f, 3.0f, 10.f);
+
+    expect(vec4_is_equal(v1, v1));
+}
+
+test(vec4_add)
+{
+    Vec4 v1 = vec4(1.0f, 2.0f, 6.0f, 10.0f);
+    Vec4 v2 = vec4(3.0f, 4.0f, 8.0f, 12.0f);
+    Vec4 v3 = vec4_add(v1, v2);
+
+    expect(vec4_is_equal(v3, vec4(4.0f, 6.0f, 14.0f, 22.0f)));
+}
+
+test(vec4_sub)
+{
+    Vec4 v1 = vec4(1.0f, 2.0f, 6.0f, 10.0f);
+    Vec4 v2 = vec4(3.0f, 4.0f, 8.0f, 12.0f);
+    Vec4 v3 = vec4_sub(v1, v2);
+
+    expect(vec4_is_equal(v3, vec4(-2.0f, -2.0f, -2.0f, -2.0f)));
+}
+
+test(vec4_mul)
+{
+    Vec4 v1 = vec4(1.0f, 2.0f, 6.0f, 10.0f);
+    Vec4 v2 = vec4(3.0f, 4.0f, 8.0f, 12.0f);
+    Vec4 v3 = vec4_mul(v1, v2);
+
+    expect(vec4_is_equal(v3, vec4(3.0f, 8.0f, 48.0f, 120.0f)));
+}
+
+test(vec4_smul)
+{
+    Vec4 v2 = vec4(3.0f, 4.0f, 8.0f, 10.0f);
+    Vec4 v3 = vec4_smul(2.0f, v2);
+
+    expect(vec4_is_equal(v3, vec4(6.0f, 8.0f, 16.0f, 20.0f)));
+}
+
+test(vec4_dot)
+{
+    Vec4 v1 = vec4(1.0f, 2.0f, 6.0f, 10.0f);
+    Vec4 v2 = vec4(3.0f, 4.0f, 8.0f, 12.0f);
+
+    expect(math_is_equalf(vec4_dot(v1, v2), 179.0f));
+}
+
+test(vec4_len)
+{
+    Vec4 v = vec4(3.4f, 72.34f, 1.0f, 1.0f);
+
+    expect(math_is_equalf(vec4_len(v), 72.433663444f));
+}
+
 suite()
 {
     run_test(math_floor_f32);
@@ -662,6 +856,33 @@ suite()
     run_test(math_ceil_f32);
     run_test(math_round_f32);
     run_test(math_div_ceil_u32);
+
+    run_test(vec2_is_equal);
+    run_test(vec2_add);
+    run_test(vec2_sub);
+    run_test(vec2_mul);
+    run_test(vec2_smul);
+    run_test(vec2_dot);
+    run_test(vec2_len);
+    run_test(vec2_fill);
+
+    run_test(vec3_is_equal);
+    run_test(vec3_add);
+    run_test(vec3_sub);
+    run_test(vec3_mul);
+    run_test(vec3_smul);
+    run_test(vec3_dot);
+    run_test(vec3_len);
+    run_test(vec3_cross);
+
+    run_test(vec4_is_equal);
+    run_test(vec4_add);
+    run_test(vec4_sub);
+    run_test(vec4_mul);
+    run_test(vec4_smul);
+    run_test(vec4_dot);
+    run_test(vec4_len);
+
 }
 
 #endif /* __RUN_TESTS */
