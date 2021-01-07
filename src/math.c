@@ -5,9 +5,8 @@
 #include <math.h>
 #endif
 
-// TODO:
-// - Mat3
-// - Mat4 projection/lookat matrix tests
+// TODO: Mat3
+// TODO: Projection/lookat matrix tests
 
 f32 math_floor_f32(f32 x)
 {

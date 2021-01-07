@@ -12,9 +12,9 @@
 #define result_ifok(r)         if (result_is_ok(r))
 #define result_unwrap(r)       (result_is_error(r) ? panic() : 0, r.value)
 
-#define result_raise(r)       \
+#define result_raise(type, r)       \
     if (result_is_error((r))) \
-        return (r);
+        return result_error(type, r.error_code);
 
 #define result_raise_error_code(r) \
     if (result_is_error((r)))      \

@@ -501,6 +501,7 @@ tests.deps.add(create_test_task("heap", "src/heap.c", get_default_target(), flag
 #tests.deps.add(create_test_task("heap_wasm", "src/heap_wasm.c", get_default_target(), flags=test_flags))
 tests.deps.add(create_test_task("list", "src/list.c", get_default_target(), flags=test_flags))
 tests.deps.add(create_test_task("string_intern", "src/string_intern.c", get_default_target(), flags=test_flags))
+tests.deps.add(create_test_task("utils", "src/utils.c", get_default_target(), flags=test_flags))
 
 b.add_task("test", tests)
 

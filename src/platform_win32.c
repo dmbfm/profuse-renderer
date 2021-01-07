@@ -453,7 +453,7 @@ static void platform_win32_pull_time(Platform *p)
     double delta_ms = delta_time.QuadPart * 1000;
     delta_ms /= p->win32.qpc_freq.QuadPart;
 
-    p->timing.counter++;
+    p->timing.frame_count++;
     p->timing.time += delta_time.QuadPart;
     p->timing.delta_s  = delta_time.QuadPart;
     p->timing.delta_ms = delta_ms;

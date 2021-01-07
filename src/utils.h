@@ -2,6 +2,9 @@
 #define __UTILS_H 
 
 #include "common.h"
+#include "result.h"
+#include "slice.h"
+#include "allocator.h"
 
 #ifndef __wasm__
 #include "string.h"
@@ -41,5 +44,8 @@ static inline usize string_len(const char *str)
 #endif
 }
 
+#ifndef __wasm__
+Result(Slice(charptr)) read_file_lines(Allocator *a, const char *filename, int *num_lines);
+#endif /* __wasm__ */
 
 #endif /* __UTILS_H */

@@ -64,11 +64,11 @@ Result(GLuint) rgl_create_program_raw(Allocator *a, const char *vshader, const c
     Result(GLuint) r;
 
     r = rgl_compile_shader_raw(a, GL_VERTEX_SHADER, vshader);
-    result_raise(r);
+    result_raise(GLuint, r);
     vertexshader = r.value;
 
     r = rgl_compile_shader_raw(a, GL_FRAGMENT_SHADER, fshader);
-    result_raise(r);
+    result_raise(GLuint, r);
     fragshader = r.value;
 
     program = glCreateProgram();

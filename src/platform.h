@@ -76,7 +76,7 @@ typedef struct Platform
         f64 time;
         f64 delta_s;
         f64 delta_ms;
-        u64 counter;
+        u64 frame_count;
     } timing;
 
     void *user_context;

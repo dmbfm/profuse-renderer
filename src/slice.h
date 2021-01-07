@@ -37,7 +37,7 @@
 #define slice_set(s, i, v) (((i) < slice_len(s)) ? (s.data[(i)] = (v)) : (panic(), s.data[0]))
 #endif
 
-#define slice_for(name, s) for(usize name = 0; name < slice_len(s); name ++)
+#define slice_for(name, s) for (usize name = 0; name < slice_len(s); name++)
 
 slice_make_type(i8);
 slice_make_type(i16);
@@ -52,7 +52,9 @@ slice_make_type(usize);
 slice_make_type(f32);
 slice_make_type(f64);
 slice_make_type(Maybe(u32));
+slice_make_type(charptr);
 
 result_make_type(Slice(u8));
+result_make_type(Slice(charptr));
 
 #endif /* __SLICE_H */

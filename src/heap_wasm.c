@@ -94,7 +94,7 @@ Result(uptr) heap_wasm_memory_bump_align(HeapWasmMemory *m, usize amount, usize 
     uptr current          = m->start + m->offset;
     Result(uptr) raligned = mem_align_pointer_forward(current, alignment);
 
-    result_raise(raligned);
+    result_raise(uptr, raligned);
 
     uptr aligned = raligned.value;
 
@@ -102,7 +102,7 @@ Result(uptr) heap_wasm_memory_bump_align(HeapWasmMemory *m, usize amount, usize 
 
     Result(uptr) rptr = heap_wasm_memory_bump(m, amount + delta);
 
-    result_raise(rptr);
+    result_raise(uptr, rptr);
 
     return result_ok(uptr, aligned);
 }
