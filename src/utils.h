@@ -45,7 +45,7 @@ static inline usize string_len(const char *str)
 }
 
 #ifndef __wasm__
-Result(Slice(charptr)) read_file_lines(Allocator *a, const char *filename, int *num_lines);
+Result(Slice(charptr)) read_file_lines(Allocator *a, const char *filename);
 #endif /* __wasm__ */
 
 #endif /* __UTILS_H */

@@ -57,7 +57,7 @@ static usize file_byte_size(FILE *f)
     return size;
 }
 
-Result(Slice(charptr)) read_file_lines(Allocator *a, const char *filename, int *out_num_lines)
+Result(Slice(charptr)) read_file_lines(Allocator *a, const char *filename)
 {
     FILE *f;
 
@@ -82,10 +82,10 @@ Result(Slice(charptr)) read_file_lines(Allocator *a, const char *filename, int *
     // Close the file
     fclose(f);
 
+    // Scan the file to count the number of lines
     char *c = buffer;
     u32 lc  = 0;
     while (*c != 0) {
-        // if (*c == '\r' && *(c+1) == '\n') c++;
         if (*c == '\n') {
             lc++;
         }
@@ -147,7 +147,16 @@ Result(Slice(charptr)) read_file_lines(Allocator *a, const char *filename, int *
 
 test(read_file_lines)
 {
-    read_file_lines(&heap_allocator, "glgen.py", 0);
+    Result(Slice(charptr)) r_lines = read_file_lines(&heap_allocator, "test_data\\read_file_lines.txt");
+
+    expect(result_is_ok(r_lines));
+
+    Slice(charptr) lines = r_lines.value;
+
+    expect(slice_len(lines) == 3);
+    expect(string_compare(slice_get(lines, 0), "This is line 1") == 0);
+    expect(string_compare(slice_get(lines, 1), "This is line 2") == 0);
+    expect(string_compare(slice_get(lines, 2), "And this is line 3!") == 0);
 }
 
 suite()
