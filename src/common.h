@@ -94,14 +94,14 @@ static inline void common_print(const char *string) {
     #define CSTDCALL
 #endif
 
-#define DECL_FUNC_POINTER(qualifier, ret, typename, varname, ...)                                                      \
-    typedef ret(CSTDCALL typename)(__VA_ARGS__);                                                                       \
+#define DECL_FUNC_POINTER(qualifier, ret, typename, varname, ...) \
+    typedef ret(CSTDCALL typename)(__VA_ARGS__);                  \
     qualifier typename *varname;
 
 #if 1
-    #define assert(exp)                                                                                                \
-        if (!(exp)) {                                                                                                  \
-            panic();                                                                                                   \
+    #define assert(exp) \
+        if (!(exp)) {   \
+            panic();    \
         }
 #else
     #define assert(exp)

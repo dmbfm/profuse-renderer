@@ -48,16 +48,16 @@ typedef struct ListHdr {
 // Free the list
 #define list_free(l) (__list_allocator(l)->free(__list_allocator(l), (uptr)l - sizeof(ListHdr)), (l) = 0)
 
-#define list_fill_len(l, v)                                                                                            \
-    for (int i = 0; i < list_len(l); i++)                                                                              \
+#define list_fill_len(l, v)               \
+    for (int i = 0; i < list_len(l); i++) \
     (l)[i] = (v)
 
-#define list_fill_cap(l, v)                                                                                            \
-    for (int i = 0; i < list_cap(l); i++)                                                                              \
+#define list_fill_cap(l, v)               \
+    for (int i = 0; i < list_cap(l); i++) \
     list_push(l, v)
 
-#define list_fill_n(l, n, v)                                                                                           \
-    for (int i = 0; i < n; i++)                                                                                        \
+#define list_fill_n(l, n, v)    \
+    for (int i = 0; i < n; i++) \
     (n < list_len(l) ? (l)[i] = (v) : list_push(l, v))
 
 #define list_for(name, l) for (usize name = 0; name < list_len(l); name++)

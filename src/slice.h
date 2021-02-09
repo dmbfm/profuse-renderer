@@ -18,11 +18,11 @@
 
 #define Slice(type) TOKENPASTE(Slice_, type)
 
-#define slice_make_type(type)                                                                                          \
-    typedef struct Slice(type) {                                                                                       \
-        usize len;                                                                                                     \
-        type *data;                                                                                                    \
-    }                                                                                                                  \
+#define slice_make_type(type)    \
+    typedef struct Slice(type) { \
+        usize len;               \
+        type *data;              \
+    }                            \
     Slice(type);
 
 #define slice_from_array(type, arr, n)                ((Slice(type)){.len = (n), .data = &(arr)[0]})

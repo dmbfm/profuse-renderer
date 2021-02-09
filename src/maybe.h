@@ -13,13 +13,13 @@
 #define maybe_set_some(m, v)  (m.is_something = true, m.value = v)
 #define maybe_set_nothing(m)  m.is_something = false;
 #define maybe_map(type, m, f) (maybe_is_something(m) ? maybe_some(type, f(m.value)) : maybe_nothing(type))
-#define maybe_lift(type, m1, m2, f)                                                                                    \
+#define maybe_lift(type, m1, m2, f) \
     (maybe_is_something(m1) && maybe_is_something(m2) ? maybe_some(type, f(m1.value, m2.value)) : maybe_nothing(type))
 
-#define maybe_make_type(type)                                                                                          \
-    typedef struct {                                                                                                   \
-        u8   is_something;                                                                                             \
-        type value;                                                                                                    \
+#define maybe_make_type(type) \
+    typedef struct {          \
+        u8   is_something;    \
+        type value;           \
     } Maybe(type)
 
 maybe_make_type(u8);

@@ -270,28 +270,28 @@ HMODULE GetModuleHandleA(LPCSTR lpModuleName);
 ATOM RegisterClassA(const WNDCLASSA *lpWndClass);
 #define RegisterClass RegisterClassA
 
-#define CreateWindowA(lpClassName,                                                                                     \
-                      lpWindowName,                                                                                    \
-                      dwStyle,                                                                                         \
-                      x,                                                                                               \
-                      y,                                                                                               \
-                      nWidth,                                                                                          \
-                      nHeight,                                                                                         \
-                      hWndParent,                                                                                      \
-                      hMenu,                                                                                           \
-                      hInstance,                                                                                       \
-                      lpParam)                                                                                         \
-    CreateWindowExA(0L,                                                                                                \
-                    lpClassName,                                                                                       \
-                    lpWindowName,                                                                                      \
-                    dwStyle,                                                                                           \
-                    x,                                                                                                 \
-                    y,                                                                                                 \
-                    nWidth,                                                                                            \
-                    nHeight,                                                                                           \
-                    hWndParent,                                                                                        \
-                    hMenu,                                                                                             \
-                    hInstance,                                                                                         \
+#define CreateWindowA(lpClassName,  \
+                      lpWindowName, \
+                      dwStyle,      \
+                      x,            \
+                      y,            \
+                      nWidth,       \
+                      nHeight,      \
+                      hWndParent,   \
+                      hMenu,        \
+                      hInstance,    \
+                      lpParam)      \
+    CreateWindowExA(0L,             \
+                    lpClassName,    \
+                    lpWindowName,   \
+                    dwStyle,        \
+                    x,              \
+                    y,              \
+                    nWidth,         \
+                    nHeight,        \
+                    hWndParent,     \
+                    hMenu,          \
+                    hInstance,      \
                     lpParam)
 
 WINUSERAPI
