@@ -5,16 +5,15 @@
 #include <stdarg.h>
 
 #ifndef __wasm__
-#include <stdio.h>
-#include <stdlib.h>
+    #include <stdio.h>
+    #include <stdlib.h>
 #endif /* __wasm__ */
 
-static void debug_log_output_string(const char *string)
-{
+static void debug_log_output_string(const char *string) {
 #if defined(__wasm__)
     common_wasm_print_message(string);
 #elif defined(_WIN32)
-#include "win32_api.h"
+    #include "win32_api.h"
     OutputDebugString(string);
     OutputDebugString("\n");
 #else
@@ -22,8 +21,7 @@ static void debug_log_output_string(const char *string)
 #endif /* defined(__wasm__) */
 }
 
-void debug_log(const char *fmt, ...)
-{
+void debug_log(const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
 
@@ -47,8 +45,7 @@ void debug_log(const char *fmt, ...)
 
 #ifndef __wasm__
 
-static usize file_byte_size(FILE *f)
-{
+static usize file_byte_size(FILE *f) {
     u32 curr = ftell(f);
     fseek(f, 0, SEEK_END);
     usize size = ftell(f);
@@ -57,8 +54,8 @@ static usize file_byte_size(FILE *f)
     return size;
 }
 
-Result(Slice(charptr)) read_file_lines(Allocator *a, const char *filename)
-{
+Result(Slice(charptr))
+    read_file_lines(Allocator *a, const char *filename) {
     FILE *f;
 
     // Try opening the file
@@ -83,8 +80,8 @@ Result(Slice(charptr)) read_file_lines(Allocator *a, const char *filename)
     fclose(f);
 
     // Scan the file to count the number of lines
-    char *c = buffer;
-    u32 lc  = 0;
+    char *c  = buffer;
+    u32   lc = 0;
     while (*c != 0) {
         if (*c == '\n') {
             lc++;
@@ -93,25 +90,29 @@ Result(Slice(charptr)) read_file_lines(Allocator *a, const char *filename)
         c++;
     }
 
-    // Allocate space for (LC + 1) array of char pointers + all the text (len + 1)
-    Result(uptr) r_list = a->alloc(a, lc * sizeof(charptr) + len + 1);
+    // Allocate space for (LC + 1) array of char pointers +
+    // all the text (len + 1)
+    Result(uptr) r_list =
+        a->alloc(a, lc * sizeof(charptr) + len + 1);
     result_raise(Slice(charptr), r_list);
     charptr *list = (charptr *)r_list.value;
 
-    // Copy all the text after the list of char pointers has ended
+    // Copy all the text after the list of char pointers has
+    // ended
     memcpy(&list[lc], buffer, len + 1);
 
     // Free the text buffer
     a->free(a, (uptr)buffer);
 
     // Create a slice for the list
-    Slice(charptr) slice = slice_from_array(charptr, list, lc);
+    Slice(charptr) slice =
+        slice_from_array(charptr, list, lc);
 
     // Go trough all the text again...
-    buffer  = (char *)&list[lc];
+    buffer = (char *)&list[lc];
     slice_set(slice, 0, buffer);
-    c       = buffer;
-    u32 n   = 0;
+    c     = buffer;
+    u32 n = 0;
     while (*c != 0) {
         if (*c == '\r' && *(c + 1) == '\n') {
             *c = 0;
@@ -119,14 +120,16 @@ Result(Slice(charptr)) read_file_lines(Allocator *a, const char *filename)
         }
 
         if (*c == '\n') {
-            // When encountering a new line, we set it to 0, so it becomes the end of a string
+            // When encountering a new line, we set it to 0,
+            // so it becomes the end of a string
             *c = 0;
 
-            // And then we set the start of the next string in the list to be the address of the character after the new
-            // line (except for the last one!)
+            // And then we set the start of the next string
+            // in the list to be the address of the
+            // character after the new line (except for the
+            // last one!)
             n++;
-            if (n < lc)
-                slice_set(slice, n, (c+1));
+            if (n < lc) slice_set(slice, n, (c + 1));
         }
 
         c++;
@@ -139,28 +142,31 @@ Result(Slice(charptr)) read_file_lines(Allocator *a, const char *filename)
 
 #if defined(__RUN_TESTS)
 
-#include "test.h"
+    #include "test.h"
 
-#undef __RUN_TESTS
-#include "format.c"
-#include "heap.c"
+    #undef __RUN_TESTS
+    #include "format.c"
+    #include "heap.c"
 
-test(read_file_lines)
-{
-    Result(Slice(charptr)) r_lines = read_file_lines(&heap_allocator, "test_data\\read_file_lines.txt");
+test(read_file_lines) {
+    Result(Slice(charptr)) r_lines =
+        read_file_lines(&heap_allocator,
+                        "test_data\\read_file_lines.txt");
 
     expect(result_is_ok(r_lines));
 
     Slice(charptr) lines = r_lines.value;
 
     expect(slice_len(lines) == 3);
-    expect(string_compare(slice_get(lines, 0), "This is line 1") == 0);
-    expect(string_compare(slice_get(lines, 1), "This is line 2") == 0);
-    expect(string_compare(slice_get(lines, 2), "And this is line 3!") == 0);
+    expect(string_compare(slice_get(lines, 0),
+                          "This is line 1") == 0);
+    expect(string_compare(slice_get(lines, 1),
+                          "This is line 2") == 0);
+    expect(string_compare(slice_get(lines, 2),
+                          "And this is line 3!") == 0);
 }
 
-suite()
-{
+suite() {
     run_test(read_file_lines);
 }
 

@@ -4,23 +4,23 @@
 #include "common.h"
 
 #if defined(__wasm__)
-#define GLFUNC(ret, name, ...) \
-    extern ret name(__VA_ARGS__)
+    #define GLFUNC(ret, name, ...)                         \
+        extern ret name(__VA_ARGS__)
 #else
-#define GLFUNC(ret, name, ...)                    \
-    typedef ret(CSTDCALL gl_##name)(__VA_ARGS__); \
-    extern gl_##name *name;
+    #define GLFUNC(ret, name, ...)                         \
+        typedef ret(CSTDCALL gl_##name)(__VA_ARGS__);      \
+        extern gl_##name *name;
 #endif
 
-typedef float GLfloat;
+typedef float        GLfloat;
 typedef unsigned int GLbitfield;
 typedef unsigned int GLuint;
 typedef unsigned int GLenum;
-typedef int GLsizei;
-typedef int GLint;
-typedef char GLchar;
-typedef uint8_t GLubyte;
-typedef uint8_t GLboolean;
+typedef int          GLsizei;
+typedef int          GLint;
+typedef char         GLchar;
+typedef uint8_t      GLubyte;
+typedef uint8_t      GLboolean;
 
 #ifdef _WIN64
 typedef signed long long int CGLintptr;

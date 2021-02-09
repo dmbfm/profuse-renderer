@@ -1,14 +1,13 @@
 #ifndef __WIN32_API_H
 #define __WIN32_API_H
 
-
-#define TME_HOVER       0x00000001
-#define TME_LEAVE       0x00000002
-#if(WINVER >= 0x0500)
-#define TME_NONCLIENT   0x00000010
+#define TME_HOVER 0x00000001
+#define TME_LEAVE 0x00000002
+#if (WINVER >= 0x0500)
+    #define TME_NONCLIENT 0x00000010
 #endif /* WINVER >= 0x0500 */
-#define TME_QUERY       0x40000000
-#define TME_CANCEL      0x80000000
+#define TME_QUERY  0x40000000
+#define TME_CANCEL 0x80000000
 
 #define HTCLIENT           1
 #define CS_VREDRAW         0x0001
@@ -125,27 +124,30 @@
 #define WM_MOUSEHOVER     0x02A1
 #define WM_MOUSELEAVE     0x02A3
 
-#define WS_OVERLAPPED       0x00000000L
-#define WS_POPUP            0x80000000L
-#define WS_CHILD            0x40000000L
-#define WS_MINIMIZE         0x20000000L
-#define WS_VISIBLE          0x10000000L
-#define WS_DISABLED         0x08000000L
-#define WS_CLIPSIBLINGS     0x04000000L
-#define WS_CLIPCHILDREN     0x02000000L
-#define WS_MAXIMIZE         0x01000000L
-#define WS_CAPTION          0x00C00000L /* WS_BORDER | WS_DLGFRAME  */
-#define WS_BORDER           0x00800000L
-#define WS_DLGFRAME         0x00400000L
-#define WS_VSCROLL          0x00200000L
-#define WS_HSCROLL          0x00100000L
-#define WS_SYSMENU          0x00080000L
-#define WS_THICKFRAME       0x00040000L
-#define WS_GROUP            0x00020000L
-#define WS_TABSTOP          0x00010000L
-#define WS_MINIMIZEBOX      0x00020000L
-#define WS_MAXIMIZEBOX      0x00010000L
-#define WS_OVERLAPPEDWINDOW (WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX)
+#define WS_OVERLAPPED   0x00000000L
+#define WS_POPUP        0x80000000L
+#define WS_CHILD        0x40000000L
+#define WS_MINIMIZE     0x20000000L
+#define WS_VISIBLE      0x10000000L
+#define WS_DISABLED     0x08000000L
+#define WS_CLIPSIBLINGS 0x04000000L
+#define WS_CLIPCHILDREN 0x02000000L
+#define WS_MAXIMIZE     0x01000000L
+#define WS_CAPTION                                         \
+    0x00C00000L /* WS_BORDER | WS_DLGFRAME  */
+#define WS_BORDER      0x00800000L
+#define WS_DLGFRAME    0x00400000L
+#define WS_VSCROLL     0x00200000L
+#define WS_HSCROLL     0x00100000L
+#define WS_SYSMENU     0x00080000L
+#define WS_THICKFRAME  0x00040000L
+#define WS_GROUP       0x00020000L
+#define WS_TABSTOP     0x00010000L
+#define WS_MINIMIZEBOX 0x00020000L
+#define WS_MAXIMIZEBOX 0x00010000L
+#define WS_OVERLAPPEDWINDOW                                \
+    (WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU |             \
+     WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX)
 
 #define GET_X_LPARAM(lp) ((int)(short)LOWORD(lp))
 #define GET_Y_LPARAM(lp) ((int)(short)HIWORD(lp))
@@ -161,17 +163,20 @@
 #define IDC_WAIT           MAKEINTRESOURCE(32514)
 #define IDC_CROSS          MAKEINTRESOURCE(32515)
 #define IDC_UPARROW        MAKEINTRESOURCE(32516)
-#define IDC_SIZE           MAKEINTRESOURCE(32640) /* OBSOLETE: use IDC_SIZEALL */
-#define IDC_ICON           MAKEINTRESOURCE(32641) /* OBSOLETE: use IDC_ARROW */
-#define IDC_SIZENWSE       MAKEINTRESOURCE(32642)
-#define IDC_SIZENESW       MAKEINTRESOURCE(32643)
-#define IDC_SIZEWE         MAKEINTRESOURCE(32644)
-#define IDC_SIZENS         MAKEINTRESOURCE(32645)
-#define IDC_SIZEALL        MAKEINTRESOURCE(32646)
-#define IDC_NO             MAKEINTRESOURCE(32648) /*not in win3.1 */
-#define IDC_HAND           MAKEINTRESOURCE(32649)
-#define IDC_APPSTARTING    MAKEINTRESOURCE(32650) /*not in win3.1 */
-#define IDC_HELP           MAKEINTRESOURCE(32651)
+#define IDC_SIZE                                           \
+    MAKEINTRESOURCE(32640) /* OBSOLETE: use IDC_SIZEALL */
+#define IDC_ICON                                           \
+    MAKEINTRESOURCE(32641) /* OBSOLETE: use IDC_ARROW */
+#define IDC_SIZENWSE MAKEINTRESOURCE(32642)
+#define IDC_SIZENESW MAKEINTRESOURCE(32643)
+#define IDC_SIZEWE   MAKEINTRESOURCE(32644)
+#define IDC_SIZENS   MAKEINTRESOURCE(32645)
+#define IDC_SIZEALL  MAKEINTRESOURCE(32646)
+#define IDC_NO       MAKEINTRESOURCE(32648) /*not in win3.1 */
+#define IDC_HAND     MAKEINTRESOURCE(32649)
+#define IDC_APPSTARTING                                    \
+    MAKEINTRESOURCE(32650) /*not in win3.1 */
+#define IDC_HELP MAKEINTRESOURCE(32651)
 
 /*
  * ShowWindow() Commands
@@ -192,8 +197,8 @@
 #define SW_FORCEMINIMIZE   11
 #define SW_MAX             11
 
-typedef void *HANDLE;
-typedef void *HGLRC;
+typedef void * HANDLE;
+typedef void * HGLRC;
 typedef HANDLE HDC;
 typedef HANDLE HWND;
 
@@ -205,65 +210,70 @@ typedef HANDLE HWND;
 typedef int(WINAPI *PROC)();
 typedef int(WINAPI *FARPROC)();
 typedef int(WINAPI *NEARPROC)();
-typedef const char *LPCSTR;
-typedef char CHAR;
-typedef CHAR *LPSTR;
-typedef int BOOL;
+typedef const char * LPCSTR;
+typedef char         CHAR;
+typedef CHAR *       LPSTR;
+typedef int          BOOL;
 typedef unsigned int UINT;
-typedef float FLOAT;
-typedef long LONG;
-typedef HANDLE HINSTANCE;
-typedef HINSTANCE HMODULE;
+typedef float        FLOAT;
+typedef long         LONG;
+typedef HANDLE       HINSTANCE;
+typedef HINSTANCE    HMODULE;
 #if defined(_WIN64)
 typedef __int64 LONG_PTR;
 #else
-typedef long LONG_PTR;
+typedef long          LONG_PTR;
 #endif
-typedef void *LPVOID;
-typedef LONG_PTR LRESULT;
-typedef UINT *UINT_PTR;
-typedef UINT_PTR WPARAM;
-typedef LONG_PTR LPARAM;
+typedef void *         LPVOID;
+typedef LONG_PTR       LRESULT;
+typedef UINT *         UINT_PTR;
+typedef UINT_PTR       WPARAM;
+typedef LONG_PTR       LPARAM;
 typedef unsigned short USHORT;
-typedef unsigned long ULONG;
+typedef unsigned long  ULONG;
 
 typedef HANDLE HICON;
-typedef HICON HCURSOR;
+typedef HICON  HCURSOR;
 typedef HANDLE HBRUSH;
 typedef HANDLE HMENU;
 
-typedef unsigned char BYTE;
+typedef unsigned char  BYTE;
 typedef unsigned short WORD;
-typedef unsigned long DWORD;
-typedef WORD ATOM;
-typedef void *HRAWINPUT;
-typedef UINT *PUINT;
+typedef unsigned long  DWORD;
+typedef WORD           ATOM;
+typedef void *         HRAWINPUT;
+typedef UINT *         PUINT;
 #if defined(_WIN64)
 typedef unsigned __int64 ULONG_PTR;
 #else
 typedef unsigned long ULONG_PTR;
 #endif
-typedef LRESULT(CALLBACK *WNDPROC)(HWND, UINT, WPARAM, LPARAM);
+typedef LRESULT(CALLBACK *WNDPROC)(HWND,
+                                   UINT,
+                                   WPARAM,
+                                   LPARAM);
 
-typedef struct tagWNDCLASSA
-{
-    UINT style;
-    WNDPROC lpfnWndProc;
-    int cbClsExtra;
-    int cbWndExtra;
+typedef struct tagWNDCLASSA {
+    UINT      style;
+    WNDPROC   lpfnWndProc;
+    int       cbClsExtra;
+    int       cbWndExtra;
     HINSTANCE hInstance;
-    HICON hIcon;
-    HCURSOR hCursor;
-    HBRUSH hbrBackground;
-    LPCSTR lpszMenuName;
-    LPCSTR lpszClassName;
+    HICON     hIcon;
+    HCURSOR   hCursor;
+    HBRUSH    hbrBackground;
+    LPCSTR    lpszMenuName;
+    LPCSTR    lpszClassName;
 } WNDCLASSA, *PWNDCLASSA, *NPWNDCLASSA, *LPWNDCLASSA;
 
 typedef WNDCLASSA WNDCLASS;
 
 HMODULE LoadLibraryA(LPCSTR lpLibFileName);
 FARPROC GetProcAddress(HMODULE hModule, LPCSTR lpProcName);
-LRESULT WINAPI DefWindowProcA(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+LRESULT WINAPI DefWindowProcA(HWND   hWnd,
+                              UINT   Msg,
+                              WPARAM wParam,
+                              LPARAM lParam);
 #define DefWindowProc DefWindowProcA
 
 HMODULE GetModuleHandleA(LPCSTR lpModuleName);
@@ -272,36 +282,43 @@ HMODULE GetModuleHandleA(LPCSTR lpModuleName);
 ATOM RegisterClassA(const WNDCLASSA *lpWndClass);
 #define RegisterClass RegisterClassA
 
-#define CreateWindowA( \
-    lpClassName,       \
-    lpWindowName,      \
-    dwStyle,           \
-    x,                 \
-    y,                 \
-    nWidth,            \
-    nHeight,           \
-    hWndParent,        \
-    hMenu,             \
-    hInstance,         \
-    lpParam)           \
-    CreateWindowExA(   \
-        0L,            \
-        lpClassName,   \
-        lpWindowName,  \
-        dwStyle,       \
-        x,             \
-        y,             \
-        nWidth,        \
-        nHeight,       \
-        hWndParent,    \
-        hMenu,         \
-        hInstance,     \
-        lpParam)
+#define CreateWindowA(lpClassName,                         \
+                      lpWindowName,                        \
+                      dwStyle,                             \
+                      x,                                   \
+                      y,                                   \
+                      nWidth,                              \
+                      nHeight,                             \
+                      hWndParent,                          \
+                      hMenu,                               \
+                      hInstance,                           \
+                      lpParam)                             \
+    CreateWindowExA(0L,                                    \
+                    lpClassName,                           \
+                    lpWindowName,                          \
+                    dwStyle,                               \
+                    x,                                     \
+                    y,                                     \
+                    nWidth,                                \
+                    nHeight,                               \
+                    hWndParent,                            \
+                    hMenu,                                 \
+                    hInstance,                             \
+                    lpParam)
 
 WINUSERAPI
-HWND WINAPI CreateWindowExA(
-    DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int X, int Y, int nWidth, int nHeight,
-    HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam);
+HWND WINAPI CreateWindowExA(DWORD     dwExStyle,
+                            LPCSTR    lpClassName,
+                            LPCSTR    lpWindowName,
+                            DWORD     dwStyle,
+                            int       X,
+                            int       Y,
+                            int       nWidth,
+                            int       nHeight,
+                            HWND      hWndParent,
+                            HMENU     hMenu,
+                            HINSTANCE hInstance,
+                            LPVOID    lpParam);
 #define CreateWindowEx CreateWindowExA
 #define CreateWindow   CreateWindowA
 
@@ -309,181 +326,189 @@ WINUSERAPI HDC WINAPI GetDC(HWND hWnd);
 
 WINUSERAPI int WINAPI ReleaseDC(HWND hWnd, HDC hDC);
 
-typedef struct tagPIXELFORMATDESCRIPTOR
-{
-    WORD nSize;
-    WORD nVersion;
+typedef struct tagPIXELFORMATDESCRIPTOR {
+    WORD  nSize;
+    WORD  nVersion;
     DWORD dwFlags;
-    BYTE iPixelType;
-    BYTE cColorBits;
-    BYTE cRedBits;
-    BYTE cRedShift;
-    BYTE cGreenBits;
-    BYTE cGreenShift;
-    BYTE cBlueBits;
-    BYTE cBlueShift;
-    BYTE cAlphaBits;
-    BYTE cAlphaShift;
-    BYTE cAccumBits;
-    BYTE cAccumRedBits;
-    BYTE cAccumGreenBits;
-    BYTE cAccumBlueBits;
-    BYTE cAccumAlphaBits;
-    BYTE cDepthBits;
-    BYTE cStencilBits;
-    BYTE cAuxBuffers;
-    BYTE iLayerType;
-    BYTE bReserved;
+    BYTE  iPixelType;
+    BYTE  cColorBits;
+    BYTE  cRedBits;
+    BYTE  cRedShift;
+    BYTE  cGreenBits;
+    BYTE  cGreenShift;
+    BYTE  cBlueBits;
+    BYTE  cBlueShift;
+    BYTE  cAlphaBits;
+    BYTE  cAlphaShift;
+    BYTE  cAccumBits;
+    BYTE  cAccumRedBits;
+    BYTE  cAccumGreenBits;
+    BYTE  cAccumBlueBits;
+    BYTE  cAccumAlphaBits;
+    BYTE  cDepthBits;
+    BYTE  cStencilBits;
+    BYTE  cAuxBuffers;
+    BYTE  iLayerType;
+    BYTE  bReserved;
     DWORD dwLayerMask;
     DWORD dwVisibleMask;
     DWORD dwDamageMask;
-} PIXELFORMATDESCRIPTOR, *PPIXELFORMATDESCRIPTOR, *LPPIXELFORMATDESCRIPTOR;
+} PIXELFORMATDESCRIPTOR, *PPIXELFORMATDESCRIPTOR,
+    *LPPIXELFORMATDESCRIPTOR;
 
-WINGDIAPI int WINAPI ChoosePixelFormat(HDC hdc, CONST PIXELFORMATDESCRIPTOR *ppfd);
-WINGDIAPI BOOL WINAPI SetPixelFormat(HDC hdc, int format, CONST PIXELFORMATDESCRIPTOR *ppfd);
+WINGDIAPI int WINAPI
+ChoosePixelFormat(HDC   hdc,
+                  CONST PIXELFORMATDESCRIPTOR *ppfd);
+WINGDIAPI BOOL WINAPI
+SetPixelFormat(HDC   hdc,
+               int   format,
+               CONST PIXELFORMATDESCRIPTOR *ppfd);
 
 WINUSERAPI BOOL WINAPI DestroyWindow(HWND hWnd);
 
-WINUSERAPI LONG_PTR WINAPI GetWindowLongPtrA(HWND hWnd, int nIndex);
+WINUSERAPI LONG_PTR WINAPI GetWindowLongPtrA(HWND hWnd,
+                                             int  nIndex);
 #define GetWindowLongPtr GetWindowLongPtrA
 
 void OutputDebugStringA(LPCSTR lpOutputString);
 #define OutputDebugString OutputDebugStringA
 
-void ExitProcess(UINT uExitCode);
-LONG_PTR SetWindowLongPtrA(HWND hWnd, int nIndex, LONG_PTR dwNewLong);
+void     ExitProcess(UINT uExitCode);
+LONG_PTR SetWindowLongPtrA(HWND     hWnd,
+                           int      nIndex,
+                           LONG_PTR dwNewLong);
 #define SetWindowLongPtr SetWindowLongPtrA
 BOOL ShowWindow(HWND hWnd, int nCmdShow);
 
-int DescribePixelFormat(HDC hdc, int iPixelFormat, UINT nBytes, LPPIXELFORMATDESCRIPTOR ppfd);
+int DescribePixelFormat(HDC  hdc,
+                        int  iPixelFormat,
+                        UINT nBytes,
+                        LPPIXELFORMATDESCRIPTOR ppfd);
 
-typedef struct tagPOINT
-{
+typedef struct tagPOINT {
     LONG x;
     LONG y;
 } POINT, *PPOINT;
 
-typedef struct tagMSG
-{
-    HWND hwnd;
-    UINT message;
+typedef struct tagMSG {
+    HWND   hwnd;
+    UINT   message;
     WPARAM wParam;
     LPARAM lParam;
-    DWORD time;
-    POINT pt;
-    DWORD lPrivate;
+    DWORD  time;
+    POINT  pt;
+    DWORD  lPrivate;
 } MSG, *PMSG, *NPMSG, *LPMSG;
 
-BOOL PeekMessageA(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax, UINT wRemoveMsg);
+BOOL PeekMessageA(LPMSG lpMsg,
+                  HWND  hWnd,
+                  UINT  wMsgFilterMin,
+                  UINT  wMsgFilterMax,
+                  UINT  wRemoveMsg);
 #define PeekMessage PeekMessageA
 
-BOOL TranslateMessage(const MSG *lpMsg);
+BOOL    TranslateMessage(const MSG *lpMsg);
 LRESULT DispatchMessageA(const MSG *lpMsg);
 #define DispatchMessage DispatchMessageA
 
 BOOL SwapBuffers(HDC Arg1);
 
-typedef struct tagRAWINPUTHEADER
-{
-    DWORD dwType;
-    DWORD dwSize;
+typedef struct tagRAWINPUTHEADER {
+    DWORD  dwType;
+    DWORD  dwSize;
     HANDLE hDevice;
     WPARAM wParam;
 } RAWINPUTHEADER, *PRAWINPUTHEADER, *LPRAWINPUTHEADER;
 
-typedef struct tagRAWMOUSE
-{
+typedef struct tagRAWMOUSE {
     USHORT usFlags;
-    union
-    {
+    union {
         ULONG ulButtons;
-        struct
-        {
+        struct {
             USHORT usButtonFlags;
             USHORT usButtonData;
         } DUMMYSTRUCTNAME;
     } DUMMYUNIONNAME;
     ULONG ulRawButtons;
-    LONG lLastX;
-    LONG lLastY;
+    LONG  lLastX;
+    LONG  lLastY;
     ULONG ulExtraInformation;
 } RAWMOUSE, *PRAWMOUSE, *LPRAWMOUSE;
 
-typedef struct tagRAWKEYBOARD
-{
+typedef struct tagRAWKEYBOARD {
     USHORT MakeCode;
     USHORT Flags;
     USHORT Reserved;
     USHORT VKey;
-    UINT Message;
-    ULONG ExtraInformation;
+    UINT   Message;
+    ULONG  ExtraInformation;
 } RAWKEYBOARD, *PRAWKEYBOARD, *LPRAWKEYBOARD;
 
-typedef struct tagRAWHID
-{
+typedef struct tagRAWHID {
     DWORD dwSizeHid;
     DWORD dwCount;
-    BYTE bRawData[1];
+    BYTE  bRawData[1];
 } RAWHID, *PRAWHID, *LPRAWHID;
 
-typedef struct tagRAWINPUT
-{
+typedef struct tagRAWINPUT {
     RAWINPUTHEADER header;
-    union
-    {
-        RAWMOUSE mouse;
+    union {
+        RAWMOUSE    mouse;
         RAWKEYBOARD keyboard;
-        RAWHID hid;
+        RAWHID      hid;
     } data;
 } RAWINPUT, *PRAWINPUT, *LPRAWINPUT;
 
-UINT GetRawInputData(HRAWINPUT hRawInput, UINT uiCommand, LPVOID pData, PUINT pcbSize, UINT cbSizeHeader);
+UINT GetRawInputData(HRAWINPUT hRawInput,
+                     UINT      uiCommand,
+                     LPVOID    pData,
+                     PUINT     pcbSize,
+                     UINT      cbSizeHeader);
 
-typedef struct tagRECT
-{
+typedef struct tagRECT {
     LONG left;
     LONG top;
     LONG right;
     LONG bottom;
 } RECT, *PRECT, *NPRECT, *LPRECT;
 
-BOOL AdjustWindowRect(LPRECT lpRect, DWORD dwStyle, BOOL bMenu);
+BOOL AdjustWindowRect(LPRECT lpRect,
+                      DWORD  dwStyle,
+                      BOOL   bMenu);
 
 HCURSOR SetCursor(HCURSOR hCursor);
-HCURSOR LoadCursorA(HINSTANCE hInstance, LPCSTR lpCursorName);
+HCURSOR LoadCursorA(HINSTANCE hInstance,
+                    LPCSTR    lpCursorName);
 
 typedef UINT MMRESULT;
-DWORD timeGetTime();
-MMRESULT timeBeginPeriod(UINT uPeriod);
-MMRESULT timeEndPeriod(UINT uPeriod);
+DWORD        timeGetTime();
+MMRESULT     timeBeginPeriod(UINT uPeriod);
+MMRESULT     timeEndPeriod(UINT uPeriod);
 
 #if !defined(_M_IX86)
 typedef __int64 LONGLONG;
 #else
-typedef double LONGLONG;
+typedef double        LONGLONG;
 #endif
-typedef union _LARGE_INTEGER
-{
-    struct
-    {
+typedef union _LARGE_INTEGER {
+    struct {
         DWORD LowPart;
-        LONG HighPart;
+        LONG  HighPart;
     } DUMMYSTRUCTNAME;
-    struct
-    {
+    struct {
         DWORD LowPart;
-        LONG HighPart;
+        LONG  HighPart;
     } u;
     LONGLONG QuadPart;
 } LARGE_INTEGER;
-BOOL QueryPerformanceCounter(LARGE_INTEGER *lpPerformanceCount);
+BOOL QueryPerformanceCounter(
+    LARGE_INTEGER *lpPerformanceCount);
 BOOL QueryPerformanceFrequency(LARGE_INTEGER *lpFrequency);
 
-typedef struct tagTRACKMOUSEEVENT
-{
+typedef struct tagTRACKMOUSEEVENT {
     DWORD cbSize;
     DWORD dwFlags;
-    HWND hwndTrack;
+    HWND  hwndTrack;
     DWORD dwHoverTime;
 } TRACKMOUSEEVENT, *LPTRACKMOUSEEVENT;
 BOOL TrackMouseEvent(LPTRACKMOUSEEVENT lpEventTrack);

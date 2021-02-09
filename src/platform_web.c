@@ -3,14 +3,14 @@
 #include "math.h"
 #include "mem_common.h"
 #include "platform.h"
-#include "result.h"
-
 #include "platform_web_js_imports.c"
+#include "result.h"
 
 static Platform platform;
 
-void platform_print_fmt(Allocator * a, const char *fmt, ...)
-{
+void platform_print_fmt(Allocator * a,
+                        const char *fmt,
+                        ...) {
     va_list arg;
     va_start(arg, fmt);
     if (!a) {
@@ -18,28 +18,26 @@ void platform_print_fmt(Allocator * a, const char *fmt, ...)
         formatv(buf, 512, fmt, arg);
         wasm_print_line(buf);
     } else {
-        usize len = formatv(0, 0, fmt, arg);
+        usize len          = formatv(0, 0, fmt, arg);
         Result(uptr) rbuff = a->alloc(a, len + 1);
-        char *buff = (char *) result_unwrap(rbuff);
+        char *buff         = (char *)result_unwrap(rbuff);
         formatv(buff, len, fmt, arg);
         wasm_print_line(buff);
     }
     va_end(arg);
 }
 
-void platform_print_line(const char *string) 
-{
+void platform_print_line(const char *string) {
     wasm_print_line(string);
 }
 
-void platform_webgl_init_webgl_canvas(Platform *p)
-{
-    wasm_init_canvas(p->window.width.value, p->window.height.value);
+void platform_webgl_init_webgl_canvas(Platform *p) {
+    wasm_init_canvas(p->window.width.value,
+                     p->window.height.value);
     wasm_init_gl_context();
 }
 
-export int main()
-{
+export int main() {
     platform_print_line("Hello!");
 
     platform = p_config();
@@ -51,15 +49,13 @@ export int main()
     p_init(&platform);
 }
 
-export int frame(f64 timestamp)
-{
+export int frame(f64 timestamp) {
     platform.timing.frame_count++;
     p_frame(&platform);
 
     return (platform.should_quit == false);
 }
 
-export void shutdown()
-{
+export void shutdown() {
     p_shutdown(&platform);
 }

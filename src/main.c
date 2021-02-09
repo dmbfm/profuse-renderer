@@ -6,6 +6,14 @@
 #include "result.h"
 #include "utils.h"
 
+#if 1
+    #if 0
+const x = 10;
+    #else
+const x = 20;
+    #endif
+#endif
+
 #ifdef __wasm__
 Allocator *a = &heap_wasm_free_list_allocator;
 #else
@@ -34,22 +42,17 @@ char *fshader =
     "gl_FragColor = vec4(1.0f, 0, 0, 1.0f);\n"
     "}";
 
-const f32 triangle_vertices[] = {
-    -0.5, -0.5, 0,
-    0, 0.5, 0,
-    0.5, -0.5, 0
-};
+const f32 triangle_vertices[] =
+    {-0.5, -0.5, 0, 0, 0.5, 0, 0.5, -0.5, 0};
 
-Platform p_config(void)
-{
-    Platform p = { 0 };
+Platform p_config(void) {
+    Platform p = {0};
 
     return p;
 }
 
 #include "list.h"
-void p_init(Platform *p)
-{
+void p_init(Platform *p) {
     UNUSED_VARIABLE(p);
 
     platform_print_line("p_init");
@@ -65,7 +68,8 @@ void p_init(Platform *p)
 
     a->free(a, (uptr)x);
 
-    Result(GLuint) rprogram = rgl_create_program_raw(a, vshader, fshader);
+    Result(GLuint) rprogram =
+        rgl_create_program_raw(a, vshader, fshader);
     GLuint program = result_unwrap(rprogram);
     glUseProgram(program);
 
@@ -78,46 +82,56 @@ void p_init(Platform *p)
     GLuint buffer;
     glGenBuffers(1, &buffer);
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(triangle_vertices), triangle_vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER,
+                 sizeof(triangle_vertices),
+                 triangle_vertices,
+                 GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, 0, 0, 0);
     glEnableVertexAttribArray(0);
 }
 
-void p_frame(Platform *p)
-{
-    f32 r = (f32)p->mouse.x / p->window.width.value;
-    f32 g = (f32)p->mouse.y / p->window.height.value;
+void func(
+    int x,
+    int y,
+    int kasjdfkjsdz,
+    int ksdkfjaslkdfjasldjfalksdfjsaldsdfsdfsdfk,
+    int waskdjkjsdfkjaskdfjasdkfjsakdfjaskdjfkasdjdsk) {
+}
+
+void p_frame(Platform *p) {
+    f32   r = (f32)p->mouse.x / p->window.width.value;
+    f32   g = (f32)p->mouse.y / p->window.height.value;
     float b = (1.0f - r) * (1.0f - g);
 
-    if (p->mouse.left_button.is_down)
-    {
+    if (p->mouse.left_button.is_down) {
         r = 1;
         g = 1;
         b = 1;
-    } else if (p->mouse.left_button.was_down)
-    {
+    } else if (p->mouse.left_button.was_down) {
         r = g = b = 0;
     }
-
 
     glClearColor(r, g, b, 1);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    if (p->window.was_resized)
-    {
-        glViewport(0, 0, p->window.width.value, p->window.height.value); 
+    if (p->window.was_resized) {
+        glViewport(0,
+                   0,
+                   p->window.width.value,
+                   p->window.height.value);
     }
 
     if (r > 0.5)
-        p->window.cursor_style.value = PLATFORM_CURSOR_STYLE_HAND;
-    else 
-        p->window.cursor_style.value = PLATFORM_CURSOR_STYLE_NORMAL;
+        p->window.cursor_style.value =
+            PLATFORM_CURSOR_STYLE_HAND;
+    else
+        p->window.cursor_style.value =
+            PLATFORM_CURSOR_STYLE_NORMAL;
 
     glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
-void p_shutdown(Platform *p)
-{
+void p_shutdown(Platform *p) {
     platform_print_line("p_shutdown");
 }

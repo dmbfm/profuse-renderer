@@ -1,17 +1,16 @@
+#include "string_intern.h"
 #include "common.h"
 #include "list.h"
 #include "utils.h"
-#include "string_intern.h"
 
-void string_intern_init(Allocator *a, StrigInternTable *table)
-{
-    table->entries = list_new(StringInternEntry, a);
+void string_intern_init(Allocator *       a,
+                        StrigInternTable *table) {
+    table->entries     = list_new(StringInternEntry, a);
     table->initialized = true;
-    table->a = a;
+    table->a           = a;
 }
 
-void string_intern_close(StrigInternTable *table)
-{
+void string_intern_close(StrigInternTable *table) {
     forn(i, list_len(table->entries)) {
         StringInternEntry e = table->entries[i];
         table->a->free(table->a, (uptr)e.str);
@@ -20,8 +19,9 @@ void string_intern_close(StrigInternTable *table)
     list_free(table->entries);
 }
 
-const char *string_intern_range(StrigInternTable *table, char *start, char *end)
-{
+const char *string_intern_range(StrigInternTable *table,
+                                char *            start,
+                                char *            end) {
     assert(table->initialized);
     assert(start);
     assert(end);
@@ -33,22 +33,24 @@ const char *string_intern_range(StrigInternTable *table, char *start, char *end)
     forn(i, list_len(table->entries)) {
         StringInternEntry e = table->entries[i];
 
-        // If the strings are equal, return the canonical one
-        if (e.len == len && string_compare_len(start, e.str, e.len) == 0) {
+        // If the strings are equal, return the canonical
+        // one
+        if (e.len == len &&
+            string_compare_len(start, e.str, e.len) == 0) {
             return e.str;
         }
     }
 
     // Alocate space for new string
     Result(uptr) ra = table->a->alloc(table->a, len + 1);
-    char *str = (char *) result_unwrap(ra);
+    char *str       = (char *)result_unwrap(ra);
 
-    // Copy new string to allocated space 
+    // Copy new string to allocated space
     memcpy(str, start, len);
     str[len] = 0;
 
     // Create new entry
-    StringInternEntry e = { .str = str, .len = len };
+    StringInternEntry e = {.str = str, .len = len};
 
     // Add to current entries
     list_push(table->entries, e);
@@ -57,27 +59,28 @@ const char *string_intern_range(StrigInternTable *table, char *start, char *end)
     return str;
 }
 
-const char *string_intern(StrigInternTable *table, char *str)
-{
-    return string_intern_range(table, str, str + string_len(str));
+const char *string_intern(StrigInternTable *table,
+                          char *            str) {
+    return string_intern_range(table,
+                               str,
+                               str + string_len(str));
 }
 
 #if defined(__RUN_TESTS)
 
-#include "test.h"
+    #include "test.h"
 
-#undef __RUN_TESTS
-#include "heap.c"
+    #undef __RUN_TESTS
+    #include "heap.c"
 
-test(string_intern)
-{
-    StrigInternTable t = { 0 };
+test(string_intern) {
+    StrigInternTable t = {0};
     string_intern_init(&heap_allocator, &t);
 
-    const char *name = string_intern(&t, "Name");
-    const char *sym_int = string_intern(&t, "int");
+    const char *name     = string_intern(&t, "Name");
+    const char *sym_int  = string_intern(&t, "int");
     const char *sym_char = string_intern(&t, "char");
-    const char *op_add = string_intern(&t, "+");
+    const char *op_add   = string_intern(&t, "+");
 
     expect(name == string_intern(&t, "Name"));
     expect(sym_int == string_intern(&t, "int"));
@@ -87,11 +90,8 @@ test(string_intern)
     string_intern_close(&t);
 }
 
-suite()
-{
+suite() {
     run_test(string_intern);
 }
 
 #endif /* defined(__RUN_TESTS) */
-
-

@@ -7,37 +7,45 @@
 
 /**
  *
- * This file defines array slices (or fat arrays?), which are just arrays wich length information and
- * (optional )bounds checking.
+ * This file defines array slices (or fat arrays?), which
+ * are just arrays wich length information and (optional
+ * )bounds checking.
  *
- * To disable bounds-checking, just define `SLICE_FAST` somewhere.
+ * To disable bounds-checking, just define `SLICE_FAST`
+ * somewhere.
  *
  */
 
 #define Slice(type) TOKENPASTE(Slice_, type)
 
-#define slice_make_type(type)  \
-    typedef struct Slice(type) \
-    {                          \
-        usize len;             \
-        type *data;            \
-    }                          \
+#define slice_make_type(type)                              \
+    typedef struct Slice(type) {                           \
+        usize len;                                         \
+        type *data;                                        \
+    }                                                      \
     Slice(type);
 
-#define slice_from_array(type, arr, n)                ((Slice(type)){ .len = (n), .data = &(arr)[0] })
-#define slice_from_array_range(type, arr, start, end) slice_from_array(type, &arr[start], (end - start))
-#define slice_len(s)                                  (s.len)
-#define slice_data(s)                                 (s.data)
+#define slice_from_array(type, arr, n)                     \
+    ((Slice(type)){.len = (n), .data = &(arr)[0]})
+#define slice_from_array_range(type, arr, start, end)      \
+    slice_from_array(type, &arr[start], (end - start))
+#define slice_len(s)  (s.len)
+#define slice_data(s) (s.data)
 
 #ifdef SLICE_FAST
-#define slice_get(s, i)    (s.data[(i)])
-#define slice_set(s, i, v) (s.data[(i)] = (v))
+    #define slice_get(s, i)    (s.data[(i)])
+    #define slice_set(s, i, v) (s.data[(i)] = (v))
 #else
-#define slice_get(s, i)    (((i) < slice_len(s)) ? (s.data[(i)]) : (panic(), s.data[0]))
-#define slice_set(s, i, v) (((i) < slice_len(s)) ? (s.data[(i)] = (v)) : (panic(), s.data[0]))
+    #define slice_get(s, i)                                \
+        (((i) < slice_len(s)) ? (s.data[(i)])              \
+                              : (panic(), s.data[0]))
+    #define slice_set(s, i, v)                             \
+        (((i) < slice_len(s)) ? (s.data[(i)] = (v))        \
+                              : (panic(), s.data[0]))
 #endif
 
-#define slice_for(name, s) for (usize name = 0; name < slice_len(s); name++)
+#define slice_for(name, s)                                 \
+    for (usize name = 0; name < slice_len(s); name++)
 
 slice_make_type(i8);
 slice_make_type(i16);

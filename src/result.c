@@ -1,7 +1,7 @@
 #ifdef __RUN_TESTS
 
-#include "result.h"
-#include "test.h"
+    #include "result.h"
+    #include "test.h"
 
 test(result) {
     Result(i32) x = result_ok(i32, 10);

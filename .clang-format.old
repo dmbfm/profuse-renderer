@@ -1,0 +1,24 @@
+AlignAfterOpenBracket: Align 
+IndentWidth: 4
+ColumnLimit: 120
+Cpp11BracedListStyle: false 
+AllowShortFunctionsOnASingleLine: Empty 
+AllowAllArgumentsOnNextLine: false 
+AllowAllConstructorInitializersOnNextLine: true 
+BreakBeforeBraces: Custom
+BraceWrapping:
+    AfterStruct: true
+    AfterEnum: true
+    AfterControlStatement: false
+    AfterFunction: true
+    AfterUnion: true
+    AfterCaseLabel: true
+
+BinPackArguments: false
+BinPackParameters: true
+AlignConsecutiveMacros: true 
+AlignConsecutiveAssignments: true 
+AlignEscapedNewlines: true
+AlignOperands: true 
+IndentCaseBlocks: true
+IndentCaseLabels: true

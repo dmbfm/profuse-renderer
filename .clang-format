@@ -1,25 +1,55 @@
-BasedOnStyle: LLVM
 IndentWidth: 4
-ColumnLimit: 120
-Cpp11BracedListStyle: false 
-AllowShortFunctionsOnASingleLine: Empty 
-AllowAllArgumentsOnNextLine: false 
-AllowAllConstructorInitializersOnNextLine: true 
-BreakBeforeBraces: Custom
-BraceWrapping:
-    AfterStruct: true
-    AfterEnum: true
-    AfterControlStatement: false
-    AfterFunction: true
-    AfterUnion: true
-    AfterCaseLabel: true
-
-BinPackArguments: false
-BinPackParameters: true
-AlignAfterOpenBracket: AlwaysBreak 
-AlignConsecutiveMacros: true 
+UseTab: Never 
+ColumnLimit: 60
+AlignAfterOpenBracket: Align 
 AlignConsecutiveAssignments: true 
-AlignEscapedNewlines: true
+AlignConsecutiveDeclarations: true 
+AlignConsecutiveMacros: true 
+AlignEscapedNewlines: Right 
 AlignOperands: true 
-IndentCaseBlocks: true
+AlignTrailingComments: true 
+AllowAllArgumentsOnNextLine: false 
+AllowAllParametersOfDeclarationOnNextLine: false 
+AllowShortBlocksOnASingleLine: false 
+AllowShortCaseLabelsOnASingleLine: true 
+AllowShortFunctionsOnASingleLine: None 
+AllowShortIfStatementsOnASingleLine: WithoutElse 
+AllowShortLoopsOnASingleLine: false 
+AlwaysBreakAfterReturnType: None 
+AlwaysBreakBeforeMultilineStrings: true 
+BinPackArguments: false 
+BinPackParameters: false
+BraceWrapping:
+     AfterCaseLabel: true
+     AfterControlStatement: Never
+     AfterEnum: false
+     AfterFunction: false
+     AfterStruct: false
+     AfterUnion: false
+     BeforeElse: false
+BreakBeforeBinaryOperators: None 
+BreakBeforeBraces: Custom 
+BreakBeforeTernaryOperators: true 
+BreakStringLiterals: true 
+ContinuationIndentWidth: 4 
+DeriveLineEnding: false 
+IncludeBlocks: Merge 
 IndentCaseLabels: true
+IndentGotoLabels: false 
+IndentPPDirectives: BeforeHash 
+IndentWrappedFunctionNames: false 
+KeepEmptyLinesAtTheStartOfBlocks: true 
+PointerAlignment: Right 
+ReflowComments: true 
+SortIncludes: true 
+SpaceAfterCStyleCast: false 
+SpaceAfterLogicalNot: false 
+SpaceBeforeAssignmentOperators: true 
+SpaceBeforeParens: ControlStatements
+SpaceBeforeSquareBrackets: false 
+SpaceInEmptyBlock: false
+SpaceInEmptyParentheses: false
+SpacesBeforeTrailingComments: 4
+UseCRLF: false
+TypenameMacros: ['Maybe', 'Maybe_', 'List', 'Slice', 'Result']
+

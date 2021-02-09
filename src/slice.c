@@ -1,16 +1,16 @@
 #if defined(__RUN_TESTS)
 
-#include "common.h"
+    #include "common.h"
 
 static boolean aborted = false;
-#undef panic
-#define panic() (aborted = true)
+    #undef panic
+    #define panic() (aborted = true)
 
-#include "test.h"
-#include "slice.h"
+    #include "slice.h"
+    #include "test.h"
 
 test(slices) {
-    i32 xs[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+    i32 xs[]      = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
     Slice(i32) s1 = slice_from_array(i32, xs, 10);
     Slice(i32) s2 = slice_from_array_range(i32, xs, 2, 8);
 
@@ -20,7 +20,6 @@ test(slices) {
     slice_get(s1, 23);
     assert(aborted == true);
     aborted = false;
-
 
     slice_for(i, s1) {
         assert(slice_get(s1, i) == i);

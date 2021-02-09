@@ -1,28 +1,27 @@
 #ifndef __PLATFORM_H
-#define __PLATFORM_H 
+#define __PLATFORM_H
 
-#include "common.h"
-#include "result.h"
-#include "maybe.h"
 #include "allocator.h"
+#include "common.h"
+#include "maybe.h"
+#include "result.h"
 
 #if defined(_WIN32)
-#include "platform_win32.h"
+    #include "platform_win32.h"
 #elif defined(__wasm__)
-#include "platform_web.h"
+    #include "platform_web.h"
 #else
-#error "Unsupported platform!"
+    #error "Unsupported platform!"
 #endif /* defined(_WIN32) */
 
-typedef enum
-{
+typedef enum {
     PLATFORM_CURSOR_STYLE_NORMAL,
     PLATFORM_CURSOR_STYLE_HAND,
 } PlatformCursorStyle;
+
 maybe_make_type(PlatformCursorStyle);
 
-typedef struct
-{
+typedef struct {
     boolean is_down;
     boolean is_up;
     boolean was_down;
@@ -31,48 +30,40 @@ typedef struct
     boolean just_up;
 } PlatformButtonState;
 
-typedef struct Platform
-{
+typedef struct Platform {
     boolean should_quit;
 
-    struct
-    {
+    struct {
         Maybe(charptr) title;
         Maybe(u32) x;
         Maybe(u32) y;
         Maybe(u32) width;
         Maybe(u32) height;
         Maybe(PlatformCursorStyle) cursor_style;
-
         boolean was_resized;
 
-        struct
-        {
+        struct {
             PlatformCursorStyle cursor_style;
         } cached;
     } window;
 
-    struct
-    {
-        i32 x;
-        i32 y;
-        i32 last_x;
-        i32 last_y;
-        i32 delta_x;
-        i32 delta_y;
-        i32 mouse_wheel_delta;
+    struct {
+        i32                 x;
+        i32                 y;
+        i32                 last_x;
+        i32                 last_y;
+        i32                 delta_x;
+        i32                 delta_y;
+        i32                 mouse_wheel_delta;
         PlatformButtonState left_button;
-
-        struct
-        {
+        struct {
             i32 x;
             i32 y;
         } raw;
 
     } mouse;
 
-    struct
-    {
+    struct {
         f64 time;
         f64 delta_s;
         f64 delta_ms;
@@ -89,16 +80,15 @@ typedef struct Platform
 
 // "User-defined" functions
 Platform p_config(void);
-void p_init(Platform *p);
-void p_frame(Platform *p);
-void p_shutdown(Platform *p);
+void     p_init(Platform *p);
+void     p_frame(Platform *p);
+void     p_shutdown(Platform *p);
 
 // Platform API
 void platform_print_fmt(Allocator *a, const char *fmt, ...);
 void platform_print_line(const char *string);
 
-static inline void platform_init_defaults(Platform *p)
-{
+static inline void platform_init_defaults(Platform *p) {
     if (maybe_is_nothing(p->window.width)) {
         p->window.width = maybe_some(u32, 800);
     }
@@ -108,13 +98,15 @@ static inline void platform_init_defaults(Platform *p)
     }
 
     if (maybe_is_nothing(p->window.title)) {
-        p->window.title = maybe_some(charptr, "ProfusePlatformWindow");
+        p->window.title =
+            maybe_some(charptr, "ProfusePlatformWindow");
     }
 
     if (maybe_is_nothing(p->window.cursor_style)) {
-        p->window.cursor_style = maybe_some(PlatformCursorStyle, PLATFORM_CURSOR_STYLE_NORMAL);
+        p->window.cursor_style =
+            maybe_some(PlatformCursorStyle,
+                       PLATFORM_CURSOR_STYLE_NORMAL);
     }
 }
 
 #endif /* __PLATFORM_H */
-

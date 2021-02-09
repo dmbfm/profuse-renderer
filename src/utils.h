@@ -1,21 +1,22 @@
 #ifndef __UTILS_H
-#define __UTILS_H 
+#define __UTILS_H
 
+#include "allocator.h"
 #include "common.h"
 #include "result.h"
 #include "slice.h"
-#include "allocator.h"
 
 #ifndef __wasm__
-#include "string.h"
+    #include "string.h"
 #endif
 
 #define DEBUGLOG debug_log
 
 void debug_log(const char *string, ...);
 
-static inline i32 string_compare_len(const char *a, const char *b, usize len)
-{
+static inline i32 string_compare_len(const char *a,
+                                     const char *b,
+                                     usize       len) {
 #if defined(__wasm__)
     for (usize i = 0; i < len; i++) {
         char c1 = a[i];
@@ -40,11 +41,11 @@ static inline i32 string_compare_len(const char *a, const char *b, usize len)
 #endif
 }
 
-static inline i32 string_compare(const char *a, const char *b)
-{
+static inline i32 string_compare(const char *a,
+                                 const char *b) {
 #if defined(__wasm__)
     int i = 0;
-    for(;;) {
+    for (;;) {
         char c1 = a[i];
         char c2 = b[i];
 
@@ -69,13 +70,12 @@ static inline i32 string_compare(const char *a, const char *b)
 #endif
 }
 
-static inline usize string_len(const char *str)
-{
+static inline usize string_len(const char *str) {
 #if defined(__wasm__)
     usize len = 0;
     for (;;) {
-        char c = str[len]; 
-        
+        char c = str[len];
+
         if (c == 0) {
             break;
         }
@@ -90,7 +90,8 @@ static inline usize string_len(const char *str)
 }
 
 #ifndef __wasm__
-Result(Slice(charptr)) read_file_lines(Allocator *a, const char *filename);
+Result(Slice(charptr))
+    read_file_lines(Allocator *a, const char *filename);
 #endif /* __wasm__ */
 
 #endif /* __UTILS_H */

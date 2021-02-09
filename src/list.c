@@ -1,25 +1,23 @@
 #if defined(__RUN_TESTS)
 
-#include "list.h"
-#include "heap.h"
-#include "test.h"
+    #include "list.h"
+    #include "heap.h"
+    #include "test.h"
 
-// TODO: Right now we need to do this hacky undef to include dependencies... fix so that all dependencies
-// are defined in build.py instead, like they should.
-#undef __RUN_TESTS
-#include "heap.c"
+    // TODO: Right now we need to do this hacky undef to
+    // include dependencies... fix so that all dependencies
+    // are defined in build.py instead, like they should.
+    #undef __RUN_TESTS
+    #include "heap.c"
 
-test(list_push)
-{
+test(list_push) {
     i32 *xs = list_new(i32, &heap_allocator);
 
-    forn(i, 1000)
-    {
+    forn(i, 1000) {
         list_push(xs, i);
     }
 
-    list_for(i, xs)
-    {
+    list_for(i, xs) {
         expect(xs[i] == i);
     }
 
@@ -28,12 +26,10 @@ test(list_push)
     expect(true);
 }
 
-test(list_as_slice)
-{
+test(list_as_slice) {
     i32 *xs = list_new(i32, &heap_allocator);
 
-    forn(i, 1000)
-    {
+    forn(i, 1000) {
         list_push(xs, i);
     }
 
@@ -48,8 +44,7 @@ test(list_as_slice)
     expect(true);
 }
 
-suite()
-{
+suite() {
     run_test(list_push);
     run_test(list_as_slice);
 }
