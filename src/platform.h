@@ -98,14 +98,11 @@ static inline void platform_init_defaults(Platform *p) {
     }
 
     if (maybe_is_nothing(p->window.title)) {
-        p->window.title =
-            maybe_some(charptr, "ProfusePlatformWindow");
+        p->window.title = maybe_some(charptr, "ProfusePlatformWindow");
     }
 
     if (maybe_is_nothing(p->window.cursor_style)) {
-        p->window.cursor_style =
-            maybe_some(PlatformCursorStyle,
-                       PLATFORM_CURSOR_STYLE_NORMAL);
+        p->window.cursor_style = maybe_some(PlatformCursorStyle, PLATFORM_CURSOR_STYLE_NORMAL);
     }
 }
 

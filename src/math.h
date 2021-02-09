@@ -57,8 +57,7 @@ typedef union Vec4 {
 
 typedef union Mat4 {
     struct {
-        float m11, m21, m31, m41, m12, m22, m32, m42, m13,
-            m23, m33, m43, m14, m24, m34, m44;
+        float m11, m21, m31, m41, m12, m22, m32, m42, m13, m23, m33, m43, m14, m24, m34, m44;
     };
 
     f32 values[16];
@@ -90,9 +89,7 @@ Vec3    vec3_cross(Vec3 a, Vec3 b);
 Vec3    vec3_i();
 Vec3    vec3_j();
 Vec3    vec3_k();
-Vec3    vec3_spherical(float polar_angle,
-                       float azimuthal_angle,
-                       float radius);
+Vec3    vec3_spherical(float polar_angle, float azimuthal_angle, float radius);
 boolean vec3_is_equal(Vec3 a, Vec3 b);
 
 Vec4    vec4(f32 x, f32 y, f32 z, f32 w);

@@ -3,8 +3,7 @@
 #include "list.h"
 #include "utils.h"
 
-void string_intern_init(Allocator *       a,
-                        StrigInternTable *table) {
+void string_intern_init(Allocator *a, StrigInternTable *table) {
     table->entries     = list_new(StringInternEntry, a);
     table->initialized = true;
     table->a           = a;
@@ -19,9 +18,7 @@ void string_intern_close(StrigInternTable *table) {
     list_free(table->entries);
 }
 
-const char *string_intern_range(StrigInternTable *table,
-                                char *            start,
-                                char *            end) {
+const char *string_intern_range(StrigInternTable *table, char *start, char *end) {
     assert(table->initialized);
     assert(start);
     assert(end);
@@ -35,8 +32,7 @@ const char *string_intern_range(StrigInternTable *table,
 
         // If the strings are equal, return the canonical
         // one
-        if (e.len == len &&
-            string_compare_len(start, e.str, e.len) == 0) {
+        if (e.len == len && string_compare_len(start, e.str, e.len) == 0) {
             return e.str;
         }
     }
@@ -59,11 +55,8 @@ const char *string_intern_range(StrigInternTable *table,
     return str;
 }
 
-const char *string_intern(StrigInternTable *table,
-                          char *            str) {
-    return string_intern_range(table,
-                               str,
-                               str + string_len(str));
+const char *string_intern(StrigInternTable *table, char *str) {
+    return string_intern_range(table, str, str + string_len(str));
 }
 
 #if defined(__RUN_TESTS)

@@ -19,14 +19,10 @@ test(maybe) {
     expect(!maybe_is_nothing(x));
     expect(x.value == 10);
 
-    expect(maybe_is_nothing(y))
-        expect(!maybe_is_something(y)) expect(
-            maybe_is_nothing(maybe_map(i32, y, __test_inc)))
-            expect(maybe_is_something(
-                maybe_map(i32, x, __test_inc)))
+    expect(maybe_is_nothing(y)) expect(!maybe_is_something(y)) expect(maybe_is_nothing(maybe_map(i32, y, __test_inc)))
+        expect(maybe_is_something(maybe_map(i32, x, __test_inc)))
 
-                Maybe(i32) z =
-                    maybe_map(i32, x, __test_inc);
+            Maybe(i32) z = maybe_map(i32, x, __test_inc);
     expect(z.value == 11);
 
     Maybe(i32) w = maybe_lift(i32, x, y, __test_add);

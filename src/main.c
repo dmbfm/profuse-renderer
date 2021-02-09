@@ -34,8 +34,7 @@ char *fshader =
     "gl_FragColor = vec4(1.0f, 0, 0, 1.0f);\n"
     "}";
 
-const f32 triangle_vertices[] =
-    {-0.5, -0.5, 0, 0, 0.5, 0, 0.5, -0.5, 0};
+const f32 triangle_vertices[] = {-0.5, -0.5, 0, 0, 0.5, 0, 0.5, -0.5, 0};
 
 Platform p_config(void) {
     Platform p = {0};
@@ -60,9 +59,8 @@ void p_init(Platform *p) {
 
     a->free(a, (uptr)x);
 
-    Result(GLuint) rprogram =
-        rgl_create_program_raw(a, vshader, fshader);
-    GLuint program = result_unwrap(rprogram);
+    Result(GLuint) rprogram = rgl_create_program_raw(a, vshader, fshader);
+    GLuint program          = result_unwrap(rprogram);
     glUseProgram(program);
 
 #ifndef __wasm__
@@ -74,10 +72,7 @@ void p_init(Platform *p) {
     GLuint buffer;
     glGenBuffers(1, &buffer);
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    glBufferData(GL_ARRAY_BUFFER,
-                 sizeof(triangle_vertices),
-                 triangle_vertices,
-                 GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(triangle_vertices), triangle_vertices, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, 0, 0, 0);
     glEnableVertexAttribArray(0);
@@ -100,18 +95,13 @@ void p_frame(Platform *p) {
     glClear(GL_COLOR_BUFFER_BIT);
 
     if (p->window.was_resized) {
-        glViewport(0,
-                   0,
-                   p->window.width.value,
-                   p->window.height.value);
+        glViewport(0, 0, p->window.width.value, p->window.height.value);
     }
 
     if (r > 0.5)
-        p->window.cursor_style.value =
-            PLATFORM_CURSOR_STYLE_HAND;
+        p->window.cursor_style.value = PLATFORM_CURSOR_STYLE_HAND;
     else
-        p->window.cursor_style.value =
-            PLATFORM_CURSOR_STYLE_NORMAL;
+        p->window.cursor_style.value = PLATFORM_CURSOR_STYLE_NORMAL;
 
     glDrawArrays(GL_TRIANGLES, 0, 3);
 }
@@ -119,4 +109,3 @@ void p_frame(Platform *p) {
 void p_shutdown(Platform *p) {
     platform_print_line("p_shutdown");
 }
-

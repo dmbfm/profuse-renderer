@@ -54,8 +54,7 @@ static usize file_byte_size(FILE *f) {
     return size;
 }
 
-Result(Slice(charptr))
-    read_file_lines(Allocator *a, const char *filename) {
+Result(Slice(charptr)) read_file_lines(Allocator *a, const char *filename) {
     FILE *f;
 
     // Try opening the file
@@ -92,8 +91,7 @@ Result(Slice(charptr))
 
     // Allocate space for (LC + 1) array of char pointers +
     // all the text (len + 1)
-    Result(uptr) r_list =
-        a->alloc(a, lc * sizeof(charptr) + len + 1);
+    Result(uptr) r_list = a->alloc(a, lc * sizeof(charptr) + len + 1);
     result_raise(Slice(charptr), r_list);
     charptr *list = (charptr *)r_list.value;
 
@@ -105,8 +103,7 @@ Result(Slice(charptr))
     a->free(a, (uptr)buffer);
 
     // Create a slice for the list
-    Slice(charptr) slice =
-        slice_from_array(charptr, list, lc);
+    Slice(charptr) slice = slice_from_array(charptr, list, lc);
 
     // Go trough all the text again...
     buffer = (char *)&list[lc];
@@ -149,21 +146,16 @@ Result(Slice(charptr))
     #include "heap.c"
 
 test(read_file_lines) {
-    Result(Slice(charptr)) r_lines =
-        read_file_lines(&heap_allocator,
-                        "test_data\\read_file_lines.txt");
+    Result(Slice(charptr)) r_lines = read_file_lines(&heap_allocator, "test_data\\read_file_lines.txt");
 
     expect(result_is_ok(r_lines));
 
     Slice(charptr) lines = r_lines.value;
 
     expect(slice_len(lines) == 3);
-    expect(string_compare(slice_get(lines, 0),
-                          "This is line 1") == 0);
-    expect(string_compare(slice_get(lines, 1),
-                          "This is line 2") == 0);
-    expect(string_compare(slice_get(lines, 2),
-                          "And this is line 3!") == 0);
+    expect(string_compare(slice_get(lines, 0), "This is line 1") == 0);
+    expect(string_compare(slice_get(lines, 1), "This is line 2") == 0);
+    expect(string_compare(slice_get(lines, 2), "And this is line 3!") == 0);
 }
 
 suite() {

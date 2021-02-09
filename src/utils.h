@@ -14,9 +14,7 @@
 
 void debug_log(const char *string, ...);
 
-static inline i32 string_compare_len(const char *a,
-                                     const char *b,
-                                     usize       len) {
+static inline i32 string_compare_len(const char *a, const char *b, usize len) {
 #if defined(__wasm__)
     for (usize i = 0; i < len; i++) {
         char c1 = a[i];
@@ -41,8 +39,7 @@ static inline i32 string_compare_len(const char *a,
 #endif
 }
 
-static inline i32 string_compare(const char *a,
-                                 const char *b) {
+static inline i32 string_compare(const char *a, const char *b) {
 #if defined(__wasm__)
     int i = 0;
     for (;;) {
@@ -90,8 +87,7 @@ static inline usize string_len(const char *str) {
 }
 
 #ifndef __wasm__
-Result(Slice(charptr))
-    read_file_lines(Allocator *a, const char *filename);
+Result(Slice(charptr)) read_file_lines(Allocator *a, const char *filename);
 #endif /* __wasm__ */
 
 #endif /* __UTILS_H */

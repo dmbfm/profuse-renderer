@@ -10,8 +10,7 @@ typedef struct t__SnprintfHead {
     char *   s;
 } t__SnprintfHead;
 
-static void t__snprintf_add_char(t__SnprintfHead *head,
-                                 char             c) {
+static void t__snprintf_add_char(t__SnprintfHead *head, char c) {
     if ((head->size > 0) && head->s) {
         head->size--;
         *head->s++ = c;
@@ -20,15 +19,13 @@ static void t__snprintf_add_char(t__SnprintfHead *head,
     head->nchars++;
 }
 
-static void t__snprintf_add_string(t__SnprintfHead *head,
-                                   char *           s) {
+static void t__snprintf_add_string(t__SnprintfHead *head, char *s) {
     while (*s) {
         t__snprintf_add_char(head, *s++);
     }
 }
 
-static void t__snprintf_add_uint(t__SnprintfHead *head,
-                                 unsigned int     value) {
+static void t__snprintf_add_uint(t__SnprintfHead *head, unsigned int value) {
     if (value == 0) {
         t__snprintf_add_char(head, '0');
         return;
@@ -52,8 +49,7 @@ static void t__snprintf_add_uint(t__SnprintfHead *head,
     } while (ndigits);
 }
 
-static void t__snprintf_add_int(t__SnprintfHead *head,
-                                int              value) {
+static void t__snprintf_add_int(t__SnprintfHead *head, int value) {
     if (value >= 0) {
         t__snprintf_add_uint(head, (unsigned int)value);
     } else {
@@ -62,9 +58,7 @@ static void t__snprintf_add_int(t__SnprintfHead *head,
     }
 }
 
-static void t__snprintf_add_float(t__SnprintfHead *head,
-                                  float            value,
-                                  int              digits) {
+static void t__snprintf_add_float(t__SnprintfHead *head, float value, int digits) {
     int32_t intpart = (int32_t)value;
 
     t__snprintf_add_int(head, intpart);
@@ -73,8 +67,7 @@ static void t__snprintf_add_float(t__SnprintfHead *head,
 
     t__snprintf_add_char(head, '.');
 
-    int32_t fracpart =
-        (int32_t)((value - intpart) * c_powi(10, digits));
+    int32_t fracpart = (int32_t)((value - intpart) * c_powi(10, digits));
 
     if (fracpart < 0) {
         fracpart = -fracpart;
@@ -102,8 +95,7 @@ typedef struct t__SnprintfWidth {
     int                  value;
 } t__SnprintfWidth;
 
-int t__snprintf_parse_flag(t__SnprintfFlags *flags,
-                           char              value) {
+int t__snprintf_parse_flag(t__SnprintfFlags *flags, char value) {
     switch (value) {
         case '-':
         {
@@ -134,8 +126,7 @@ int t__snprintf_parse_flag(t__SnprintfFlags *flags,
     }
 }
 
-static void t__snprintf_parse_flags(t__SnprintfFlags *flags,
-                                    char **head) {
+static void t__snprintf_parse_flags(t__SnprintfFlags *flags, char **head) {
     *flags = (t__SnprintfFlags){0};
 
     char *s = (char *)*head;
@@ -146,8 +137,7 @@ static void t__snprintf_parse_flags(t__SnprintfFlags *flags,
     *head = s;
 }
 
-static int t__snprintf_parse_uint(char **head,
-                                  int *  result) {
+static int t__snprintf_parse_uint(char **head, int *result) {
     if (!c_isnum(**head)) return 0;
 
     int r = 0;
@@ -163,8 +153,7 @@ static int t__snprintf_parse_uint(char **head,
     return 1;
 }
 
-static void t__snprintf_parse_width(t__SnprintfWidth *width,
-                                    char **head) {
+static void t__snprintf_parse_width(t__SnprintfWidth *width, char **head) {
     *width = (t__SnprintfWidth){0};
 
     if (**head == '*') {
@@ -187,8 +176,7 @@ static void t__snprintf_parse_width(t__SnprintfWidth *width,
     }
 }
 
-static void t__snprintf_parse_precision(int *  precision,
-                                        char **head) {
+static void t__snprintf_parse_precision(int *precision, char **head) {
     if (**head != '.') {
         *precision = 6;
         return;
@@ -202,10 +190,7 @@ static void t__snprintf_parse_precision(int *  precision,
     }
 }
 
-int formatv(char *      s,
-            size_t      n,
-            const char *fmt,
-            va_list     args) {
+int formatv(char *s, size_t n, const char *fmt, va_list args) {
     // va_list args;
     // va_start(args, fmt);
     char c;
@@ -220,17 +205,14 @@ int formatv(char *      s,
                 t__SnprintfWidth width;
                 int              precision;
 
-                t__snprintf_parse_flags(&flags,
-                                        (char **)&fmt);
-                t__snprintf_parse_width(&width,
-                                        (char **)&fmt);
+                t__snprintf_parse_flags(&flags, (char **)&fmt);
+                t__snprintf_parse_width(&width, (char **)&fmt);
 
                 if (width.type == TG__SNPRINTF_WIDTH_ARG) {
                     width.value = (int)va_arg(args, int);
                 }
 
-                t__snprintf_parse_precision(&precision,
-                                            (char **)&fmt);
+                t__snprintf_parse_precision(&precision, (char **)&fmt);
 
                 switch (*fmt++) {
                     case 's':
@@ -248,24 +230,20 @@ int formatv(char *      s,
                         int value = va_arg(args, int);
 
                         if (flags.plus && value >= 0) {
-                            t__snprintf_add_char(&head,
-                                                 '+');
+                            t__snprintf_add_char(&head, '+');
                         }
 
                         t__snprintf_add_int(&head, value);
                     } break;
                     case 'u':
                     {
-                        unsigned int value =
-                            va_arg(args, unsigned int);
+                        unsigned int value = va_arg(args, unsigned int);
                         t__snprintf_add_uint(&head, value);
                     } break;
                     case 'f':
                     {
                         double value = va_arg(args, double);
-                        t__snprintf_add_float(&head,
-                                              (float)value,
-                                              precision);
+                        t__snprintf_add_float(&head, (float)value, precision);
                     }
                     default: break;
                 }
@@ -281,10 +259,7 @@ int formatv(char *      s,
 }
 #else
     #include <stdio.h>
-int formatv(char *      s,
-            usize       n,
-            const char *fmt,
-            va_list     arg) {
+int formatv(char *s, usize n, const char *fmt, va_list arg) {
     return vsnprintf(s, n, fmt, arg);
 }
 #endif

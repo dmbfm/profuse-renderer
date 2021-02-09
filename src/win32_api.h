@@ -124,30 +124,27 @@
 #define WM_MOUSEHOVER     0x02A1
 #define WM_MOUSELEAVE     0x02A3
 
-#define WS_OVERLAPPED   0x00000000L
-#define WS_POPUP        0x80000000L
-#define WS_CHILD        0x40000000L
-#define WS_MINIMIZE     0x20000000L
-#define WS_VISIBLE      0x10000000L
-#define WS_DISABLED     0x08000000L
-#define WS_CLIPSIBLINGS 0x04000000L
-#define WS_CLIPCHILDREN 0x02000000L
-#define WS_MAXIMIZE     0x01000000L
-#define WS_CAPTION                                         \
-    0x00C00000L /* WS_BORDER | WS_DLGFRAME  */
-#define WS_BORDER      0x00800000L
-#define WS_DLGFRAME    0x00400000L
-#define WS_VSCROLL     0x00200000L
-#define WS_HSCROLL     0x00100000L
-#define WS_SYSMENU     0x00080000L
-#define WS_THICKFRAME  0x00040000L
-#define WS_GROUP       0x00020000L
-#define WS_TABSTOP     0x00010000L
-#define WS_MINIMIZEBOX 0x00020000L
-#define WS_MAXIMIZEBOX 0x00010000L
-#define WS_OVERLAPPEDWINDOW                                \
-    (WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU |             \
-     WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX)
+#define WS_OVERLAPPED       0x00000000L
+#define WS_POPUP            0x80000000L
+#define WS_CHILD            0x40000000L
+#define WS_MINIMIZE         0x20000000L
+#define WS_VISIBLE          0x10000000L
+#define WS_DISABLED         0x08000000L
+#define WS_CLIPSIBLINGS     0x04000000L
+#define WS_CLIPCHILDREN     0x02000000L
+#define WS_MAXIMIZE         0x01000000L
+#define WS_CAPTION          0x00C00000L /* WS_BORDER | WS_DLGFRAME  */
+#define WS_BORDER           0x00800000L
+#define WS_DLGFRAME         0x00400000L
+#define WS_VSCROLL          0x00200000L
+#define WS_HSCROLL          0x00100000L
+#define WS_SYSMENU          0x00080000L
+#define WS_THICKFRAME       0x00040000L
+#define WS_GROUP            0x00020000L
+#define WS_TABSTOP          0x00010000L
+#define WS_MINIMIZEBOX      0x00020000L
+#define WS_MAXIMIZEBOX      0x00010000L
+#define WS_OVERLAPPEDWINDOW (WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX)
 
 #define GET_X_LPARAM(lp) ((int)(short)LOWORD(lp))
 #define GET_Y_LPARAM(lp) ((int)(short)HIWORD(lp))
@@ -163,20 +160,17 @@
 #define IDC_WAIT           MAKEINTRESOURCE(32514)
 #define IDC_CROSS          MAKEINTRESOURCE(32515)
 #define IDC_UPARROW        MAKEINTRESOURCE(32516)
-#define IDC_SIZE                                           \
-    MAKEINTRESOURCE(32640) /* OBSOLETE: use IDC_SIZEALL */
-#define IDC_ICON                                           \
-    MAKEINTRESOURCE(32641) /* OBSOLETE: use IDC_ARROW */
-#define IDC_SIZENWSE MAKEINTRESOURCE(32642)
-#define IDC_SIZENESW MAKEINTRESOURCE(32643)
-#define IDC_SIZEWE   MAKEINTRESOURCE(32644)
-#define IDC_SIZENS   MAKEINTRESOURCE(32645)
-#define IDC_SIZEALL  MAKEINTRESOURCE(32646)
-#define IDC_NO       MAKEINTRESOURCE(32648) /*not in win3.1 */
-#define IDC_HAND     MAKEINTRESOURCE(32649)
-#define IDC_APPSTARTING                                    \
-    MAKEINTRESOURCE(32650) /*not in win3.1 */
-#define IDC_HELP MAKEINTRESOURCE(32651)
+#define IDC_SIZE           MAKEINTRESOURCE(32640) /* OBSOLETE: use IDC_SIZEALL */
+#define IDC_ICON           MAKEINTRESOURCE(32641) /* OBSOLETE: use IDC_ARROW */
+#define IDC_SIZENWSE       MAKEINTRESOURCE(32642)
+#define IDC_SIZENESW       MAKEINTRESOURCE(32643)
+#define IDC_SIZEWE         MAKEINTRESOURCE(32644)
+#define IDC_SIZENS         MAKEINTRESOURCE(32645)
+#define IDC_SIZEALL        MAKEINTRESOURCE(32646)
+#define IDC_NO             MAKEINTRESOURCE(32648) /*not in win3.1 */
+#define IDC_HAND           MAKEINTRESOURCE(32649)
+#define IDC_APPSTARTING    MAKEINTRESOURCE(32650) /*not in win3.1 */
+#define IDC_HELP           MAKEINTRESOURCE(32651)
 
 /*
  * ShowWindow() Commands
@@ -248,10 +242,7 @@ typedef unsigned __int64 ULONG_PTR;
 #else
 typedef unsigned long ULONG_PTR;
 #endif
-typedef LRESULT(CALLBACK *WNDPROC)(HWND,
-                                   UINT,
-                                   WPARAM,
-                                   LPARAM);
+typedef LRESULT(CALLBACK *WNDPROC)(HWND, UINT, WPARAM, LPARAM);
 
 typedef struct tagWNDCLASSA {
     UINT      style;
@@ -268,12 +259,9 @@ typedef struct tagWNDCLASSA {
 
 typedef WNDCLASSA WNDCLASS;
 
-HMODULE LoadLibraryA(LPCSTR lpLibFileName);
-FARPROC GetProcAddress(HMODULE hModule, LPCSTR lpProcName);
-LRESULT WINAPI DefWindowProcA(HWND   hWnd,
-                              UINT   Msg,
-                              WPARAM wParam,
-                              LPARAM lParam);
+HMODULE        LoadLibraryA(LPCSTR lpLibFileName);
+FARPROC        GetProcAddress(HMODULE hModule, LPCSTR lpProcName);
+LRESULT WINAPI DefWindowProcA(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 #define DefWindowProc DefWindowProcA
 
 HMODULE GetModuleHandleA(LPCSTR lpModuleName);
@@ -282,28 +270,28 @@ HMODULE GetModuleHandleA(LPCSTR lpModuleName);
 ATOM RegisterClassA(const WNDCLASSA *lpWndClass);
 #define RegisterClass RegisterClassA
 
-#define CreateWindowA(lpClassName,                         \
-                      lpWindowName,                        \
-                      dwStyle,                             \
-                      x,                                   \
-                      y,                                   \
-                      nWidth,                              \
-                      nHeight,                             \
-                      hWndParent,                          \
-                      hMenu,                               \
-                      hInstance,                           \
-                      lpParam)                             \
-    CreateWindowExA(0L,                                    \
-                    lpClassName,                           \
-                    lpWindowName,                          \
-                    dwStyle,                               \
-                    x,                                     \
-                    y,                                     \
-                    nWidth,                                \
-                    nHeight,                               \
-                    hWndParent,                            \
-                    hMenu,                                 \
-                    hInstance,                             \
+#define CreateWindowA(lpClassName,                                                                                     \
+                      lpWindowName,                                                                                    \
+                      dwStyle,                                                                                         \
+                      x,                                                                                               \
+                      y,                                                                                               \
+                      nWidth,                                                                                          \
+                      nHeight,                                                                                         \
+                      hWndParent,                                                                                      \
+                      hMenu,                                                                                           \
+                      hInstance,                                                                                       \
+                      lpParam)                                                                                         \
+    CreateWindowExA(0L,                                                                                                \
+                    lpClassName,                                                                                       \
+                    lpWindowName,                                                                                      \
+                    dwStyle,                                                                                           \
+                    x,                                                                                                 \
+                    y,                                                                                                 \
+                    nWidth,                                                                                            \
+                    nHeight,                                                                                           \
+                    hWndParent,                                                                                        \
+                    hMenu,                                                                                             \
+                    hInstance,                                                                                         \
                     lpParam)
 
 WINUSERAPI
@@ -353,37 +341,25 @@ typedef struct tagPIXELFORMATDESCRIPTOR {
     DWORD dwLayerMask;
     DWORD dwVisibleMask;
     DWORD dwDamageMask;
-} PIXELFORMATDESCRIPTOR, *PPIXELFORMATDESCRIPTOR,
-    *LPPIXELFORMATDESCRIPTOR;
+} PIXELFORMATDESCRIPTOR, *PPIXELFORMATDESCRIPTOR, *LPPIXELFORMATDESCRIPTOR;
 
-WINGDIAPI int WINAPI
-ChoosePixelFormat(HDC   hdc,
-                  CONST PIXELFORMATDESCRIPTOR *ppfd);
-WINGDIAPI BOOL WINAPI
-SetPixelFormat(HDC   hdc,
-               int   format,
-               CONST PIXELFORMATDESCRIPTOR *ppfd);
+WINGDIAPI int WINAPI  ChoosePixelFormat(HDC hdc, CONST PIXELFORMATDESCRIPTOR *ppfd);
+WINGDIAPI BOOL WINAPI SetPixelFormat(HDC hdc, int format, CONST PIXELFORMATDESCRIPTOR *ppfd);
 
 WINUSERAPI BOOL WINAPI DestroyWindow(HWND hWnd);
 
-WINUSERAPI LONG_PTR WINAPI GetWindowLongPtrA(HWND hWnd,
-                                             int  nIndex);
+WINUSERAPI LONG_PTR WINAPI GetWindowLongPtrA(HWND hWnd, int nIndex);
 #define GetWindowLongPtr GetWindowLongPtrA
 
 void OutputDebugStringA(LPCSTR lpOutputString);
 #define OutputDebugString OutputDebugStringA
 
 void     ExitProcess(UINT uExitCode);
-LONG_PTR SetWindowLongPtrA(HWND     hWnd,
-                           int      nIndex,
-                           LONG_PTR dwNewLong);
+LONG_PTR SetWindowLongPtrA(HWND hWnd, int nIndex, LONG_PTR dwNewLong);
 #define SetWindowLongPtr SetWindowLongPtrA
 BOOL ShowWindow(HWND hWnd, int nCmdShow);
 
-int DescribePixelFormat(HDC  hdc,
-                        int  iPixelFormat,
-                        UINT nBytes,
-                        LPPIXELFORMATDESCRIPTOR ppfd);
+int DescribePixelFormat(HDC hdc, int iPixelFormat, UINT nBytes, LPPIXELFORMATDESCRIPTOR ppfd);
 
 typedef struct tagPOINT {
     LONG x;
@@ -400,11 +376,7 @@ typedef struct tagMSG {
     DWORD  lPrivate;
 } MSG, *PMSG, *NPMSG, *LPMSG;
 
-BOOL PeekMessageA(LPMSG lpMsg,
-                  HWND  hWnd,
-                  UINT  wMsgFilterMin,
-                  UINT  wMsgFilterMax,
-                  UINT  wRemoveMsg);
+BOOL PeekMessageA(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax, UINT wRemoveMsg);
 #define PeekMessage PeekMessageA
 
 BOOL    TranslateMessage(const MSG *lpMsg);
@@ -459,11 +431,7 @@ typedef struct tagRAWINPUT {
     } data;
 } RAWINPUT, *PRAWINPUT, *LPRAWINPUT;
 
-UINT GetRawInputData(HRAWINPUT hRawInput,
-                     UINT      uiCommand,
-                     LPVOID    pData,
-                     PUINT     pcbSize,
-                     UINT      cbSizeHeader);
+UINT GetRawInputData(HRAWINPUT hRawInput, UINT uiCommand, LPVOID pData, PUINT pcbSize, UINT cbSizeHeader);
 
 typedef struct tagRECT {
     LONG left;
@@ -472,13 +440,10 @@ typedef struct tagRECT {
     LONG bottom;
 } RECT, *PRECT, *NPRECT, *LPRECT;
 
-BOOL AdjustWindowRect(LPRECT lpRect,
-                      DWORD  dwStyle,
-                      BOOL   bMenu);
+BOOL AdjustWindowRect(LPRECT lpRect, DWORD dwStyle, BOOL bMenu);
 
 HCURSOR SetCursor(HCURSOR hCursor);
-HCURSOR LoadCursorA(HINSTANCE hInstance,
-                    LPCSTR    lpCursorName);
+HCURSOR LoadCursorA(HINSTANCE hInstance, LPCSTR lpCursorName);
 
 typedef UINT MMRESULT;
 DWORD        timeGetTime();
@@ -501,8 +466,7 @@ typedef union _LARGE_INTEGER {
     } u;
     LONGLONG QuadPart;
 } LARGE_INTEGER;
-BOOL QueryPerformanceCounter(
-    LARGE_INTEGER *lpPerformanceCount);
+BOOL QueryPerformanceCounter(LARGE_INTEGER *lpPerformanceCount);
 BOOL QueryPerformanceFrequency(LARGE_INTEGER *lpFrequency);
 
 typedef struct tagTRACKMOUSEEVENT {

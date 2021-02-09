@@ -8,9 +8,7 @@
 
 static Platform platform;
 
-void platform_print_fmt(Allocator * a,
-                        const char *fmt,
-                        ...) {
+void platform_print_fmt(Allocator *a, const char *fmt, ...) {
     va_list arg;
     va_start(arg, fmt);
     if (!a) {
@@ -32,8 +30,7 @@ void platform_print_line(const char *string) {
 }
 
 void platform_webgl_init_webgl_canvas(Platform *p) {
-    wasm_init_canvas(p->window.width.value,
-                     p->window.height.value);
+    wasm_init_canvas(p->window.width.value, p->window.height.value);
     wasm_init_gl_context();
 }
 

@@ -7,16 +7,12 @@
 #include <stddef.h>
 
 typedef struct Allocator {
-    Result(uptr) (*alloc)(struct Allocator *allocator,
-                          usize             amount);
-    Result(uptr) (*realloc)(struct Allocator *allocator,
-                            uptr              region,
-                            usize             amount);
+    Result(uptr) (*alloc)(struct Allocator *allocator, usize amount);
+    Result(uptr) (*realloc)(struct Allocator *allocator, uptr region, usize amount);
     void (*free)(struct Allocator *allocator, uptr region);
     uptr allocator_state;
 } Allocator;
 
-Result(uptr)
-    allocacor_alloc(Allocator *allocator, usize amount);
+Result(uptr) allocacor_alloc(Allocator *allocator, usize amount);
 
 #endif /* __ALLOCATOR_H */

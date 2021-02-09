@@ -28,9 +28,7 @@ void platform_print_line(const char *string) {
     OutputDebugStringA("\n");
 }
 
-void platform_print_fmt(Allocator * a,
-                        const char *fmt,
-                        ...) {
+void platform_print_fmt(Allocator *a, const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
 
@@ -55,33 +53,26 @@ static ErrorCode platform_win32_load_wgl() {
 
     if (hgl == 0) return ERR_PLATFORM_WIN32_OPENGL32_DLL;
 
-    wgl_get_proc_address = (wglGetProcAdressFunc *)
-        GetProcAddress(hgl, "wglGetProcAddress");
-    wgl_create_context = (wglCreateContextFunc *)
-        GetProcAddress(hgl, "wglCreateContext");
-    wgl_delete_context = (wglDeleteContextFunc *)
-        GetProcAddress(hgl, "wglDeleteContext");
-    wgl_make_current = (wglMakeCurrentFunc *)GetProcAddress(
-        hgl,
-        "wglMakeCurrent");
+    wgl_get_proc_address = (wglGetProcAdressFunc *)GetProcAddress(hgl, "wglGetProcAddress");
+    wgl_create_context   = (wglCreateContextFunc *)GetProcAddress(hgl, "wglCreateContext");
+    wgl_delete_context   = (wglDeleteContextFunc *)GetProcAddress(hgl, "wglDeleteContext");
+    wgl_make_current     = (wglMakeCurrentFunc *)GetProcAddress(hgl, "wglMakeCurrent");
 
     assert(wgl_get_proc_address);
     assert(wgl_create_context);
     assert(wgl_delete_context);
     assert(wgl_make_current);
 
-    if (!wgl_get_proc_address)
-        return ERR_PLATFORM_WIN32_OPENGL32_DLL;
+    if (!wgl_get_proc_address) return ERR_PLATFORM_WIN32_OPENGL32_DLL;
 
     return ERR_OK;
 }
 
 static ErrorCode platform_win32_init_wgl_extensions() {
-    WNDCLASS wc = {
-        .style         = CS_VREDRAW | CS_HREDRAW | CS_OWNDC,
-        .lpfnWndProc   = DefWindowProc,
-        .hInstance     = GetModuleHandle(0),
-        .lpszClassName = "PlatformTempWindowClass"};
+    WNDCLASS wc = {.style         = CS_VREDRAW | CS_HREDRAW | CS_OWNDC,
+                   .lpfnWndProc   = DefWindowProc,
+                   .hInstance     = GetModuleHandle(0),
+                   .lpszClassName = "PlatformTempWindowClass"};
 
     RegisterClass(&wc);
 
@@ -101,35 +92,33 @@ static ErrorCode platform_win32_init_wgl_extensions() {
 
     HDC dc = GetDC(wh);
 
-    PIXELFORMATDESCRIPTOR pfd = {
-        sizeof(PIXELFORMATDESCRIPTOR),
-        1,
-        PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL |
-            PFD_DOUBLEBUFFER,    // Flags
-        PFD_TYPE_RGBA,    // The kind of framebuffer. RGBA
-                          // or palette.
-        32,               // Colordepth of the framebuffer.
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        24,    // Number of bits for the depthbuffer
-        8,     // Number of bits for the stencilbuffer
-        0,     // Number of Aux buffers in the framebuffer.
-        PFD_MAIN_PLANE,
-        0,
-        0,
-        0,
-        0};
+    PIXELFORMATDESCRIPTOR pfd = {sizeof(PIXELFORMATDESCRIPTOR),
+                                 1,
+                                 PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,    // Flags
+                                 PFD_TYPE_RGBA,    // The kind of framebuffer. RGBA
+                                                   // or palette.
+                                 32,               // Colordepth of the framebuffer.
+                                 0,
+                                 0,
+                                 0,
+                                 0,
+                                 0,
+                                 0,
+                                 0,
+                                 0,
+                                 0,
+                                 0,
+                                 0,
+                                 0,
+                                 0,
+                                 24,    // Number of bits for the depthbuffer
+                                 8,     // Number of bits for the stencilbuffer
+                                 0,     // Number of Aux buffers in the framebuffer.
+                                 PFD_MAIN_PLANE,
+                                 0,
+                                 0,
+                                 0,
+                                 0};
 
     int cpf = ChoosePixelFormat(dc, &pfd);
     SetPixelFormat(dc, cpf, &pfd);
@@ -140,20 +129,14 @@ static ErrorCode platform_win32_init_wgl_extensions() {
 
     wgl_make_current(dc, glc);
 
-    wgl_choose_pixel_format_arb =
-        (wglChoosePixelFormatARBFunc *)wgl_get_proc_address(
-            "wglChoosePixelFormatARB");
+    wgl_choose_pixel_format_arb = (wglChoosePixelFormatARBFunc *)wgl_get_proc_address("wglChoosePixelFormatARB");
     wgl_create_context_attribs_arb =
-        (wglCreateContextAttribsARBFunc *)
-            wgl_get_proc_address(
-                "wglCreateContextAttribsARB");
+        (wglCreateContextAttribsARBFunc *)wgl_get_proc_address("wglCreateContextAttribsARB");
 
     assert(wgl_choose_pixel_format_arb);
     assert(wgl_create_context_attribs_arb);
 
-    if (!wgl_create_context_attribs_arb ||
-        !wgl_choose_pixel_format_arb)
-        return ERR_ANY;
+    if (!wgl_create_context_attribs_arb || !wgl_choose_pixel_format_arb) return ERR_ANY;
 
     wgl_make_current(dc, 0);
     wgl_delete_context(glc);
@@ -165,25 +148,17 @@ static ErrorCode platform_win32_init_wgl_extensions() {
 
 static void *gl_get_proc_adress(const char *name) {
     void *p = (void *)wgl_get_proc_address(name);
-    if (p == 0 || (p == (void *)0x1) ||
-        (p == (void *)0x2) || (p == (void *)0x3) ||
-        (p == (void *)-1)) {
+    if (p == 0 || (p == (void *)0x1) || (p == (void *)0x2) || (p == (void *)0x3) || (p == (void *)-1)) {
         HMODULE module = LoadLibraryA("opengl32.dll");
-        p = (void *)GetProcAddress(module, name);
+        p              = (void *)GetProcAddress(module, name);
     }
 
     return p;
 }
 
-typedef enum {
-    ButtonStatePressed,
-    ButtonStateReleased,
-    ButtonStateDown,
-    ButtonStateUp
-} ButtonStateType;
+typedef enum { ButtonStatePressed, ButtonStateReleased, ButtonStateDown, ButtonStateUp } ButtonStateType;
 
-static void button_state_set(PlatformButtonState *b,
-                             ButtonStateType      type) {
+static void button_state_set(PlatformButtonState *b, ButtonStateType type) {
     boolean pressed = false;
     switch (type) {
         case ButtonStatePressed: pressed = true;
@@ -212,41 +187,31 @@ static void button_state_set(PlatformButtonState *b,
     }
 }
 
-static inline void
-platform_win32_start_mouse_tracking(Platform *p) {
-    TRACKMOUSEEVENT tme = {
-        .cbSize    = sizeof(TRACKMOUSEEVENT),
-        .dwFlags   = TME_LEAVE,
-        .hwndTrack = p->win32.window_handle};
+static inline void platform_win32_start_mouse_tracking(Platform *p) {
+    TRACKMOUSEEVENT tme = {.cbSize    = sizeof(TRACKMOUSEEVENT),
+                           .dwFlags   = TME_LEAVE,
+                           .hwndTrack = p->win32.window_handle};
     TrackMouseEvent(&tme);
     p->win32.reset_mouse_tracking = false;
 }
 
-static LRESULT CALLBACK
-platform_win32_window_proc(HWND   hwnd,
-                           UINT   uMsg,
-                           WPARAM wParam,
-                           LPARAM lParam) {
-    Platform *p =
-        (Platform *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
-    LRESULT result = 0;
+static LRESULT CALLBACK platform_win32_window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+    Platform *p      = (Platform *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+    LRESULT   result = 0;
 
     switch (uMsg) {
         case WM_MOUSELEAVE:
         {
-            button_state_set(&platform.mouse.left_button,
-                             ButtonStateUp);
+            button_state_set(&platform.mouse.left_button, ButtonStateUp);
             p->win32.reset_mouse_tracking = true;
         } break;
         case WM_LBUTTONDOWN:
         {
-            button_state_set(&p->mouse.left_button,
-                             ButtonStatePressed);
+            button_state_set(&p->mouse.left_button, ButtonStatePressed);
         } break;
         case WM_LBUTTONUP:
         {
-            button_state_set(&p->mouse.left_button,
-                             ButtonStateReleased);
+            button_state_set(&p->mouse.left_button, ButtonStateReleased);
         } break;
         case WM_SIZE:
         {
@@ -260,10 +225,7 @@ platform_win32_window_proc(HWND   hwnd,
                 SetCursor(p->win32.cursor_handle);
                 result = true;
             } else {
-                result = DefWindowProcA(wParam,
-                                        uMsg,
-                                        wParam,
-                                        lParam);
+                result = DefWindowProcA(wParam, uMsg, wParam, lParam);
             }
         } break;
         case WM_MOUSEMOVE:
@@ -281,8 +243,7 @@ platform_win32_window_proc(HWND   hwnd,
         } break;
         default:
         {
-            result =
-                DefWindowProcA(hwnd, uMsg, wParam, lParam);
+            result = DefWindowProcA(hwnd, uMsg, wParam, lParam);
         }
     }
 
@@ -290,8 +251,7 @@ platform_win32_window_proc(HWND   hwnd,
 }
 
 static LPCSTR platform_win32_get_cursor_name(Platform *p) {
-    if (maybe_is_nothing(p->window.cursor_style))
-        return IDC_ARROW;
+    if (maybe_is_nothing(p->window.cursor_style)) return IDC_ARROW;
 
     switch (p->window.cursor_style.value) {
         case PLATFORM_CURSOR_STYLE_NORMAL: return IDC_ARROW;
@@ -303,49 +263,37 @@ static void platform_win32_init_window(Platform *p) {
     // Register window class
     WNDCLASS windowclass = {0};
 
-    windowclass.style = CS_VREDRAW | CS_HREDRAW | CS_OWNDC;
+    windowclass.style         = CS_VREDRAW | CS_HREDRAW | CS_OWNDC;
     windowclass.lpszClassName = "ProfuseWindowClass";
     windowclass.hInstance     = GetModuleHandleA(0);
     windowclass.lpfnWndProc   = platform_win32_window_proc;
-    windowclass.hCursor =
-        LoadCursorA(0, platform_win32_get_cursor_name(p));
+    windowclass.hCursor       = LoadCursorA(0, platform_win32_get_cursor_name(p));
 
     RegisterClass(&windowclass);
 
-    u32 cwidth  = maybe_is_something(p->window.width)
-                      ? p->window.width.value
-                      : 800;
-    u32 cheight = maybe_is_something(p->window.height)
-                      ? p->window.height.value
-                      : 600;
+    u32 cwidth  = maybe_is_something(p->window.width) ? p->window.width.value : 800;
+    u32 cheight = maybe_is_something(p->window.height) ? p->window.height.value : 600;
 
-    RECT rect = {.left   = 0,
-                 .top    = 0,
-                 .right  = cwidth,
-                 .bottom = cheight};
+    RECT rect = {.left = 0, .top = 0, .right = cwidth, .bottom = cheight};
     AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);
 
     u32 wwidth  = rect.right - rect.left;
     u32 wheight = rect.bottom - rect.top;
 
     // Create window with handle
-    HWND windowhandle = CreateWindowEx(
-        0,
-        windowclass.lpszClassName,
-        maybe_is_something(p->window.title)
-            ? p->window.title.value
-            : "ProfuseWindowName",
-        WS_OVERLAPPEDWINDOW,
-        maybe_is_something(p->window.x) ? p->window.x.value
-                                        : CW_USEDEFAULT,
-        maybe_is_something(p->window.y) ? p->window.y.value
-                                        : CW_USEDEFAULT,
-        wwidth,
-        wheight,
-        0,
-        0,
-        windowclass.hInstance,
-        0);
+    HWND windowhandle =
+        CreateWindowEx(0,
+                       windowclass.lpszClassName,
+                       maybe_is_something(p->window.title) ? p->window.title.value : "ProfuseWindowName",
+                       WS_OVERLAPPEDWINDOW,
+                       maybe_is_something(p->window.x) ? p->window.x.value : CW_USEDEFAULT,
+                       maybe_is_something(p->window.y) ? p->window.y.value : CW_USEDEFAULT,
+                       wwidth,
+                       wheight,
+                       0,
+                       0,
+                       windowclass.hInstance,
+                       0);
 
     if (windowhandle == NULL) {
         OutputDebugString("Failed to create window!\n");
@@ -357,9 +305,7 @@ static void platform_win32_init_window(Platform *p) {
 
     // Save a pointer for the platform state in the window
     // state
-    SetWindowLongPtr(windowhandle,
-                     GWLP_USERDATA,
-                     (LONG_PTR)p);
+    SetWindowLongPtr(windowhandle, GWLP_USERDATA, (LONG_PTR)p);
 
     // Show the window
     ShowWindow(windowhandle, SW_SHOW);
@@ -371,8 +317,7 @@ static void platform_win32_init_window(Platform *p) {
     p->win32.cursor_handle = windowclass.hCursor;
 
     // Save cached values
-    p->window.cached.cursor_style =
-        p->window.cursor_style.value;
+    p->window.cached.cursor_style = p->window.cursor_style.value;
 
     // Start mouse tracking
     platform_win32_start_mouse_tracking(p);
@@ -386,61 +331,46 @@ static ErrorCode platform_win32_init_gl(Platform *p) {
     error_raise(platform_win32_init_wgl_extensions());
 
     // Set the pixel format
-    int pixel_attribs[] = {
-        WGL_DRAW_TO_WINDOW_ARB,
-        GL_TRUE,
-        WGL_SUPPORT_OPENGL_ARB,
-        GL_TRUE,
-        WGL_ACCELERATION_ARB,
-        WGL_FULL_ACCELERATION_ARB,
-        WGL_DOUBLE_BUFFER_ARB,
-        GL_TRUE,
-        WGL_PIXEL_TYPE_ARB,
-        WGL_TYPE_RGBA_ARB,
-        WGL_COLOR_BITS_ARB,
-        32,
-        WGL_DEPTH_BITS_ARB,
-        24,
-        WGL_STENCIL_BITS_ARB,
-        8,
-        WGL_SAMPLE_BUFFERS_ARB,
-        1,
-        WGL_SAMPLES_ARB,
-        8,    // TODO: set this as an external option (among
-              // other suff).
-        0};
+    int pixel_attribs[] = {WGL_DRAW_TO_WINDOW_ARB,
+                           GL_TRUE,
+                           WGL_SUPPORT_OPENGL_ARB,
+                           GL_TRUE,
+                           WGL_ACCELERATION_ARB,
+                           WGL_FULL_ACCELERATION_ARB,
+                           WGL_DOUBLE_BUFFER_ARB,
+                           GL_TRUE,
+                           WGL_PIXEL_TYPE_ARB,
+                           WGL_TYPE_RGBA_ARB,
+                           WGL_COLOR_BITS_ARB,
+                           32,
+                           WGL_DEPTH_BITS_ARB,
+                           24,
+                           WGL_STENCIL_BITS_ARB,
+                           8,
+                           WGL_SAMPLE_BUFFERS_ARB,
+                           1,
+                           WGL_SAMPLES_ARB,
+                           8,    // TODO: set this as an external option (among
+                                 // other suff).
+                           0};
 
     int  pixelformat      = 0;
     uint pixelformatcount = 0;
-    wgl_choose_pixel_format_arb(p->win32.device_context,
-                                pixel_attribs,
-                                0,
-                                1,
-                                &pixelformat,
-                                &pixelformatcount);
+    wgl_choose_pixel_format_arb(p->win32.device_context, pixel_attribs, 0, 1, &pixelformat, &pixelformatcount);
 
     PIXELFORMATDESCRIPTOR pfd = {0};
-    DescribePixelFormat(p->win32.device_context,
-                        pixelformat,
-                        sizeof(pfd),
-                        &pfd);
-    SetPixelFormat(p->win32.device_context,
-                   pixelformat,
-                   &pfd);
+    DescribePixelFormat(p->win32.device_context, pixelformat, sizeof(pfd), &pfd);
+    SetPixelFormat(p->win32.device_context, pixelformat, &pfd);
 
-    int context_attribs[] = {
-        WGL_CONTEXT_MAJOR_VERSION_ARB,
-        3,
-        WGL_CONTEXT_MINOR_VERSION_ARB,
-        2,
-        WGL_CONTEXT_PROFILE_MASK_ARB,
-        WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-        0};
+    int context_attribs[] = {WGL_CONTEXT_MAJOR_VERSION_ARB,
+                             3,
+                             WGL_CONTEXT_MINOR_VERSION_ARB,
+                             2,
+                             WGL_CONTEXT_PROFILE_MASK_ARB,
+                             WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+                             0};
 
-    HGLRC glc = wgl_create_context_attribs_arb(
-        p->win32.device_context,
-        0,
-        context_attribs);
+    HGLRC glc = wgl_create_context_attribs_arb(p->win32.device_context, 0, context_attribs);
 
     assert(glc);
 
@@ -471,11 +401,7 @@ static void platform_win32_pull_mouse(Platform *p) {
 
 static void platform_win32_pull_messages(Platform *p) {
     MSG msg;
-    while (PeekMessage(&msg,
-                       p->win32.window_handle,
-                       0,
-                       0,
-                       PM_REMOVE) != 0) {
+    while (PeekMessage(&msg, p->win32.window_handle, 0, 0, PM_REMOVE) != 0) {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
@@ -489,8 +415,7 @@ static void platform_win32_pull_time(Platform *p) {
 
     if (prev_time.QuadPart == 0) return;
 
-    delta_time.QuadPart =
-        curr_time.QuadPart - prev_time.QuadPart;
+    delta_time.QuadPart = curr_time.QuadPart - prev_time.QuadPart;
 
     double delta_ms = delta_time.QuadPart * 1000;
     delta_ms /= p->win32.qpc_freq.QuadPart;
@@ -508,22 +433,17 @@ static void platform_win32_pull(Platform *p) {
 }
 
 static void platform_win32_window_push(Platform *p) {
-    if (p->window.cached.cursor_style !=
-        p->window.cursor_style.value) {
-        HCURSOR hc =
-            LoadCursorA(0,
-                        platform_win32_get_cursor_name(p));
+    if (p->window.cached.cursor_style != p->window.cursor_style.value) {
+        HCURSOR hc = LoadCursorA(0, platform_win32_get_cursor_name(p));
         SetCursor(hc);
-        p->win32.cursor_handle = hc;
-        p->window.cached.cursor_style =
-            p->window.cursor_style.value;
+        p->win32.cursor_handle        = hc;
+        p->window.cached.cursor_style = p->window.cursor_style.value;
     }
 
     p->window.was_resized = false;
 }
 
-static void
-platform_win32_push_button(PlatformButtonState *b) {
+static void platform_win32_push_button(PlatformButtonState *b) {
     if (b->was_down) b->was_down = false;
     if (b->just_down) b->just_down = false;
     if (b->was_up) b->was_up = false;
@@ -540,10 +460,7 @@ static void platform_win32_push(Platform *p) {
     SwapBuffers(p->win32.device_context);
 }
 
-int WinMain(HINSTANCE hInstance,
-            HINSTANCE hPrevInstance,
-            LPSTR     lpCmdLine,
-            int       nShowCmd) {
+int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) {
     UNUSED_VARIABLE(hInstance);
     UNUSED_VARIABLE(hPrevInstance);
     UNUSED_VARIABLE(lpCmdLine);

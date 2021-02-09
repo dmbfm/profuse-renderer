@@ -37,8 +37,7 @@ f32 math_floor_f32(f32 x) {
 Result(i32) math_floor_f32_to_i32(f32 x) {
     float f = math_floor_f32(x);
 
-    if ((f < (float)MATH_I32_MAX) &&
-        (f > (-(float)MATH_I32_MAX))) {
+    if ((f < (float)MATH_I32_MAX) && (f > (-(float)MATH_I32_MAX))) {
         return result_ok(i32, (i32)f);
     }
 
@@ -78,8 +77,7 @@ f32 math_ceil_f32(f32 x) {
 Result(i32) math_ceil_f32_to_i32(f32 x) {
     float f = math_ceil_f32(x);
 
-    if ((f < (float)MATH_I32_MAX) &&
-        (f < (-(float)MATH_I32_MAX))) {
+    if ((f < (float)MATH_I32_MAX) && (f < (-(float)MATH_I32_MAX))) {
         return result_error(i32, ERR_MATH_OVERFLOW);
     }
 
@@ -220,8 +218,7 @@ Vec2 vec2_normalized(Vec2 v) {
 }
 
 boolean vec2_is_equal(Vec2 a, Vec2 b) {
-    return math_is_equalf(a.x, b.x) &&
-           math_is_equalf(a.y, b.y);
+    return math_is_equalf(a.x, b.x) && math_is_equalf(a.y, b.y);
 }
 
 Vec3 vec3(f32 x, f32 y, f32 z) {
@@ -269,9 +266,7 @@ Vec3 vec3_normalized(Vec3 v) {
 }
 
 Vec3 vec3_cross(Vec3 a, Vec3 b) {
-    return vec3(a.y * b.z - a.z * b.y,
-                a.z * b.x - a.x * b.z,
-                a.x * b.y - a.y * b.x);
+    return vec3(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x);
 }
 
 Vec3 vec3_i() {
@@ -287,20 +282,14 @@ Vec3 vec3_k() {
 }
 
 boolean vec3_is_equal(Vec3 a, Vec3 b) {
-    return math_is_equalf(a.x, b.x) &&
-           math_is_equalf(a.y, b.y) &&
-           math_is_equalf(a.z, b.z);
+    return math_is_equalf(a.x, b.x) && math_is_equalf(a.y, b.y) && math_is_equalf(a.z, b.z);
 }
 
-Vec3 vec3_spherical(float polar_angle,
-                    float azimuthal_angle,
-                    float radius) {
+Vec3 vec3_spherical(float polar_angle, float azimuthal_angle, float radius) {
     Vec3 r;
 
-    r.x = radius * math_sinf(polar_angle) *
-          math_cosf(azimuthal_angle);
-    r.z = radius * math_sinf(polar_angle) *
-          math_sinf(azimuthal_angle);
+    r.x = radius * math_sinf(polar_angle) * math_cosf(azimuthal_angle);
+    r.z = radius * math_sinf(polar_angle) * math_sinf(azimuthal_angle);
     r.y = radius * math_cosf(polar_angle);
 
     return r;
@@ -335,13 +324,11 @@ Vec4 vec4_smul(float x, Vec4 a) {
 }
 
 f32 vec4_dot(Vec4 a, Vec4 b) {
-    return (a.x * b.x) + (a.y * b.y) + (a.z * b.z) +
-           (a.w * b.w);
+    return (a.x * b.x) + (a.y * b.y) + (a.z * b.z) + (a.w * b.w);
 }
 
 f32 vec4_len(Vec4 v) {
-    return math_sqrtf(v.x * v.x + v.y * v.y + v.z * v.z +
-                      v.w * v.w);
+    return math_sqrtf(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
 }
 
 Vec4 vec4_normalized(Vec4 v) {
@@ -365,10 +352,7 @@ Vec4 vec4_w() {
 }
 
 boolean vec4_is_equal(Vec4 a, Vec4 b) {
-    return math_is_equalf(a.x, b.x) &&
-           math_is_equalf(a.y, b.y) &&
-           math_is_equalf(a.z, b.z) &&
-           math_is_equalf(a.w, b.w);
+    return math_is_equalf(a.x, b.x) && math_is_equalf(a.y, b.y) && math_is_equalf(a.z, b.z) && math_is_equalf(a.w, b.w);
 }
 
 Mat4 mat4_id() {
@@ -406,55 +390,35 @@ boolean mat4_is_equal(Mat4 a, Mat4 b) {
 Mat4 mat4_mul(Mat4 a, Mat4 b) {
     Mat4 r;
 
-    r.m11 = a.m11 * b.m11 + a.m12 * b.m21 + a.m13 * b.m31 +
-            a.m14 * b.m41;
-    r.m12 = a.m11 * b.m12 + a.m12 * b.m22 + a.m13 * b.m32 +
-            a.m14 * b.m42;
-    r.m13 = a.m11 * b.m13 + a.m12 * b.m23 + a.m13 * b.m33 +
-            a.m14 * b.m43;
-    r.m14 = a.m11 * b.m14 + a.m12 * b.m24 + a.m13 * b.m34 +
-            a.m14 * b.m44;
+    r.m11 = a.m11 * b.m11 + a.m12 * b.m21 + a.m13 * b.m31 + a.m14 * b.m41;
+    r.m12 = a.m11 * b.m12 + a.m12 * b.m22 + a.m13 * b.m32 + a.m14 * b.m42;
+    r.m13 = a.m11 * b.m13 + a.m12 * b.m23 + a.m13 * b.m33 + a.m14 * b.m43;
+    r.m14 = a.m11 * b.m14 + a.m12 * b.m24 + a.m13 * b.m34 + a.m14 * b.m44;
 
-    r.m21 = a.m21 * b.m11 + a.m22 * b.m21 + a.m23 * b.m31 +
-            a.m24 * b.m41;
-    r.m22 = a.m21 * b.m12 + a.m22 * b.m22 + a.m23 * b.m32 +
-            a.m24 * b.m42;
-    r.m23 = a.m21 * b.m13 + a.m22 * b.m23 + a.m23 * b.m33 +
-            a.m24 * b.m43;
-    r.m24 = a.m21 * b.m14 + a.m22 * b.m24 + a.m23 * b.m34 +
-            a.m24 * b.m44;
+    r.m21 = a.m21 * b.m11 + a.m22 * b.m21 + a.m23 * b.m31 + a.m24 * b.m41;
+    r.m22 = a.m21 * b.m12 + a.m22 * b.m22 + a.m23 * b.m32 + a.m24 * b.m42;
+    r.m23 = a.m21 * b.m13 + a.m22 * b.m23 + a.m23 * b.m33 + a.m24 * b.m43;
+    r.m24 = a.m21 * b.m14 + a.m22 * b.m24 + a.m23 * b.m34 + a.m24 * b.m44;
 
-    r.m31 = a.m31 * b.m11 + a.m32 * b.m21 + a.m33 * b.m31 +
-            a.m34 * b.m41;
-    r.m32 = a.m31 * b.m12 + a.m32 * b.m22 + a.m33 * b.m32 +
-            a.m34 * b.m42;
-    r.m33 = a.m31 * b.m13 + a.m32 * b.m23 + a.m33 * b.m33 +
-            a.m34 * b.m43;
-    r.m34 = a.m31 * b.m14 + a.m32 * b.m24 + a.m33 * b.m34 +
-            a.m34 * b.m44;
+    r.m31 = a.m31 * b.m11 + a.m32 * b.m21 + a.m33 * b.m31 + a.m34 * b.m41;
+    r.m32 = a.m31 * b.m12 + a.m32 * b.m22 + a.m33 * b.m32 + a.m34 * b.m42;
+    r.m33 = a.m31 * b.m13 + a.m32 * b.m23 + a.m33 * b.m33 + a.m34 * b.m43;
+    r.m34 = a.m31 * b.m14 + a.m32 * b.m24 + a.m33 * b.m34 + a.m34 * b.m44;
 
-    r.m41 = a.m41 * b.m11 + a.m42 * b.m21 + a.m43 * b.m31 +
-            a.m44 * b.m41;
-    r.m42 = a.m41 * b.m12 + a.m42 * b.m22 + a.m43 * b.m32 +
-            a.m44 * b.m42;
-    r.m43 = a.m41 * b.m13 + a.m42 * b.m23 + a.m43 * b.m33 +
-            a.m44 * b.m43;
-    r.m44 = a.m41 * b.m14 + a.m42 * b.m24 + a.m43 * b.m34 +
-            a.m44 * b.m44;
+    r.m41 = a.m41 * b.m11 + a.m42 * b.m21 + a.m43 * b.m31 + a.m44 * b.m41;
+    r.m42 = a.m41 * b.m12 + a.m42 * b.m22 + a.m43 * b.m32 + a.m44 * b.m42;
+    r.m43 = a.m41 * b.m13 + a.m42 * b.m23 + a.m43 * b.m33 + a.m44 * b.m43;
+    r.m44 = a.m41 * b.m14 + a.m42 * b.m24 + a.m43 * b.m34 + a.m44 * b.m44;
 
     return r;
 }
 
 Vec4 vec4_transform(Vec4 v, Mat4 m) {
     return (Vec4){
-        .x = v.x * m.m11 + v.y * m.m12 * v.z * m.m13 +
-             v.w * m.m14,
-        .y = v.x * m.m21 + v.y * m.m22 * v.z * m.m23 +
-             v.w * m.m24,
-        .z = v.x * m.m31 + v.y * m.m32 * v.z * m.m33 +
-             v.w * m.m34,
-        .w = v.x * m.m41 + v.y * m.m42 * v.z * m.m43 +
-             v.w * m.m44,
+        .x = v.x * m.m11 + v.y * m.m12 * v.z * m.m13 + v.w * m.m14,
+        .y = v.x * m.m21 + v.y * m.m22 * v.z * m.m23 + v.w * m.m24,
+        .z = v.x * m.m31 + v.y * m.m32 * v.z * m.m33 + v.w * m.m34,
+        .w = v.x * m.m41 + v.y * m.m42 * v.z * m.m43 + v.w * m.m44,
     };
 }
 
@@ -729,12 +693,9 @@ test(vec3_len) {
 }
 
 test(vec3_cross) {
-    expect(vec3_is_equal(vec3_cross(vec3_j(), vec3_k()),
-                         vec3_i()));
-    expect(vec3_is_equal(vec3_cross(vec3_i(), vec3_j()),
-                         vec3_k()));
-    expect(vec3_is_equal(vec3_cross(vec3_k(), vec3_i()),
-                         vec3_j()));
+    expect(vec3_is_equal(vec3_cross(vec3_j(), vec3_k()), vec3_i()));
+    expect(vec3_is_equal(vec3_cross(vec3_i(), vec3_j()), vec3_k()));
+    expect(vec3_is_equal(vec3_cross(vec3_k(), vec3_i()), vec3_j()));
 }
 
 test(vec4_is_equal) {
@@ -748,8 +709,7 @@ test(vec4_add) {
     Vec4 v2 = vec4(3.0f, 4.0f, 8.0f, 12.0f);
     Vec4 v3 = vec4_add(v1, v2);
 
-    expect(
-        vec4_is_equal(v3, vec4(4.0f, 6.0f, 14.0f, 22.0f)));
+    expect(vec4_is_equal(v3, vec4(4.0f, 6.0f, 14.0f, 22.0f)));
 }
 
 test(vec4_sub) {
@@ -757,8 +717,7 @@ test(vec4_sub) {
     Vec4 v2 = vec4(3.0f, 4.0f, 8.0f, 12.0f);
     Vec4 v3 = vec4_sub(v1, v2);
 
-    expect(vec4_is_equal(v3,
-                         vec4(-2.0f, -2.0f, -2.0f, -2.0f)));
+    expect(vec4_is_equal(v3, vec4(-2.0f, -2.0f, -2.0f, -2.0f)));
 }
 
 test(vec4_mul) {
@@ -766,16 +725,14 @@ test(vec4_mul) {
     Vec4 v2 = vec4(3.0f, 4.0f, 8.0f, 12.0f);
     Vec4 v3 = vec4_mul(v1, v2);
 
-    expect(
-        vec4_is_equal(v3, vec4(3.0f, 8.0f, 48.0f, 120.0f)));
+    expect(vec4_is_equal(v3, vec4(3.0f, 8.0f, 48.0f, 120.0f)));
 }
 
 test(vec4_smul) {
     Vec4 v2 = vec4(3.0f, 4.0f, 8.0f, 10.0f);
     Vec4 v3 = vec4_smul(2.0f, v2);
 
-    expect(
-        vec4_is_equal(v3, vec4(6.0f, 8.0f, 16.0f, 20.0f)));
+    expect(vec4_is_equal(v3, vec4(6.0f, 8.0f, 16.0f, 20.0f)));
 }
 
 test(vec4_dot) {
@@ -792,42 +749,20 @@ test(vec4_len) {
 }
 
 test(mat4_mul) {
-    Mat4 m1 =
-        {0, 2, 0, 0, 0, 0, 0, 4, 0, 3, 0, 0, 0, 0, 1, 0};
-    Mat4 m2 =
-        {1, 4, 0, 1, 2, 0, 5, 0, 3, 5, 0, 2, 5, 0, 4, 0};
-    Mat4 result = {0,
-                   2,
-                   1,
-                   16,
-                   0,
-                   19,
-                   0,
-                   0,
-                   0,
-                   6,
-                   2,
-                   20,
-                   0,
-                   22,
-                   0,
-                   0};
+    Mat4 m1     = {0, 2, 0, 0, 0, 0, 0, 4, 0, 3, 0, 0, 0, 0, 1, 0};
+    Mat4 m2     = {1, 4, 0, 1, 2, 0, 5, 0, 3, 5, 0, 2, 5, 0, 4, 0};
+    Mat4 result = {0, 2, 1, 16, 0, 19, 0, 0, 0, 6, 2, 20, 0, 22, 0, 0};
 
-    expect(mat4_is_equal(mat4_mul(mat4_id(), mat4_id()),
-                         mat4_id()));
-    expect(
-        mat4_is_equal(mat4_mul(mat4_id(), mat4_diag(2.5f)),
-                      mat4_diag(2.5f)));
+    expect(mat4_is_equal(mat4_mul(mat4_id(), mat4_id()), mat4_id()));
+    expect(mat4_is_equal(mat4_mul(mat4_id(), mat4_diag(2.5f)), mat4_diag(2.5f)));
     expect(mat4_is_equal(mat4_mul(m1, m2), result));
 }
 
 test(mat4_translation) {
-    f32  t = 10.0f;
-    Mat4 result =
-        {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, t, t, t, 1};
+    f32  t      = 10.0f;
+    Mat4 result = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, t, t, t, 1};
 
-    expect(mat4_is_equal(result,
-                         mat4_translation(vec3(t, t, t))));
+    expect(mat4_is_equal(result, mat4_translation(vec3(t, t, t))));
 }
 
 suite() {

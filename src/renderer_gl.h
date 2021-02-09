@@ -8,8 +8,6 @@
 
 result_make_type(GLuint);
 
-Result(GLuint) rgl_create_program_raw(Allocator * a,
-                                      const char *vs,
-                                      const char *fs);
+Result(GLuint) rgl_create_program_raw(Allocator *a, const char *vs, const char *fs);
 
 #endif /* __RENDERER_GL_H */

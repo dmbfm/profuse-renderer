@@ -21,9 +21,8 @@ typedef enum {
     ERR_RGL_FRAGMENT_SHADER
 } ErrorCode;
 
-#define error_raise(f)                                     \
-    int TOKENCOMBINE(__error, __LINE__) = (f);             \
-    if (TOKENCOMBINE(__error, __LINE__) != ERR_OK)         \
-        return TOKENCOMBINE(__error, __LINE__);
+#define error_raise(f)                                                                                                 \
+    int TOKENCOMBINE(__error, __LINE__) = (f);                                                                         \
+    if (TOKENCOMBINE(__error, __LINE__) != ERR_OK) return TOKENCOMBINE(__error, __LINE__);
 
 #endif /* __ERROR_H */

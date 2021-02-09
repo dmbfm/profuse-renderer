@@ -6,8 +6,7 @@
 #else
     #include <stdlib.h>
 
-static Result(uptr)
-    heap_alloc(Allocator *alloc, usize amount) {
+static Result(uptr) heap_alloc(Allocator *alloc, usize amount) {
     UNUSED_VARIABLE(alloc);
 
     uptr p = (uptr)malloc(amount);
@@ -17,9 +16,7 @@ static Result(uptr)
     return result_ok(uptr, p);
 }
 
-static Result(uptr) heap_realloc(Allocator *alloc,
-                                 uptr       region,
-                                 usize      new_size) {
+static Result(uptr) heap_realloc(Allocator *alloc, uptr region, usize new_size) {
     UNUSED_VARIABLE(alloc);
 
     uptr p = (uptr)realloc((void *)region, new_size);
@@ -29,17 +26,13 @@ static Result(uptr) heap_realloc(Allocator *alloc,
     return result_ok(uptr, p);
 }
 
-static void heap_free(struct Allocator *allocator,
-                      uptr              region) {
+static void heap_free(struct Allocator *allocator, uptr region) {
     UNUSED_VARIABLE(allocator);
 
     free((void *)region);
 }
 
-Allocator heap_allocator = {.alloc           = heap_alloc,
-                            .realloc         = heap_realloc,
-                            .free            = heap_free,
-                            .allocator_state = 0};
+Allocator heap_allocator = {.alloc = heap_alloc, .realloc = heap_realloc, .free = heap_free, .allocator_state = 0};
 
 #endif /* __wasm__ */
 

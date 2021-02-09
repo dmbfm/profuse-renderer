@@ -11,20 +11,16 @@ static inline boolean mem_is_pot(usize x) {
     return (x & (x - 1)) == 0;
 }
 
-static inline boolean mem_is_aligned(uptr  ptr,
-                                     usize alignment) {
+static inline boolean mem_is_aligned(uptr ptr, usize alignment) {
     uptr a   = (uptr)alignment;
     uptr mod = ptr % a;
 
     return (mod == 0);
 }
 
-static inline Result(uptr)
-    mem_align_pointer_forward(uptr ptr, usize alignment) {
+static inline Result(uptr) mem_align_pointer_forward(uptr ptr, usize alignment) {
     if (!mem_is_pot(alignment)) {
-        return result_error(
-            uptr,
-            ERR_ALLOCATORS_MEMORY_ALIGNMENT);
+        return result_error(uptr, ERR_ALLOCATORS_MEMORY_ALIGNMENT);
     }
 
     usize mask    = (alignment - 1);

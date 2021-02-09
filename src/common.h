@@ -47,12 +47,8 @@ typedef unsigned char *ucharptr;
 #define TOSTRING(x)        STRINGIFY(x)
 
 #if defined(__wasm__)
-    #define export                                         \
-        __attribute__((used, visibility("default")))
-    #define export_named(name)                             \
-        __attribute__((used,                               \
-                       visibility("default"),              \
-                       export_name(#name)))
+    #define export __attribute__((used, visibility("default")))
+    #define export_named(name) __attribute__((used, visibility("default"), export_name(#name)))
 #else
     #define export
     #define export_name(name)
@@ -68,8 +64,7 @@ WASM_JS(
 )
 // clang-format on
 
-static inline void
-common_wasm_panic_message(const char *msg) {
+static inline void common_wasm_panic_message(const char *msg) {
     common_wasm_print_message(msg);
     __builtin_trap();
 }
@@ -86,9 +81,7 @@ static inline void common_print(const char *string) {
 #if defined(_MSC_VER)
     #define panic() __debugbreak()
 #elif defined(__wasm__)
-    #define panic()                                        \
-        common_wasm_panic_message("PANIC: " TOSTRING(      \
-            __FILE__) ":" TOSTRING(__LINE__))
+    #define panic() common_wasm_panic_message("PANIC: " TOSTRING(__FILE__) ":" TOSTRING(__LINE__))
 #elif defined(__clang__) || defined(__GNUC__)
     #define panic() __builtin_trap()
 #else
@@ -101,26 +94,21 @@ static inline void common_print(const char *string) {
     #define CSTDCALL
 #endif
 
-#define DECL_FUNC_POINTER(qualifier,                       \
-                          ret,                             \
-                          typename,                        \
-                          varname,                         \
-                          ...)                             \
-    typedef ret(CSTDCALL typename)(__VA_ARGS__);           \
+#define DECL_FUNC_POINTER(qualifier, ret, typename, varname, ...)                                                      \
+    typedef ret(CSTDCALL typename)(__VA_ARGS__);                                                                       \
     qualifier typename *varname;
 
 #if 1
-    #define assert(exp)                                    \
-        if (!(exp)) {                                      \
-            panic();                                       \
+    #define assert(exp)                                                                                                \
+        if (!(exp)) {                                                                                                  \
+            panic();                                                                                                   \
         }
 #else
     #define assert(exp)
 #endif
 
-#define forn(name, n) for (usize name = 0; name < n; name++)
-#define for_range(name, start, end)                        \
-    for (usize name = start; name < end; name++)
+#define forn(name, n)               for (usize name = 0; name < n; name++)
+#define for_range(name, start, end) for (usize name = start; name < end; name++)
 
 #define local static
 
@@ -160,8 +148,7 @@ static inline usize c_string_len(const char *s) {
 }
 
 #ifdef __wasm__
-export static void *
-memset(void *ptr, int value, size_t num) {
+export static void *memset(void *ptr, int value, size_t num) {
     unsigned char  v = (unsigned char)value;
     unsigned char *p = (unsigned char *)ptr;
 
@@ -173,8 +160,7 @@ memset(void *ptr, int value, size_t num) {
     return ptr;
 }
 
-export static void *
-memcpy(void *dst, const void *src, size_t num) {
+export static void *memcpy(void *dst, const void *src, size_t num) {
     unsigned char *d = (unsigned char *)dst;
     unsigned char *s = (unsigned char *)src;
 
