@@ -7,46 +7,19 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-DECL_FUNC_POINTER(static,
-                  PROC,
-                  wglGetProcAdressFunc,
-                  wgl_get_proc_address,
-                  LPCSTR name);
-DECL_FUNC_POINTER(static,
-                  HGLRC,
-                  wglCreateContextFunc,
-                  wgl_create_context,
-                  HDC Arg1);
-DECL_FUNC_POINTER(static,
-                  BOOL,
-                  wglDeleteContextFunc,
-                  wgl_delete_context,
-                  HGLRC Arg);
-DECL_FUNC_POINTER(static,
-                  BOOL,
-                  wglMakeCurrentFunc,
-                  wgl_make_current,
-                  HDC   Arg1,
-                  HGLRC Arg2);
+// clang-format off
+DECL_FUNC_POINTER(static, PROC, wglGetProcAdressFunc, wgl_get_proc_address, LPCSTR name);
+DECL_FUNC_POINTER(static, HGLRC, wglCreateContextFunc, wgl_create_context, HDC Arg1);
+DECL_FUNC_POINTER(static, BOOL, wglDeleteContextFunc, wgl_delete_context, HGLRC Arg);
+DECL_FUNC_POINTER(static, BOOL, wglMakeCurrentFunc, wgl_make_current, HDC Arg1, HGLRC Arg2);
 
-DECL_FUNC_POINTER(static,
-                  BOOL,
-                  wglChoosePixelFormatARBFunc,
-                  wgl_choose_pixel_format_arb,
-                  HDC          hdc,
-                  const int *  piAttribIList,
-                  const FLOAT *pfAttribFList,
-                  UINT         nMaxFormats,
-                  int *        piFormats,
-                  UINT *       nNumFormats);
+DECL_FUNC_POINTER(static, BOOL, wglChoosePixelFormatARBFunc, wgl_choose_pixel_format_arb, HDC hdc,
+                  const int *piAttribIList, const FLOAT *pfAttribFList, UINT nMaxFormats, int *piFormats,
+                  UINT *nNumFormats);
 
-DECL_FUNC_POINTER(static,
-                  HGLRC,
-                  wglCreateContextAttribsARBFunc,
-                  wgl_create_context_attribs_arb,
-                  HDC        hDC,
-                  HGLRC      hshareContext,
-                  const int *attribList);
+DECL_FUNC_POINTER(static, HGLRC, wglCreateContextAttribsARBFunc, wgl_create_context_attribs_arb, HDC hDC,
+                  HGLRC hshareContext, const int *attribList);
+// clang-format on
 
 static Platform platform;
 
@@ -216,7 +189,7 @@ static void button_state_set(PlatformButtonState *b,
         case ButtonStatePressed: pressed = true;
         case ButtonStateReleased:
         {
-            b->is_down   = pressed;
+            b->isDown    = pressed;
             b->was_down  = !pressed;
             b->just_down = pressed;
             b->is_up     = !pressed;
@@ -227,8 +200,8 @@ static void button_state_set(PlatformButtonState *b,
         case ButtonStateDown: pressed = true;
         case ButtonStateUp:
         {
-            b->is_down = pressed;
-            b->is_up   = !pressed;
+            b->isDown = pressed;
+            b->is_up  = !pressed;
 
             b->was_down = pressed;
             b->was_up   = !pressed;
@@ -339,9 +312,9 @@ static void platform_win32_init_window(Platform *p) {
 
     RegisterClass(&windowclass);
 
-    u32 cwidth = maybe_is_something(p->window.width)
-                     ? p->window.width.value
-                     : 800;
+    u32 cwidth  = maybe_is_something(p->window.width)
+                      ? p->window.width.value
+                      : 800;
     u32 cheight = maybe_is_something(p->window.height)
                       ? p->window.height.value
                       : 600;

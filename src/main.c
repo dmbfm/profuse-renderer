@@ -6,14 +6,6 @@
 #include "result.h"
 #include "utils.h"
 
-#if 1
-    #if 0
-const x = 10;
-    #else
-const x = 20;
-    #endif
-#endif
-
 #ifdef __wasm__
 Allocator *a = &heap_wasm_free_list_allocator;
 #else
@@ -91,14 +83,6 @@ void p_init(Platform *p) {
     glEnableVertexAttribArray(0);
 }
 
-void func(
-    int x,
-    int y,
-    int kasjdfkjsdz,
-    int ksdkfjaslkdfjasldjfalksdfjsaldsdfsdfsdfk,
-    int waskdjkjsdfkjaskdfjasdkfjsakdfjaskdjfkasdjdsk) {
-}
-
 void p_frame(Platform *p) {
     f32   r = (f32)p->mouse.x / p->window.width.value;
     f32   g = (f32)p->mouse.y / p->window.height.value;
@@ -135,3 +119,4 @@ void p_frame(Platform *p) {
 void p_shutdown(Platform *p) {
     platform_print_line("p_shutdown");
 }
+
