@@ -15,24 +15,30 @@ Allocator *a = &heap_allocator;
 char *vshader =
 #ifdef __wasm__
     "#version 100\n"
-#else
-    "#version 330\n"
-#endif
     "attribute vec3 pos;"
     "void main() {\n"
     "gl_Position = vec4(pos, 1);\n"
     "}";
+#else
+    "#version 330\n"
+    "attribute vec3 pos;"
+    "void main() {\n"
+    "gl_Position = vec4(pos, 1);\n"
+    "}";
+#endif
 
 char *fshader =
 #ifdef __wasm__
     "#version 100\n"
+    "void main() {\n"
+    "gl_FragColor = vec4(1.0, 0, 0, 1.0);\n"
+    "}";
 #else
     "#version 330\n"
-#endif
-
     "void main() {\n"
     "gl_FragColor = vec4(1.0f, 0, 0, 1.0f);\n"
     "}";
+#endif
 
 const f32 triangle_vertices[] = {-0.5, -0.5, 0, 0, 0.5, 0, 0.5, -0.5, 0};
 

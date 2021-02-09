@@ -7,7 +7,6 @@ let table = new WebAssembly.Table({
 let i32, u32, u8, f64;
 let canvas, gl;
 let mouseX, mouseY;
-let mouseXptr, mouseYptr;
 let instance;
 let malloc;
 
@@ -46,8 +45,6 @@ function initCanvasEventListeners() {
 
     canvas.addEventListener("mousemove", e => {
         var rect = canvas.getBoundingClientRect();
-        u32[mouseXptr / 4] = e.clientX - rect.left;
-        u32[mouseYptr / 4] = e.clientY - rect.top;
         mouseX = e.clientX - rect.left;
         mouseY = e.clientY - rect.top;
     });
@@ -99,6 +96,11 @@ function wasm_print_i32(value) {
     console.log(value);
 }
 
+function wasm_mouse_position(xptr, yptr) {
+    i32[xptr / 4] = mouseX;
+    i32[yptr / 4] = mouseY;
+}
+
 function wasm_memory_grow(pages) {
     let result;
     try {
@@ -118,5 +120,6 @@ let wasm_exports = {
     wasm_print_i32,
     wasm_memory_grow,
     wasm_init_canvas,
-    wasm_init_gl_context
+    wasm_init_gl_context,
+    wasm_mouse_position
 };

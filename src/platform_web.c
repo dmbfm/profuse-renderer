@@ -46,8 +46,26 @@ export int main() {
     p_init(&platform);
 }
 
+static void platform_web_pull_time(Platform *p) {
+    p->timing.frame_count++;
+}
+
+static void platform_web_pull_mouse(Platform *p) {
+    i32 x, y;
+    wasm_mouse_position(&x, &y);
+    p->mouse.x = x;
+    p->mouse.y = y;
+}
+
+static void platform_web_pull(Platform *p) {
+    platform_web_pull_time(p);
+    platform_web_pull_mouse(p);
+}
+
 export int frame(f64 timestamp) {
-    platform.timing.frame_count++;
+    //platform.timing.frame_count++;
+    platform_web_pull(&platform);
+
     p_frame(&platform);
 
     return (platform.should_quit == false);

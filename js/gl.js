@@ -72,8 +72,6 @@ function glGetShaderInfoLog(shader, bufSize, lengthPtr, infoLogPtr) {
 }
 
 function glGetShaderiv(shader, pname, paramsPtr) {
-    console.log(shader, glShaders.get(shader), pname);
-
     if (pname == GL_INFO_LOG_LENGTH) {
         let log = gl.getShaderInfoLog(glShaders.get(shader));
         i32[paramsPtr / 4] = log.length + 1;
@@ -100,8 +98,6 @@ function glShaderSource(shader, count, ptrToStringArray, lengthPtr) {
             s += decodeStringAt(sPtr);
         }
     }
-
-    console.log("SOURCE", s);
 
     gl.shaderSource(glShaders.get(shader), s);
 }
