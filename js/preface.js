@@ -5,7 +5,7 @@ let table = new WebAssembly.Table({
     maximum: 1000
 });
 let i32, u32, u8, f64;
-let canvas, ctx;
+let canvas, gl;
 let mouseX, mouseY;
 let mouseXptr, mouseYptr;
 let instance;
@@ -18,40 +18,24 @@ function initMemoryViews() {
     i32 = new Int32Array(memory.buffer);
 }
 
-class ObjectPool {
-    constructor() {
-        this.pool = [];
+function wasm_init_canvas(width, height) {
+    canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    document.body.appendChild(canvas);
+    initCanvasEventListeners();
+}
+
+function wasm_init_gl_context() {
+    if (!canvas) {
+        throw "No canvas!";
     }
 
-    add(o) {
-        this.pool.push(o);
-        return this.pool.length;
+    gl = canvas.getContext("webgl", { alpha: false });
+
+    if (!gl) {
+        throw "Failed to create context!";
     }
-
-    get(id) {
-        return this.pool[id - 1];
-    }
-}
-
-let glPrograms = new ObjectPool();
-let glShaders = new ObjectPool();
-
-function addShader(shader) {
-    glShaders.push(shader);
-    return glShaders.length;
-}
-
-function getShader(id) {
-    return glShaders[id];
-}
-
-function addProgram(program) {
-    glPrograms.push(program);
-    return glPrograms.length;
-}
-
-function getProgram(id) {
-    return glPrograms[id];
 }
 
 function initCanvasEventListeners() {
@@ -76,6 +60,19 @@ function decodeStringAt(pointer) {
 
     while ((cc = u8[p++])) {
         str += String.fromCharCode(cc);
+    }
+    return str;
+}
+
+function decodeLenStringAt(pointer, len) {
+    let p = pointer;
+    let cc;
+    let str = "";
+
+    while (len) {
+        cc = u8[p++];
+        str += String.fromCharCode(cc);
+        len--;
     }
     return str;
 }
@@ -115,9 +112,11 @@ function wasm_memory_grow(pages) {
     return result;
 }
 
-const wasm_exports = {
+let wasm_exports = {
     wasm_get_memory_size,
     wasm_print_line,
     wasm_print_i32,
-    wasm_memory_grow
+    wasm_memory_grow,
+    wasm_init_canvas,
+    wasm_init_gl_context
 };

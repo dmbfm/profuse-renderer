@@ -14,7 +14,7 @@ Allocator *a = &heap_allocator;
 
 char *vshader =
 #ifdef __wasm__
-    "#version 130\n"
+    "#version 100\n"
 #else
     "#version 330\n"
 #endif
@@ -25,7 +25,7 @@ char *vshader =
 
 char *fshader =
 #ifdef __wasm__
-    "#version 130\n"
+    "#version 100\n"
 #else
     "#version 330\n"
 #endif

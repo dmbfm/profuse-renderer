@@ -58,6 +58,9 @@ with open("build/tg_wasm_js.js", "w") as file:
     with open("js/preface.js", "r") as preface:
         contents = preface.read()
         print(f"{contents}", file=file)
+    with open("js/gl.js", "r") as gl:
+        contents = gl.read()
+        print(f"{contents}", file=file)
     print(f"{js}", file=file)
     print(f"let funcs = {{\n", file=file)
     for func in functions:

@@ -73,8 +73,16 @@ static inline void common_wasm_panic_message(const char *msg)
     common_wasm_print_message(msg);
     __builtin_trap();
 }
-
 #endif /* __wasm__ */
+
+static inline void common_print(const char *string) 
+{
+#ifdef __wasm__
+    common_wasm_print_message(string);
+#else
+    printf("%s\n", string);
+#endif
+}
 
 #if defined(_MSC_VER)
 #define panic() __debugbreak()

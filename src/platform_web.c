@@ -32,18 +32,28 @@ void platform_print_line(const char *string)
     wasm_print_line(string);
 }
 
+void platform_webgl_init_webgl_canvas(Platform *p)
+{
+    wasm_init_canvas(p->window.width.value, p->window.height.value);
+    wasm_init_gl_context();
+}
+
 export int main()
 {
     platform_print_line("Hello!");
 
     platform = p_config();
 
+    platform_init_defaults(&platform);
+
+    platform_webgl_init_webgl_canvas(&platform);
+
     p_init(&platform);
 }
 
 export int frame(f64 timestamp)
 {
-    platform.timing.counter++;
+    platform.timing.frame_count++;
     p_frame(&platform);
 
     return (platform.should_quit == false);

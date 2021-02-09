@@ -137,7 +137,7 @@ Result(Slice(charptr)) read_file_lines(Allocator *a, const char *filename)
 
 #endif /* __wasm__ */
 
-#if 1 // defined(__RUN_TESTS)
+#if defined(__RUN_TESTS)
 
 #include "test.h"
 

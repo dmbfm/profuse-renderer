@@ -1,5 +1,5 @@
-#include "math.h"
 #include "result.h"
+#include "math.h"
 
 #ifndef __wasm__
 #include <math.h>
@@ -577,8 +577,7 @@ Mat4 mat4_rotY(float angle)
     return result;
 }
 
-//#ifdef __RUN_TESTS
-#if 1
+#ifdef __RUN_TESTS
 #include "test.h"
 #include <math.h>
 

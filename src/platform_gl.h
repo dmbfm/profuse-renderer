@@ -3,9 +3,14 @@
 
 #include "common.h"
 
+#if defined(__wasm__)
+#define GLFUNC(ret, name, ...) \
+    extern ret name(__VA_ARGS__)
+#else
 #define GLFUNC(ret, name, ...)                    \
     typedef ret(CSTDCALL gl_##name)(__VA_ARGS__); \
     extern gl_##name *name;
+#endif
 
 typedef float GLfloat;
 typedef unsigned int GLbitfield;
