@@ -48,6 +48,20 @@ export int main() {
 
 static void platform_web_pull_time(Platform *p) {
     p->timing.frame_count++;
+
+    if (p->timing.raw.start_time == 0) {
+        p->timing.raw.start_time = p->timing.raw.time;
+    }
+
+    f64 time_ms = p->timing.raw.time - p->timing.raw.start_time;
+    f64 time_s = time_ms / 1000;
+
+    f64 delta_s = time_s - p->timing.time;
+    f64 delta_ms = delta_s * 1000;
+
+    p->timing.time = time_s;
+    p->timing.delta_s = delta_s;
+    p->timing.delta_ms = delta_ms;
 }
 
 static void platform_web_pull_mouse(Platform *p) {
@@ -63,16 +77,7 @@ static void platform_web_pull_mouse(Platform *p) {
 
     i32 lb, rb;
     wasm_mouse_buttons_state(&lb, &rb);
-    PlatformButtonState *b = &p->mouse.left_button;
-
-    b->was_down = b->is_down;
-    b->is_down = (lb == 1);
-
-    b->was_up = b->is_up;
-    b->is_up = !b->is_down;
-
-    b->just_down = b->is_down && !b->was_down;
-    b->just_up = b->is_up && b->was_down;
+    platform_button_state_set(&p->mouse.left_button, lb != 0);
 }
 
 static void platform_web_pull(Platform *p) {
@@ -81,6 +86,8 @@ static void platform_web_pull(Platform *p) {
 }
 
 export int frame(f64 timestamp) {
+    platform.timing.raw.time = timestamp;
+
     platform_web_pull(&platform);
 
     p_frame(&platform);

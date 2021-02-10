@@ -85,11 +85,14 @@ void p_init(Platform *p) {
 }
 
 void p_frame(Platform *p) {
+
+    //DEBUGLOG("t = %f(s), dt = %f(s), %f(ms)\n", p->timing.time, p->timing.delta_s, p->timing.delta_ms);
+
     f32   r = (f32)p->mouse.x / p->window.width.value;
     f32   g = (f32)p->mouse.y / p->window.height.value;
     float b = (1.0f - r) * (1.0f - g);
 
-    if (p->mouse.left_button.just_up) {
+    if (p->mouse.left_button.just_down) {
         r = 1;
         g = 1;
         b = 1;

@@ -64,10 +64,14 @@ typedef struct Platform {
     } mouse;
 
     struct {
-        f64 time;
+        f64 time; // in seconds
         f64 delta_s;
         f64 delta_ms;
         u64 frame_count;
+        struct {
+            f64 time;
+            f64 start_time;
+        } raw;
     } timing;
 
     void *user_context;
@@ -104,6 +108,15 @@ static inline void platform_init_defaults(Platform *p) {
     if (maybe_is_nothing(p->window.cursor_style)) {
         p->window.cursor_style = maybe_some(PlatformCursorStyle, PLATFORM_CURSOR_STYLE_NORMAL);
     }
+}
+
+static inline void platform_button_state_set(PlatformButtonState *b, boolean value) {
+    b->was_down = b->is_down;
+    b->is_down = value;
+    b->was_up = b->is_up;
+    b->is_up = !b->is_down;
+    b->just_down = b->is_down && !b->was_down;
+    b->just_up = b->is_up && b->was_down;
 }
 
 #endif /* __PLATFORM_H */
