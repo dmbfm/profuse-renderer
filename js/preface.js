@@ -7,6 +7,7 @@ let table = new WebAssembly.Table({
 let i32, u32, u8, f64;
 let canvas, gl;
 let mouseX, mouseY;
+let leftButtonDown = 0;
 let instance;
 let malloc;
 
@@ -47,6 +48,30 @@ function initCanvasEventListeners() {
         var rect = canvas.getBoundingClientRect();
         mouseX = e.clientX - rect.left;
         mouseY = e.clientY - rect.top;
+    });
+
+    canvas.addEventListener("mousedown", e => {
+        switch (e.button) {
+            case 0:
+                {
+                    leftButtonDown = 1;
+                }
+                break;
+            default: {
+            }
+        }
+    });
+
+    canvas.addEventListener("mouseup", e => {
+        switch (e.button) {
+            case 0:
+                {
+                    leftButtonDown = 0;
+                }
+                break;
+            default: {
+            }
+        }
     });
 }
 
@@ -114,6 +139,11 @@ function wasm_memory_grow(pages) {
     return result;
 }
 
+function wasm_mouse_buttons_state(leftPtr, rightPtr) {
+    i32[leftPtr / 4] = leftButtonDown;
+    i32[rightPtr / 4] = 0;
+}
+
 let wasm_exports = {
     wasm_get_memory_size,
     wasm_print_line,
@@ -121,5 +151,6 @@ let wasm_exports = {
     wasm_memory_grow,
     wasm_init_canvas,
     wasm_init_gl_context,
-    wasm_mouse_position
+    wasm_mouse_position,
+    wasm_mouse_buttons_state
 };

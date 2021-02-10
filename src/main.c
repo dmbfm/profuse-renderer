@@ -89,13 +89,11 @@ void p_frame(Platform *p) {
     f32   g = (f32)p->mouse.y / p->window.height.value;
     float b = (1.0f - r) * (1.0f - g);
 
-    if (p->mouse.left_button.is_down) {
+    if (p->mouse.left_button.just_up) {
         r = 1;
         g = 1;
         b = 1;
-    } else if (p->mouse.left_button.was_down) {
-        r = g = b = 0;
-    }
+    } 
 
     glClearColor(r, g, b, 1);
     glClear(GL_COLOR_BUFFER_BIT);
