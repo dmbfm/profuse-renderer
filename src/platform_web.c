@@ -29,6 +29,38 @@ void platform_print_line(const char *string) {
     wasm_print_line(string);
 }
 
+static void *platform_read_file_alloc_cb(void *allocator, i32 amount) {
+    Allocator *a = (Allocator *)allocator;
+
+    Result(uptr) r = a->alloc(a, (usize)amount);
+
+    uptr b = result_unwrap(r);
+
+    return (void *)b;
+}
+
+static void platform_read_file_done_cb(void *data, i32 amount, void *cbptr, void *allocator, void *user_data) {
+    PlatformReadFileCallback *cb = (PlatformReadFileCallback *)cbptr;
+
+    cb(PlatformReadFileOk, amount, data, (Allocator *)allocator, user_data);
+}
+
+extern void wasm_fetch_file_async(const char *path,
+                                  void *      cbAlloc(void *, i32),
+                                  void        cbDone(void *, i32, void *, void *, void *),
+                                  void *      allocatorPtr,
+                                  void *      cbptr,
+                                  void *      user_data);
+
+void platform_read_file_async(Allocator *a, const char *path, PlatformReadFileCallback cb, void *user_data) {
+    wasm_fetch_file_async(path,
+                          platform_read_file_alloc_cb,
+                          platform_read_file_done_cb,
+                          (void *)a,
+                          (void *)cb,
+                          user_data);
+}
+
 void platform_webgl_init_webgl_canvas(Platform *p) {
     wasm_init_canvas(p->window.width.value, p->window.height.value);
     wasm_init_gl_context();
@@ -54,13 +86,13 @@ static void platform_web_pull_time(Platform *p) {
     }
 
     f64 time_ms = p->timing.raw.time - p->timing.raw.start_time;
-    f64 time_s = time_ms / 1000;
+    f64 time_s  = time_ms / 1000;
 
-    f64 delta_s = time_s - p->timing.time;
+    f64 delta_s  = time_s - p->timing.time;
     f64 delta_ms = delta_s * 1000;
 
-    p->timing.time = time_s;
-    p->timing.delta_s = delta_s;
+    p->timing.time     = time_s;
+    p->timing.delta_s  = delta_s;
     p->timing.delta_ms = delta_ms;
 }
 
@@ -73,7 +105,6 @@ static void platform_web_pull_mouse(Platform *p) {
     p->mouse.y       = y;
     p->mouse.delta_x = p->mouse.x - p->mouse.last_x;
     p->mouse.delta_y = p->mouse.y - p->mouse.last_y;
-
 
     i32 lb, rb;
     wasm_mouse_buttons_state(&lb, &rb);

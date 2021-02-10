@@ -127,7 +127,7 @@ function wasm_mouse_position(xptr, yptr) {
 }
 
 function wasm_memory_grow(pages) {
-    let result;
+    let result = 0;
     try {
         result = memory.grow(pages);
     } catch {
@@ -144,6 +144,20 @@ function wasm_mouse_buttons_state(leftPtr, rightPtr) {
     i32[rightPtr / 4] = 0;
 }
 
+//extern void wasm_fetch_file_async(const char *path, void*cbAlloc(void *, i32), void cbDone (void *, i32, void*, void*), void *allocatorPtr, void *cbptr, void *user_data);
+function wasm_fetch_file_async(pathPtr, cbAlloc, cbDone, allocatorPtr, cbptr, userDataPtr) {
+    fetch("/" + decodeStringAt(pathPtr))
+        .then(r => r.arrayBuffer())
+        .then(buffer => {
+            let amount = buffer.byteLength;
+            let dst = table.get(cbAlloc)(allocatorPtr, amount);
+            dstBuf = new Uint8Array(memory.buffer, dst, amount);
+            dstBuf.set(new Uint8Array(buffer));
+            table.get(cbDone)(dst, amount, cbptr, allocatorPtr, userDataPtr);
+        })
+        .catch(console.error);
+}
+
 let wasm_exports = {
     wasm_get_memory_size,
     wasm_print_line,
@@ -152,5 +166,6 @@ let wasm_exports = {
     wasm_init_canvas,
     wasm_init_gl_context,
     wasm_mouse_position,
-    wasm_mouse_buttons_state
+    wasm_mouse_buttons_state,
+    wasm_fetch_file_async
 };

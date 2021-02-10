@@ -5,15 +5,15 @@
 #include <stdarg.h>
 
 #ifndef __wasm__
-    #include <stdio.h>
-    #include <stdlib.h>
+#include <stdio.h>
+#include <stdlib.h>
 #endif /* __wasm__ */
 
 static void debug_log_output_string(const char *string) {
 #if defined(__wasm__)
     common_wasm_print_message(string);
 #elif defined(_WIN32)
-    #include "win32_api.h"
+#include "win32_api.h"
     OutputDebugString(string);
     OutputDebugString("\n");
 #else
@@ -139,11 +139,11 @@ Result(Slice(charptr)) read_file_lines(Allocator *a, const char *filename) {
 
 #if defined(__RUN_TESTS)
 
-    #include "test.h"
+#include "test.h"
 
-    #undef __RUN_TESTS
-    #include "format.c"
-    #include "heap.c"
+#undef __RUN_TESTS
+#include "format.c"
+#include "heap.c"
 
 test(read_file_lines) {
     Result(Slice(charptr)) r_lines = read_file_lines(&heap_allocator, "test_data\\read_file_lines.txt");

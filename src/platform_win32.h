@@ -3,8 +3,8 @@
 
 #ifdef _WIN32
 
-    #include "common.h"
-    #include "win32_api.h"
+#include "common.h"
+#include "win32_api.h"
 
 typedef struct PlatformWin32 {
     HWND          window_handle;

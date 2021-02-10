@@ -7,7 +7,7 @@
 #include "slice.h"
 
 #ifndef __wasm__
-    #include "string.h"
+#include "string.h"
 #endif
 
 #define DEBUGLOG debug_log
@@ -37,6 +37,43 @@ static inline i32 string_compare_len(const char *a, const char *b, usize len) {
 #else
     return strncmp(a, b, len);
 #endif
+}
+
+static inline int string_copy_len(char *dst, const char *src, usize len) {
+    int c = 0;
+
+    if (len == 0) {
+        return 0;
+    }
+
+    for (;;) {
+        c++;
+
+        if (c == len) {
+            *dst = 0;
+            break;
+        }
+
+        if ((*dst++ = *src++) == 0) {
+            break;
+        }
+    }
+
+    return c;
+}
+
+static inline int string_copy(char *dst, const char *src) {
+    char *s = dst;
+    int   c = 0;
+
+    for (;;) {
+        c++;
+        if ((*s++ = *src++) == 0) {
+            break;
+        }
+    }
+
+    return c;
 }
 
 static inline i32 string_compare(const char *a, const char *b) {

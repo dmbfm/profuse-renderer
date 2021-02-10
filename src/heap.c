@@ -2,9 +2,9 @@
 #include "common.h"
 
 #if defined(__wasm__)
-    #include "heap_wasm.c"
+#include "heap_wasm.c"
 #else
-    #include <stdlib.h>
+#include <stdlib.h>
 
 static Result(uptr) heap_alloc(Allocator *alloc, usize amount) {
     UNUSED_VARIABLE(alloc);
@@ -38,7 +38,7 @@ Allocator heap_allocator = {.alloc = heap_alloc, .realloc = heap_realloc, .free 
 
 #ifdef __RUN_TESTS
 
-    #include "test.h"
+#include "test.h"
 
 test(heap_allocator) {
 }

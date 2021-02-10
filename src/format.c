@@ -258,7 +258,7 @@ int formatv(char *s, size_t n, const char *fmt, va_list args) {
     return head.nchars;
 }
 #else
-    #include <stdio.h>
+#include <stdio.h>
 int formatv(char *s, usize n, const char *fmt, va_list arg) {
     return vsnprintf(s, n, fmt, arg);
 }

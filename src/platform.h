@@ -7,11 +7,11 @@
 #include "result.h"
 
 #if defined(_WIN32)
-    #include "platform_win32.h"
+#include "platform_win32.h"
 #elif defined(__wasm__)
-    #include "platform_web.h"
+#include "platform_web.h"
 #else
-    #error "Unsupported platform!"
+#error "Unsupported platform!"
 #endif /* defined(_WIN32) */
 
 typedef enum {
@@ -64,7 +64,7 @@ typedef struct Platform {
     } mouse;
 
     struct {
-        f64 time; // in seconds
+        f64 time;    // in seconds
         f64 delta_s;
         f64 delta_ms;
         u64 frame_count;
@@ -88,9 +88,18 @@ void     p_init(Platform *p);
 void     p_frame(Platform *p);
 void     p_shutdown(Platform *p);
 
+typedef enum { PlatformReadFileOk, PlatformReadFileNotFound } PlatformReadFileStatus;
+
+typedef void PlatformReadFileCallback(PlatformReadFileStatus status,
+                                      usize                  byte_size,
+                                      void *                 data,
+                                      Allocator *            allocator,
+                                      void *                 user_data);
+
 // Platform API
 void platform_print_fmt(Allocator *a, const char *fmt, ...);
 void platform_print_line(const char *string);
+void platform_read_file_async(Allocator *a, const char *path, PlatformReadFileCallback cb, void *user_data);
 
 static inline void platform_init_defaults(Platform *p) {
     if (maybe_is_nothing(p->window.width)) {
@@ -111,12 +120,12 @@ static inline void platform_init_defaults(Platform *p) {
 }
 
 static inline void platform_button_state_set(PlatformButtonState *b, boolean value) {
-    b->was_down = b->is_down;
-    b->is_down = value;
-    b->was_up = b->is_up;
-    b->is_up = !b->is_down;
+    b->was_down  = b->is_down;
+    b->is_down   = value;
+    b->was_up    = b->is_up;
+    b->is_up     = !b->is_down;
     b->just_down = b->is_down && !b->was_down;
-    b->just_up = b->is_up && b->was_down;
+    b->just_up   = b->is_up && b->was_down;
 }
 
 #endif /* __PLATFORM_H */

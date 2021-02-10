@@ -1,5 +1,6 @@
 #include "common.h"
 #include "heap.h"
+#include "list.h"
 #include "platform.h"
 #include "platform_gl.h"
 #include "renderer_gl.h"
@@ -48,7 +49,62 @@ Platform p_config(void) {
     return p;
 }
 
-#include "list.h"
+#if defined(__wasm__)
+typedef struct Asset {
+    char    path[512];
+    int     type;
+    int     size;
+    void *  data;
+    boolean allocated;
+    boolean isLoaded;
+} Asset;
+
+// Asset asset = { .path = "out.pfa" };
+Asset assets[100];
+int   asset_count;
+
+int add_asset(const char *path) {
+    Asset *a = &assets[asset_count];
+    string_copy_len(&a->path[0], path, 512);
+
+    asset_count++;
+    return asset_count - 1;
+}
+
+Asset *get_asset(int id) {
+    if (id < 0 || id >= asset_count) {
+        return 0;
+    }
+
+    return &assets[id];
+}
+
+void read_file_cb(PlatformReadFileStatus status, usize byte_size, void *data, Allocator *allocator, void *user_data) {
+    DEBUGLOG("Ok! Size = %d, id = %d", byte_size, *((int *)user_data));
+    allocator->free(allocator, (uptr)data);
+}
+
+int  gid;
+void server_start_loading_asset(int id) {
+    Asset *asset = get_asset(id);
+    gid          = id;
+    DEBUGLOG("%s", asset->path);
+    platform_read_file_async(a, asset->path, read_file_cb, &gid);
+}
+
+void test_load_asset() {
+    int id = add_asset("out.pfa");
+    server_start_loading_asset(id);
+}
+#endif
+
+// "Client"
+// client_asset_allocate(Asset *a);
+// client_asset_loaded(Asset *a);
+
+// "Server"
+// server_start_loading_asset(Asset *asset);
+
 void p_init(Platform *p) {
     UNUSED_VARIABLE(p);
 
@@ -82,11 +138,13 @@ void p_init(Platform *p) {
 
     glVertexAttribPointer(0, 3, GL_FLOAT, 0, 0, 0);
     glEnableVertexAttribArray(0);
+
+    test_load_asset();
 }
 
 void p_frame(Platform *p) {
 
-    //DEBUGLOG("t = %f(s), dt = %f(s), %f(ms)\n", p->timing.time, p->timing.delta_s, p->timing.delta_ms);
+    // DEBUGLOG("t = %f(s), dt = %f(s), %f(ms)\n", p->timing.time, p->timing.delta_s, p->timing.delta_ms);
 
     f32   r = (f32)p->mouse.x / p->window.width.value;
     f32   g = (f32)p->mouse.y / p->window.height.value;
@@ -96,7 +154,7 @@ void p_frame(Platform *p) {
         r = 1;
         g = 1;
         b = 1;
-    } 
+    }
 
     glClearColor(r, g, b, 1);
     glClear(GL_COLOR_BUFFER_BIT);

@@ -61,10 +61,10 @@ const char *string_intern(StrigInternTable *table, char *str) {
 
 #if defined(__RUN_TESTS)
 
-    #include "test.h"
+#include "test.h"
 
-    #undef __RUN_TESTS
-    #include "heap.c"
+#undef __RUN_TESTS
+#include "heap.c"
 
 test(string_intern) {
     StrigInternTable t = {0};

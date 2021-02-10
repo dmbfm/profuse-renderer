@@ -2,7 +2,7 @@
 #include "result.h"
 
 #ifndef __wasm__
-    #include <math.h>
+#include <math.h>
 #endif
 
 // TODO: Mat3
@@ -503,8 +503,8 @@ Mat4 mat4_rotY(float angle) {
 }
 
 #ifdef __RUN_TESTS
-    #include "test.h"
-    #include <math.h>
+#include "test.h"
+#include <math.h>
 
 test(math_floor_f32) {
     float f = -23.343;

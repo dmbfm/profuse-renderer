@@ -36,7 +36,7 @@ DeriveLineEnding: false
 IncludeBlocks: Merge 
 IndentCaseLabels: true
 IndentGotoLabels: false 
-IndentPPDirectives: BeforeHash 
+IndentPPDirectives: None 
 IndentWrappedFunctionNames: false 
 KeepEmptyLinesAtTheStartOfBlocks: true 
 PointerAlignment: Right 

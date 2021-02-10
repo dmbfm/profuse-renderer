@@ -47,11 +47,11 @@ typedef unsigned char *ucharptr;
 #define TOSTRING(x)        STRINGIFY(x)
 
 #if defined(__wasm__)
-    #define export __attribute__((used, visibility("default")))
-    #define export_named(name) __attribute__((used, visibility("default"), export_name(#name)))
+#define export __attribute__((used, visibility("default")))
+#define export_named(name) __attribute__((used, visibility("default"), export_name(#name)))
 #else
-    #define export
-    #define export_name(name)
+#define export
+#define export_name(name)
 #endif /* defined(__wasm__) */
 
 #define WASM_JS(...)
@@ -79,19 +79,19 @@ static inline void common_print(const char *string) {
 }
 
 #if defined(_MSC_VER)
-    #define panic() __debugbreak()
+#define panic() __debugbreak()
 #elif defined(__wasm__)
-    #define panic() common_wasm_panic_message("PANIC: " TOSTRING(__FILE__) ":" TOSTRING(__LINE__))
+#define panic() common_wasm_panic_message("PANIC: " TOSTRING(__FILE__) ":" TOSTRING(__LINE__))
 #elif defined(__clang__) || defined(__GNUC__)
-    #define panic() __builtin_trap()
+#define panic() __builtin_trap()
 #else
-    #define panic() ((*((int *)0)) = 0)
+#define panic() ((*((int *)0)) = 0)
 #endif /* defined(_MSC_VER) */
 
 #if defined(_WIN32) && !defined(_WIN64)
-    #define CSTDCALL __stdcall
+#define CSTDCALL __stdcall
 #else
-    #define CSTDCALL
+#define CSTDCALL
 #endif
 
 #define DECL_FUNC_POINTER(qualifier, ret, typename, varname, ...) \
@@ -99,12 +99,12 @@ static inline void common_print(const char *string) {
     qualifier typename *varname;
 
 #if 1
-    #define assert(exp) \
-        if (!(exp)) {   \
-            panic();    \
-        }
+#define assert(exp) \
+    if (!(exp)) {   \
+        panic();    \
+    }
 #else
-    #define assert(exp)
+#define assert(exp)
 #endif
 
 #define forn(name, n)               for (usize name = 0; name < n; name++)

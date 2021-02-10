@@ -31,11 +31,11 @@
 #define slice_data(s)                                 (s.data)
 
 #ifdef SLICE_FAST
-    #define slice_get(s, i)    (s.data[(i)])
-    #define slice_set(s, i, v) (s.data[(i)] = (v))
+#define slice_get(s, i)    (s.data[(i)])
+#define slice_set(s, i, v) (s.data[(i)] = (v))
 #else
-    #define slice_get(s, i)    (((i) < slice_len(s)) ? (s.data[(i)]) : (panic(), s.data[0]))
-    #define slice_set(s, i, v) (((i) < slice_len(s)) ? (s.data[(i)] = (v)) : (panic(), s.data[0]))
+#define slice_get(s, i)    (((i) < slice_len(s)) ? (s.data[(i)]) : (panic(), s.data[0]))
+#define slice_set(s, i, v) (((i) < slice_len(s)) ? (s.data[(i)] = (v)) : (panic(), s.data[0]))
 #endif
 
 #define slice_for(name, s) for (usize name = 0; name < slice_len(s); name++)

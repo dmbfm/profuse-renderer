@@ -1,14 +1,14 @@
 #if defined(__RUN_TESTS)
 
-    #include "list.h"
-    #include "heap.h"
-    #include "test.h"
+#include "list.h"
+#include "heap.h"
+#include "test.h"
 
-    // TODO: Right now we need to do this hacky undef to
-    // include dependencies... fix so that all dependencies
-    // are defined in build.py instead, like they should.
-    #undef __RUN_TESTS
-    #include "heap.c"
+// TODO: Right now we need to do this hacky undef to
+// include dependencies... fix so that all dependencies
+// are defined in build.py instead, like they should.
+#undef __RUN_TESTS
+#include "heap.c"
 
 test(list_push) {
     i32 *xs = list_new(i32, &heap_allocator);

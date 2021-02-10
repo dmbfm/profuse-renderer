@@ -1,13 +1,13 @@
 #if defined(__RUN_TESTS)
 
-    #include "common.h"
+#include "common.h"
 
 static boolean aborted = false;
-    #undef panic
-    #define panic() (aborted = true)
+#undef panic
+#define panic() (aborted = true)
 
-    #include "slice.h"
-    #include "test.h"
+#include "slice.h"
+#include "test.h"
 
 test(slices) {
     i32 xs[]      = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};

@@ -1,12 +1,12 @@
 #ifndef __MATH_H
 
-    #include "common.h"
-    #include "result.h"
+#include "common.h"
+#include "result.h"
 
-    #define MATH_I32_MAX 0x7FFFFFFF
-    #define MATH_U32_MAX 0xFFFFFFFF
-    #define MATH_I64_MAX 0x7FFFFFFFFFFFFFFF
-    #define MATH_U64_MAX 0xFFFFFFFFFFFFFFFF
+#define MATH_I32_MAX 0x7FFFFFFF
+#define MATH_U32_MAX 0xFFFFFFFF
+#define MATH_I64_MAX 0x7FFFFFFFFFFFFFFF
+#define MATH_U64_MAX 0xFFFFFFFFFFFFFFFF
 
 f32 math_floor(f32 x);
 f32 math_ceil_f32(f32 x);
@@ -119,5 +119,5 @@ Mat4    mat4_perspective(f32 fov, f32 aspect, f32 n, f32 f);
 Mat4    mat4_ortho(f32 width, f32 height, f32 n, f32 f);
 Mat4    mat4_rotY(float angle);
 
-    #define __MATH_H
+#define __MATH_H
 #endif /* __MATH_H */

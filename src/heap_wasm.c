@@ -6,6 +6,7 @@
 #include "math.h"
 #include "mem_common.h"
 #include "result.h"
+#include "utils.h"
 
 /* TODO:
  * - Sanity tests?
@@ -48,7 +49,7 @@ boolean heap_wasm_memory_grow(HeapWasmMemory *m, usize amount) {
     if (pagesneeded == 0) return true;
 
     usize prevnumpages    = wasm_memory_grow(pagesneeded);
-    usize newcap          = wasm_get_memory_size();
+    usize newcap          = (wasm_get_memory_size() - m->start);
     usize currentnumpages = newcap / m->bytes_per_page;
 
     // If the number of pages did not change, we failed to
@@ -273,7 +274,7 @@ void heap_wasm_free_list_print_region_info(void (*printfn)(const char *), uptr r
     printfn(buf);
 }
 
-local Result(uptr) wasm_free_list_allocator_alloc(HeapWasmFreeListAllocatorState *allocator, usize amount) {
+static Result(uptr) wasm_free_list_allocator_alloc(HeapWasmFreeListAllocatorState *allocator, usize amount) {
     // If the allocator was not initialized, initialize it
     // with the default alignment
     if (!allocator->initialized) wasm_free_list_allocator_init(allocator, HEAP_WASM_MAX_ALIGN);
@@ -368,9 +369,28 @@ local Result(uptr) wasm_free_list_allocator_alloc(HeapWasmFreeListAllocatorState
         }
     }
 
+    // Try to grow memory
+    Result(uptr) rbump = heap_wasm_memory_bump(&allocator->heap, allocator->heap.capacity * 2);
+
+    if (result_is_error(rbump)) {
+        return result_error(uptr, ERR_OUT_OF_MEMORY);
+    }
+
+    uptr         bump       = rbump.value;
+    BlockHeader *bumpHeader = (BlockHeader *)bump;
+    BlockFooter *bumpFooter = (BlockFooter *)(allocator->heap.offset - sizeof(BlockFooter));
+
+    bumpHeader->flag = BLOCK_FREE;
+    bumpHeader->size = (void *)bumpFooter - (void *)bumpHeader + sizeof(BlockHeader);
+    bumpFooter->flag = BLOCK_FREE;
+    bumpFooter->size = bumpHeader->size;
+
+    wasm_free_list_allocator_prepend_block(allocator, bumpHeader);
+
+    return wasm_free_list_allocator_alloc(allocator, amount);
     // If no block with the required size was found, we're
     // out of memory
-    return result_error(uptr, ERR_OUT_OF_MEMORY);
+    // return result_error(uptr, ERR_OUT_OF_MEMORY);
 }
 
 static void wasm_free_list_allocator_free(HeapWasmFreeListAllocatorState *allocator, uptr region) {
@@ -454,9 +474,9 @@ void wasm_free_list_print_all(void (*printfn)(const char *)) {
 #ifdef __RUN_TESTS
 //#if 1
 
-    #include "test.h"
-    #undef __RUN_TESTS
-    #include "math.c"
+#include "test.h"
+#undef __RUN_TESTS
+#include "math.c"
 
 u8 __heap_base;
 
