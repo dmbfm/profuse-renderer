@@ -43,6 +43,10 @@ void heap_wasm_memory_init(HeapWasmMemory *m) {
     m->num_pages      = m->capacity / m->bytes_per_page;
 }
 
+boolean heap_wasm_pointer_check_bounds(HeapWasmMemory *m, uptr ptr) {
+    return ptr < m->end;
+}
+
 boolean heap_wasm_memory_grow(HeapWasmMemory *m, usize amount) {
     usize pagesneeded = math_div_ceil_u32(amount, m->bytes_per_page);
 
@@ -325,6 +329,16 @@ static Result(uptr) wasm_free_list_allocator_alloc(HeapWasmFreeListAllocatorStat
 
                 // Remove the current block from the free
                 // list
+                DEBUGLOG("current = %d, next = %d, prev = %d, head = %d",
+                         (uptr)current,
+                         (uptr)current->next,
+                         (uptr)current->prev,
+                         (uptr)&allocator->head);
+                assert(heap_wasm_pointer_check_bounds(&allocator->heap, (uptr)current));
+                assert(heap_wasm_pointer_check_bounds(&allocator->heap, (uptr)current->next));
+                assert(heap_wasm_pointer_check_bounds(&allocator->heap, (uptr)current->prev));
+                assert(heap_wasm_pointer_check_bounds(&allocator->heap, (uptr)current->next->prev));
+                assert(heap_wasm_pointer_check_bounds(&allocator->heap, (uptr)current->prev->next));
                 wasm_free_list_allocator_remove_block(current);
 
                 // Set the footer of the current block
@@ -386,6 +400,11 @@ static Result(uptr) wasm_free_list_allocator_alloc(HeapWasmFreeListAllocatorStat
     bumpFooter->size = bumpHeader->size;
 
     wasm_free_list_allocator_prepend_block(allocator, bumpHeader);
+
+    DEBUGLOG("(grow) c: %d, n: %d, p: %d",
+             (void *)bumpHeader,
+             (void *)bumpHeader->next,
+             (void *)bumpHeader->next->next);
 
     return wasm_free_list_allocator_alloc(allocator, amount);
     // If no block with the required size was found, we're

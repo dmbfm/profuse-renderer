@@ -165,7 +165,7 @@ export static void *memcpy(void *dst, const void *src, size_t num) {
     unsigned char *s = (unsigned char *)src;
 
     while (num > 0) {
-        *d = *s;
+        *d++ = *s++;
         num--;
     }
 

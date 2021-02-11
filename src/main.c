@@ -1,3 +1,4 @@
+#include "asset.h"
 #include "common.h"
 #include "heap.h"
 #include "list.h"
@@ -105,6 +106,8 @@ void test_load_asset() {
 // "Server"
 // server_start_loading_asset(Asset *asset);
 
+AssetManager asset_manager;
+
 void p_init(Platform *p) {
     UNUSED_VARIABLE(p);
 
@@ -138,6 +141,15 @@ void p_init(Platform *p) {
 
     glVertexAttribPointer(0, 3, GL_FLOAT, 0, 0, 0);
     glEnableVertexAttribArray(0);
+
+    asset_manager_init(a, &asset_manager);
+    int id = asset_manager_add_raw_asset(&asset_manager, "out.pfa", RawAssetPfa);
+
+    RawAsset *a = &asset_manager.raw_assets[id];
+
+    DEBUGLOG("Added asset:  id = %d, path = %s", id, a->path);
+
+    asset_manager_load_raw_asset(&asset_manager, id);
 
     test_load_asset();
 }

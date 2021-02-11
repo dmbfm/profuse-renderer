@@ -6,6 +6,9 @@
 #include "slice.h"
 #include <stddef.h>
 
+#define allocator_alloc(allocatorPtr, amount) allocatorPtr->alloc(allocatorPtr, amount)
+#define allocator_free(allocatorPtr, region)  allocatorPtr->free(allocatorPtr, region)
+
 typedef struct Allocator {
     Result(uptr) (*alloc)(struct Allocator *allocator, usize amount);
     Result(uptr) (*realloc)(struct Allocator *allocator, uptr region, usize amount);

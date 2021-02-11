@@ -1,9 +1,7 @@
 #include "heap.h"
 #include "common.h"
 
-#if defined(__wasm__)
-#include "heap_wasm.c"
-#else
+#if !defined(__wasm__)
 #include <stdlib.h>
 
 static Result(uptr) heap_alloc(Allocator *alloc, usize amount) {

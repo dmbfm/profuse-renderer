@@ -45,13 +45,6 @@ static void platform_read_file_done_cb(void *data, i32 amount, void *cbptr, void
     cb(PlatformReadFileOk, amount, data, (Allocator *)allocator, user_data);
 }
 
-extern void wasm_fetch_file_async(const char *path,
-                                  void *      cbAlloc(void *, i32),
-                                  void        cbDone(void *, i32, void *, void *, void *),
-                                  void *      allocatorPtr,
-                                  void *      cbptr,
-                                  void *      user_data);
-
 void platform_read_file_async(Allocator *a, const char *path, PlatformReadFileCallback cb, void *user_data) {
     wasm_fetch_file_async(path,
                           platform_read_file_alloc_cb,

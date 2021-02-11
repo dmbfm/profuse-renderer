@@ -475,12 +475,13 @@ sourcefiles_base = [
         "src/heap.c",
         "src/main.c",
         "src/utils.c",
-        "src/renderer_gl.c"
+        "src/renderer_gl.c",
+        "src/asset.c"
         ]
 
 
 ## 'wasm' task
-sourcefiles_wasm = [*sourcefiles_base, "src/platform_web.c"]
+sourcefiles_wasm = [*sourcefiles_base, "src/platform_web.c", "src/heap_wasm.c"]
 
 wasmgen = b.add_task("wasm-gen", lambda: exec(open(os.path.join(".", "genwasmjs.py")).read()))
 wasm_task = Executable("main", sourcefiles_wasm, target=target_wasm32(), flags=["-g", CompilerWarningLevel.Wall], verbose=verbose)
