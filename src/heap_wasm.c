@@ -26,7 +26,6 @@ enum { HEAP_WASM_PAGE_SIZE = KB(64), HEAP_WASM_MAX_ALIGN = 8 };
 typedef struct HeapWasmMemory {
     uptr    start;
     uptr    end;
-    usize   offset;
     usize   capacity;
     usize   num_pages;
     usize   bytes_per_page;
@@ -37,7 +36,6 @@ void heap_wasm_memory_init(HeapWasmMemory *m) {
     m->start          = HEAP_WASM_HEAP_BASE_UPTR;
     m->capacity       = (wasm_get_memory_size() - m->start);
     m->end            = (m->start + m->capacity);
-    m->offset         = 0;
     m->initialized    = true;
     m->bytes_per_page = HEAP_WASM_PAGE_SIZE;
     m->num_pages      = m->capacity / m->bytes_per_page;
@@ -47,10 +45,10 @@ boolean heap_wasm_pointer_check_bounds(HeapWasmMemory *m, uptr ptr) {
     return ptr < m->end;
 }
 
-boolean heap_wasm_memory_grow(HeapWasmMemory *m, usize amount) {
+Result(uptr) heap_wasm_memory_grow(HeapWasmMemory *m, usize amount) {
     usize pagesneeded = math_div_ceil_u32(amount, m->bytes_per_page);
 
-    if (pagesneeded == 0) return true;
+    if (pagesneeded == 0) return result_ok(uptr, m->end);
 
     usize prevnumpages    = wasm_memory_grow(pagesneeded);
     usize newcap          = (wasm_get_memory_size() - m->start);
@@ -58,47 +56,49 @@ boolean heap_wasm_memory_grow(HeapWasmMemory *m, usize amount) {
 
     // If the number of pages did not change, we failed to
     // grow the web assembly memory.
-    if (prevnumpages == currentnumpages) return false;
+    if (prevnumpages == currentnumpages) return result_error(uptr, ERR_OUT_OF_MEMORY);
+
+    uptr old_end = m->end;
 
     m->capacity  = newcap;
     m->end       = m->start + m->capacity;
     m->num_pages = currentnumpages;
 
-    return true;
+    return result_ok(uptr, old_end);
 }
 
-Result(uptr) heap_wasm_memory_bump(HeapWasmMemory *m, usize amount) {
-    if (!m->initialized) heap_wasm_memory_init(m);
-
-    usize available = m->capacity - m->offset;
-    if (amount > available) {
-        if (!heap_wasm_memory_grow(m, amount - available)) return result_error(uptr, ERR_OUT_OF_MEMORY);
-    }
-
-    uptr ptr = m->start + m->offset;
-    m->offset += amount;
-
-    return result_ok(uptr, ptr);
-}
-
-Result(uptr) heap_wasm_memory_bump_align(HeapWasmMemory *m, usize amount, usize alignment) {
-    if (!m->initialized) heap_wasm_memory_init(m);
-
-    uptr current          = m->start + m->offset;
-    Result(uptr) raligned = mem_align_pointer_forward(current, alignment);
-
-    result_raise(uptr, raligned);
-
-    uptr aligned = raligned.value;
-
-    usize delta = aligned - current;
-
-    Result(uptr) rptr = heap_wasm_memory_bump(m, amount + delta);
-
-    result_raise(uptr, rptr);
-
-    return result_ok(uptr, aligned);
-}
+// Result(uptr) heap_wasm_memory_bump(HeapWasmMemory *m, usize amount) {
+//    if (!m->initialized) heap_wasm_memory_init(m);
+//
+//    usize available = m->capacity - m->offset;
+//    if (amount > available) {
+//        if (!heap_wasm_memory_grow(m, amount - available)) return result_error(uptr, ERR_OUT_OF_MEMORY);
+//    }
+//
+//    uptr ptr = m->start + m->offset;
+//    m->offset += amount;
+//
+//    return result_ok(uptr, ptr);
+//}
+//
+// Result(uptr) heap_wasm_memory_bump_align(HeapWasmMemory *m, usize amount, usize alignment) {
+//    if (!m->initialized) heap_wasm_memory_init(m);
+//
+//    uptr current          = m->start + m->offset;
+//    Result(uptr) raligned = mem_align_pointer_forward(current, alignment);
+//
+//    result_raise(uptr, raligned);
+//
+//    uptr aligned = raligned.value;
+//
+//    usize delta = aligned - current;
+//
+//    Result(uptr) rptr = heap_wasm_memory_bump(m, amount + delta);
+//
+//    result_raise(uptr, rptr);
+//
+//    return result_ok(uptr, aligned);
+//}
 
 typedef enum { BLOCK_FREE = 0x22, BLOCK_RESERVED = 0x32 } BlockState;
 
@@ -327,18 +327,6 @@ static Result(uptr) wasm_free_list_allocator_alloc(HeapWasmFreeListAllocatorStat
                 current->size = allocated_amount;
                 current->flag = BLOCK_RESERVED;
 
-                // Remove the current block from the free
-                // list
-                DEBUGLOG("current = %d, next = %d, prev = %d, head = %d",
-                         (uptr)current,
-                         (uptr)current->next,
-                         (uptr)current->prev,
-                         (uptr)&allocator->head);
-                assert(heap_wasm_pointer_check_bounds(&allocator->heap, (uptr)current));
-                assert(heap_wasm_pointer_check_bounds(&allocator->heap, (uptr)current->next));
-                assert(heap_wasm_pointer_check_bounds(&allocator->heap, (uptr)current->prev));
-                assert(heap_wasm_pointer_check_bounds(&allocator->heap, (uptr)current->next->prev));
-                assert(heap_wasm_pointer_check_bounds(&allocator->heap, (uptr)current->prev->next));
                 wasm_free_list_allocator_remove_block(current);
 
                 // Set the footer of the current block
@@ -383,33 +371,25 @@ static Result(uptr) wasm_free_list_allocator_alloc(HeapWasmFreeListAllocatorStat
         }
     }
 
-    // Try to grow memory
-    Result(uptr) rbump = heap_wasm_memory_bump(&allocator->heap, allocator->heap.capacity * 2);
+    Result(uptr) r_old_end = heap_wasm_memory_grow(&allocator->heap, allocator->heap.capacity * 2);
 
-    if (result_is_error(rbump)) {
+    if (result_is_error(r_old_end)) {
         return result_error(uptr, ERR_OUT_OF_MEMORY);
     }
 
-    uptr         bump       = rbump.value;
+    uptr bump = r_old_end.value;
+
     BlockHeader *bumpHeader = (BlockHeader *)bump;
-    BlockFooter *bumpFooter = (BlockFooter *)(allocator->heap.offset - sizeof(BlockFooter));
+    BlockFooter *bumpFooter = (BlockFooter *)(allocator->heap.end - sizeof(BlockFooter));
 
     bumpHeader->flag = BLOCK_FREE;
-    bumpHeader->size = (void *)bumpFooter - (void *)bumpHeader + sizeof(BlockHeader);
+    bumpHeader->size = (void *)bumpFooter - (void *)bumpHeader - sizeof(BlockHeader);
     bumpFooter->flag = BLOCK_FREE;
     bumpFooter->size = bumpHeader->size;
 
     wasm_free_list_allocator_prepend_block(allocator, bumpHeader);
 
-    DEBUGLOG("(grow) c: %d, n: %d, p: %d",
-             (void *)bumpHeader,
-             (void *)bumpHeader->next,
-             (void *)bumpHeader->next->next);
-
     return wasm_free_list_allocator_alloc(allocator, amount);
-    // If no block with the required size was found, we're
-    // out of memory
-    // return result_error(uptr, ERR_OUT_OF_MEMORY);
 }
 
 static void wasm_free_list_allocator_free(HeapWasmFreeListAllocatorState *allocator, uptr region) {
