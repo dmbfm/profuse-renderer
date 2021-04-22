@@ -74,6 +74,9 @@ static inline uptr __list_growf(uptr list, usize increment, usize element_size) 
     usize      new_size = new_cap * element_size + 2 * sizeof(ListHdr);
     Allocator *a        = __list_allocator(list);
 
+    assert(a);
+    assert(a->alloc);
+    assert(a->realloc);
     rp = a->realloc(a, (uptr)__list_hdr(list), new_size);
 
     p = result_unwrap(rp);

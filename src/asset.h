@@ -20,17 +20,18 @@ typedef enum {
 typedef struct RawAsset {
     char path[512];
     int id;
+    void *data;
+    usize byte_length;
     RawAssetState state;
     RawAssetType type;
     struct AssetManager *manager;
-    void *data;
 } RawAsset;
 
 typedef RawAsset* RawAssetPtr;
 
 result_make_type(RawAssetPtr);
 
-typedef void (*RawAssetLoadedCallback)(struct AssetManager *m, int id);
+typedef void (*RawAssetLoadedCallback)(struct AssetManager *m, RawAsset *asset);
 
 typedef struct AssetManager {
     Allocator *a;

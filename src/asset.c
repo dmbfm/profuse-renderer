@@ -38,8 +38,14 @@ static void raw_asset_read_file_callback(PlatformReadFileStatus status,
                                          Allocator *            allocator,
                                          void *                 user_data) {
 
-    RawAsset *asset = (RawAsset *)user_data;
-    DEBUGLOG("RAW ASSET LOADED!");
+    RawAsset *    asset   = (RawAsset *)user_data;
+    AssetManager *manager = asset->manager;
+
+    asset->state       = RawAssetLoaded;
+    asset->data        = data;
+    asset->byte_length = byte_size;
+
+    manager->raw_asset_loaded_callback(manager, asset);
 }
 
 ErrorCode asset_manager_load_raw_asset(AssetManager *am, int id) {

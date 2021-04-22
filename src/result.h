@@ -42,6 +42,7 @@ result_make_type(u32);
 result_make_type(i8);
 result_make_type(i16);
 result_make_type(i32);
+result_make_type(int);
 result_make_type(uptr);
 result_make_type(char);
 result_make_type(charptr);

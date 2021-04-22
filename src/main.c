@@ -2,6 +2,7 @@
 #include "common.h"
 #include "heap.h"
 #include "list.h"
+#include "pfa.h"
 #include "platform.h"
 #include "platform_gl.h"
 #include "renderer_gl.h"
@@ -50,63 +51,15 @@ Platform p_config(void) {
     return p;
 }
 
-#if defined(__wasm__)
-typedef struct Asset {
-    char    path[512];
-    int     type;
-    int     size;
-    void *  data;
-    boolean allocated;
-    boolean isLoaded;
-} Asset;
-
-// Asset asset = { .path = "out.pfa" };
-Asset assets[100];
-int   asset_count;
-
-int add_asset(const char *path) {
-    Asset *a = &assets[asset_count];
-    string_copy_len(&a->path[0], path, 512);
-
-    asset_count++;
-    return asset_count - 1;
-}
-
-Asset *get_asset(int id) {
-    if (id < 0 || id >= asset_count) {
-        return 0;
-    }
-
-    return &assets[id];
-}
-
-void read_file_cb(PlatformReadFileStatus status, usize byte_size, void *data, Allocator *allocator, void *user_data) {
-    DEBUGLOG("Ok! Size = %d, id = %d", byte_size, *((int *)user_data));
-    allocator->free(allocator, (uptr)data);
-}
-
-int  gid;
-void server_start_loading_asset(int id) {
-    Asset *asset = get_asset(id);
-    gid          = id;
-    DEBUGLOG("%s", asset->path);
-    platform_read_file_async(a, asset->path, read_file_cb, &gid);
-}
-
-void test_load_asset() {
-    int id = add_asset("out.pfa");
-    server_start_loading_asset(id);
-}
-#endif
-
-// "Client"
-// client_asset_allocate(Asset *a);
-// client_asset_loaded(Asset *a);
-
-// "Server"
-// server_start_loading_asset(Asset *asset);
-
 AssetManager asset_manager;
+
+void raw_asset_loaded(AssetManager *m, RawAsset *asset) {
+    DEBUGLOG("Asset loaded! %s", asset->data);
+
+    Pfa pfa = {};
+
+    pfa_load(a, &pfa, asset->data, asset->byte_length);
+}
 
 void p_init(Platform *p) {
     UNUSED_VARIABLE(p);
@@ -117,7 +70,7 @@ void p_init(Platform *p) {
 
     i32 *x = (i32 *)result_unwrap(rx);
 
-    *x = 10;
+    *x = 1;
     platform_print_fmt(a, "x = %d", *x);
 
     DEBUGLOG("[main]: message");
@@ -143,6 +96,8 @@ void p_init(Platform *p) {
     glEnableVertexAttribArray(0);
 
     asset_manager_init(a, &asset_manager);
+    asset_manager.raw_asset_loaded_callback = raw_asset_loaded;
+
     int id = asset_manager_add_raw_asset(&asset_manager, "out.pfa", RawAssetPfa);
 
     RawAsset *a = &asset_manager.raw_assets[id];
@@ -150,8 +105,6 @@ void p_init(Platform *p) {
     DEBUGLOG("Added asset:  id = %d, path = %s", id, a->path);
 
     asset_manager_load_raw_asset(&asset_manager, id);
-
-    test_load_asset();
 }
 
 void p_frame(Platform *p) {

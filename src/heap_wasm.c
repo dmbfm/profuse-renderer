@@ -11,6 +11,7 @@
 /* TODO:
  * - Sanity tests?
  * - Record allocations for debugging, like in stb.h's
+ * - Check alignment on free list allocations
  * malloc wrapper
  */
 
@@ -448,7 +449,26 @@ static void wasm_free_list_free(Allocator *allocator, uptr region) {
     wasm_free_list_allocator_free(&wasm_free_list_allocator_state, region);
 }
 
-Allocator heap_wasm_free_list_allocator = {.alloc = wasm_free_list_alloc, .free = wasm_free_list_free};
+static Result(uptr) wasm_free_list_realloc(Allocator *allocator, uptr region, usize amount) {
+    if (amount == 0) {
+        return result_error(uptr, ERR_REALLOC_ZERO);
+    }
+
+    Result(uptr) r = wasm_free_list_alloc(allocator, amount);
+
+    result_raise(uptr, r);
+
+    uptr new_region = r.value;
+
+    // TODO: this is dumb and temporary.... we should copy the smallest of amount or old region size
+    memcpy((void *)new_region, (void *)region, amount);
+
+    return result_ok(uptr, new_region);
+}
+
+Allocator heap_wasm_free_list_allocator = {.alloc   = wasm_free_list_alloc,
+                                           .free    = wasm_free_list_free,
+                                           .realloc = wasm_free_list_realloc};
 
 void heap_wasm_free_list_print_blocks(void (*printfn)(const char *)) {
     wasm_free_list_print(&wasm_free_list_allocator_state, printfn);
